@@ -1,0 +1,763 @@
+{
+  "meta": {
+    "url": "https://plaid.com",
+    "title": "Plaid: Enabling all companies to build fintech solutions",
+    "description": "Plaid helps all companies build fintech solutions by making it easy, safe and reliable for people to connect their financial data to apps and services.",
+    "language": "en",
+    "viewport": "width=device-width, initial-scale=1.0",
+    "themeColor": "#ffffff",
+    "ogImage": "https://plaid.com/assets/img/plaid-social-card-landscape.jpg",
+    "ogTitle": "Plaid: Enabling all companies to build fintech solutions",
+    "ogDescription": "Plaid helps all companies build fintech solutions by making it easy, safe and reliable for people to connect their financial data to apps and services."
+  },
+  "theme": {
+    "mode": "light",
+    "bodyBackground": "#ffffff",
+    "isDark": false,
+    "confidence": 0.9
+  },
+  "brand": {
+    "name": "Plaid",
+    "favicon": {
+      "href": "https://plaid.com/assets/img/favicons/apple-touch-icon.png",
+      "type": null
+    }
+  },
+  "colors": {
+    "dominant": [
+      {
+        "hex": "#000000",
+        "ratio": 0.328
+      },
+      {
+        "hex": "#111111",
+        "ratio": 0.264
+      },
+      {
+        "hex": "#043c67",
+        "ratio": 0.148
+      },
+      {
+        "hex": "#012e37",
+        "ratio": 0.11
+      },
+      {
+        "hex": "#232424",
+        "ratio": 0.061
+      },
+      {
+        "hex": "#02284b",
+        "ratio": 0.015
+      },
+      {
+        "hex": "#111112",
+        "ratio": 0.013
+      },
+      {
+        "hex": "#ffffff",
+        "ratio": 0.011
+      },
+      {
+        "hex": "#595b5c",
+        "ratio": 0.01
+      },
+      {
+        "hex": "#3e3e3e",
+        "ratio": 0.01
+      },
+      {
+        "hex": "#05565c",
+        "ratio": 0.006
+      },
+      {
+        "hex": "#00172e",
+        "ratio": 0.005
+      },
+      {
+        "hex": "#f7faff",
+        "ratio": 0.003
+      },
+      {
+        "hex": "#f5f5ff",
+        "ratio": 0.003
+      },
+      {
+        "hex": "#e5fcff",
+        "ratio": 0.003
+      },
+      {
+        "hex": "#02294b",
+        "ratio": 0.002
+      },
+      {
+        "hex": "#5c7695",
+        "ratio": 0.002
+      },
+      {
+        "hex": "#a3a3ff",
+        "ratio": 0.002
+      },
+      {
+        "hex": "#6b7785",
+        "ratio": 0.001
+      },
+      {
+        "hex": "#808080",
+        "ratio": 0
+      },
+      {
+        "hex": "#003e4a",
+        "ratio": 0
+      },
+      {
+        "hex": "#ccf8ff",
+        "ratio": 0
+      },
+      {
+        "hex": "#383838",
+        "ratio": 0
+      },
+      {
+        "hex": "#dde3e9",
+        "ratio": 0
+      },
+      {
+        "hex": "#ebf0f4",
+        "ratio": 0
+      },
+      {
+        "hex": "#e6e6ff",
+        "ratio": 0
+      },
+      {
+        "hex": "#e5effe",
+        "ratio": 0
+      },
+      {
+        "hex": "#eaeff0",
+        "ratio": 0
+      },
+      {
+        "hex": "#6748d8",
+        "ratio": 0
+      },
+      {
+        "hex": "#b14edb",
+        "ratio": 0
+      }
+    ],
+    "palette": [
+      {
+        "hex": "#ffffff",
+        "role": "background",
+        "source": "computed"
+      },
+      {
+        "hex": "#111111",
+        "role": "foreground",
+        "source": "computed"
+      },
+      {
+        "hex": "#043c67",
+        "role": "primary",
+        "source": "heuristic"
+      },
+      {
+        "hex": "#a3a3ff",
+        "role": "secondary",
+        "source": "heuristic"
+      },
+      {
+        "hex": "#b14edb",
+        "role": "accent",
+        "source": "heuristic"
+      },
+      {
+        "hex": "#595b5c",
+        "role": "neutral",
+        "source": "heuristic"
+      }
+    ],
+    "cssVariables": {
+      "--input-border": "#767676",
+      "--color-fill-bg-tertiary": "#f6f6f6",
+      "--t5-button-icon-ghost-loading": "#232424",
+      "--t5-button-text-solid-resting": "#fff",
+      "--t5-textinput-message-focused": "#747677",
+      "--color-fill-bg-primary": "#fff",
+      "--blue900": "#0072cf",
+      "--red800": "#f44e66",
+      "--skeleton-sheen-bg": "#80bae8",
+      "--radio-bg-hover": "#fff",
+      "--tooltip-dark-text": "#fff",
+      "--t5-textinput-label-pressed": "#747677",
+      "--input-text-error": "#f44e66",
+      "--color-border-state-focused": "#0072cf",
+      "--tooltip-dark-border": "#555",
+      "--purple900": "#5c2ec7",
+      "--t5-button-border-outlined-disabled": "#929596",
+      "--color-fill-bg-secondary": "#fafafa",
+      "--color-border-destructive-high-contrast": "#b72743",
+      "--black200": "#f6f6f6",
+      "--color-border-default-contrast": "#dcdcdc",
+      "--t5-button-text-solid-disabled": "#fff",
+      "--t5-button-icon-ghost-resting": "#232424",
+      "--t5-black-1000": "#111112",
+      "--t5-black-1000-84": "#111112",
+      "--color-border-state-filled": "#111",
+      "--button-secondary-border-default": "#111",
+      "--red200": "#ffd7dc",
+      "--radio-label-hover": "#0072cf",
+      "--color-border-destructive-low-contrast": "#ffd7dc",
+      "--color-text-destructive-low-contrast": "#ffd7dc",
+      "--button-pressed": "#0061b3",
+      "--t5-button-icon-outlined-pressed": "#232424",
+      "--yellow800": "#f2d211",
+      "--t5-textinput-border-pressed": "#111112",
+      "--t5-textinput-message-invalid": "#9d3841",
+      "--t5-button-text-ghost-resting": "#111112",
+      "--input-dark-placeholder": "#949494",
+      "--input-bg-disabled": "#ededed",
+      "--tab-text-hover": "#0072cf",
+      "--input-border-focused": "#0072cf",
+      "--t5-button-bg-solid-loading": "#111112",
+      "--purple800": "#7646ec",
+      "--color-fill-status-attention": "#b1eefc",
+      "--input-icon-button-bg-right": "#fff",
+      "--t5-textinput-text-hovered": "#232424",
+      "--codeblock-scrollbar-track": "#111",
+      "--red400": "#ffaab9",
+      "--color-border-status-success": "#1fa077",
+      "--t5-button-icon-ghost-hovered": "#232424",
+      "--input-bg": "#fff",
+      "--t5-textinput-border-focused": "#232424",
+      "--t5-button-text-outlined-hovered": "#111112",
+      "--tab-border-hover": "#0072cf",
+      "--button-hover": "#0072cf",
+      "--button-secondary-border-disabled": "#767676",
+      "--t5-black-500": "#929596",
+      "--input-dark-label": "#949494",
+      "--t5-button-icon-solid-pressed": "#fff",
+      "--blue700": "#37b0f4",
+      "--color-text-low-contrast": "#555",
+      "--t5-textinput-text-pressed": "#232424",
+      "--t5-textinput-bg-invalid": "#ffe9e8",
+      "--t5-textinput-label-hovered": "#747677",
+      "--t5-textinput-message-pressed": "#747677",
+      "--t5-button-icon-solid-hovered": "#fff",
+      "--input-dark-bg": "#111",
+      "--color-modal-progressbar-progress": "#0a85ea",
+      "--t5-black-300": "#eaeff0",
+      "--color-fill-status-success": "#abffdb",
+      "--t5-textinput-message-disabled": "#747677",
+      "--t5-button-text-outlined-disabled": "#929596",
+      "--t5-textinput-bg-disabled": "#eaeff0",
+      "--t5-button-text-outlined-resting": "#111112",
+      "--t5-textinput-bg-focused": "#fff",
+      "--t5-black-200": "#f9fafb",
+      "--link-text": "#383838",
+      "--white": "#fff",
+      "--color-fill-state-pressed-low-contrast": "#d4f9ff",
+      "--t5-textinput-text-resting": "#232424",
+      "--color-border-state-default": "#767676",
+      "--skeleton-bg": "#ededed",
+      "--t5-black-700": "#595b5c",
+      "--t5-button-icon-outlined-hovered": "#232424",
+      "--green1000": "#1e8262",
+      "--color-border-status-warning": "#ba7d17",
+      "--t5-textinput-label-resting": "#747677",
+      "--input-border-error": "#f44e66",
+      "--t5-button-text-ghost-disabled": "#929596",
+      "--black600": "#949494",
+      "--t5-textinput-label-invalid": "#9d3841",
+      "--codeblock-border-header": "#383838",
+      "--t5-button-border-outlined-hovered": "#111112",
+      "--tab-border-selected": "#111",
+      "--codeblock-text-default": "#c5c5c5",
+      "--t5-button-icon-ghost-pressed": "#232424",
+      "--black700": "#767676",
+      "--t5-button-text-ghost-hovered": "#111112",
+      "--yellow600": "#fce76b",
+      "--color-text-inverse-default-contrast": "#ededed",
+      "--consumer-listItem-border": "#ededed",
+      "--t5-button-text-ghost-loading": "#111112",
+      "--tab-border-active-selected": "#0061b3",
+      "--t5-textinput-text-disabled": "#929596",
+      "--black900": "#383838",
+      "--yellow200": "#fefbb8",
+      "--input-label-text-float-dark": "#949494",
+      "--t5-textinput-label-disabled": "#929596",
+      "--tab-list-border": "#dcdcdc",
+      "--purple1000": "#4726a3",
+      "--input-dark-border": "#949494",
+      "--t5-textinput-text-invalid": "#9d3841",
+      "--color-border-state-error": "#f44e66",
+      "--t5-red-800": "#9d3841",
+      "--yellow1000": "#dba81b",
+      "--color-border-state-disabled": "#dcdcdc",
+      "--color-fill-status-error": "#ffaab9",
+      "--color-fill-state-hover": "#0072cf",
+      "--red900": "#d83d57",
+      "--t5-red-200": "#fbb",
+      "--codeblock-scrollbar-thumb": "#555",
+      "--t5-red-1000": "#5f2629",
+      "--color-border-high-contrast": "#111",
+      "--t5-black-400": "#dee3e5",
+      "--t5-button-icon-outlined-resting": "#232424",
+      "--color-border-status-default": "#767676",
+      "--badge-solid-text-color": "#111",
+      "--color-border-destructive-default-contrast": "#f44e66",
+      "--input-text-disabled": "#767676",
+      "--t5-black-900": "#232424",
+      "--gold": "#ba7d17",
+      "--radio-border": "#767676",
+      "--red600": "#ff7885",
+      "--codeblock-text": "#ededed",
+      "--t5-button-bg-solid-pressed": "#111112",
+      "--color-text-high-contrast": "#111",
+      "--black300": "#ededed",
+      "--radio-bg-filled-hover": "#111",
+      "--t5-textinput-border-hovered": "#747677",
+      "--t5-button-icon-solid-disabled": "#fff",
+      "--t5-textinput-bg-pressed": "#fff",
+      "--t5-textinput-border-invalid": "#ce4553",
+      "--phone-input-dark-text": "#949494",
+      "--t5-textinput-label-focused": "#747677",
+      "--radio-label-focused": "#0072cf",
+      "--button-primary-fill-default": "#111",
+      "--t5-black-100": "#fff",
+      "--color-text-destructive-high-contrast": "#b72743",
+      "--color-fill-default": "#111",
+      "--input-bg-filled": "#767676",
+      "--green800": "#23d09c",
+      "--phoneInput-border-color": "#f8626e",
+      "--t5-button-bg-solid-resting": "#111112",
+      "--red1000": "#b72743",
+      "--t5-button-text-solid-loading": "#fff",
+      "--purple400": "#c6befc",
+      "--t5-black-800": "#373839",
+      "--blue200": "#d4f9ff",
+      "--t5-textinput-border-disabled": "#929596",
+      "--t5-button-bg-solid-disabled": "#747677",
+      "--t5-textinput-bg-hovered": "#fff",
+      "--t5-textinput-bg-resting": "#fff",
+      "--t5-button-text-ghost-pressed": "#111112",
+      "--radio-border-hover": "#0072cf",
+      "--color-fill-destructive-high-contrast": "#b72743",
+      "--codeblock-container-bg": "#111",
+      "--blue400": "#b1eefc",
+      "--yellow900": "#e6ba23",
+      "--yellow400": "#fbf1a0",
+      "--color-border-status-error": "#d83d57",
+      "--purple600": "#9986f7",
+      "--tooltip-dark-bg": "#111",
+      "--t5-red-100": "#ffe9e8",
+      "--black800": "#555",
+      "--tab-text-active": "#0072cf",
+      "--color-text-state-hover": "#0072cf",
+      "--input-border-disabled": "#dcdcdc",
+      "--green200": "#d0fce4",
+      "--t5-button-icon-outlined-loading": "#232424",
+      "--input-border-hover": "#0072cf",
+      "--color-fill-state-disabled": "#ededed",
+      "--t5-textinput-text-focused": "#232424",
+      "--color-border-state-hover": "#0072cf",
+      "--t5-button-text-solid-pressed": "#fff",
+      "--color-fill-state-error": "#f44e66",
+      "--color-fill-state-pressed": "#0061b3",
+      "--color-modal-progressbar-background": "#f2f2f2",
+      "--green400": "#abffdb",
+      "--codeblock-border-state-scroll": "#555",
+      "--t5-textinput-message-hovered": "#747677",
+      "--color-text-state-default": "#111",
+      "--t5-red-400": "#f8626e",
+      "--green600": "#5befbd",
+      "--t5-button-border-outlined-pressed": "#111112",
+      "--color-text-inverse-low-contrast": "#c5c5c5",
+      "--t5-button-text-outlined-pressed": "#111112",
+      "--color-fill-bg-inverse": "#111",
+      "--color-fill-status-warning": "#fbf1a0",
+      "--t5-button-text-solid-hovered": "#fff",
+      "--t5-textinput-border-resting": "#dee3e5",
+      "--t5-button-icon-solid-resting": "#fff",
+      "--color-fill-bg-e1": "#fff",
+      "--black400": "#dcdcdc",
+      "--caret-light": "#c5c5c5",
+      "--color-fill-state-default": "#111",
+      "--color-fill-destructive-low-contrast": "#ffd7dc",
+      "--black100": "#fafafa",
+      "--color-fill-status-default": "#dcdcdc",
+      "--blue1000": "#0061b3",
+      "--t5-textinput-message-resting": "#747677",
+      "--t5-button-border-outlined-resting": "#dee3e5",
+      "--green900": "#1fa077",
+      "--blue600": "#63daff",
+      "--purple200": "#e1e1ff",
+      "--t5-button-bg-solid-hovered": "#111112",
+      "--t5-button-icon-solid-loading": "#fff",
+      "--black500": "#c5c5c5",
+      "--loading-spinner": "#0a85ea",
+      "--color-text-state-pressed": "#0072cf",
+      "--icon-fill": "#383838",
+      "--blue800": "#0a85ea",
+      "--color-border-status-attention": "#0072cf",
+      "--button-primary-fill-disabled": "#767676",
+      "--input-border-pressed": "#0061b3",
+      "--t5-button-icon-ghost-disabled": "#929596",
+      "--color-text-inverse-high-contrast": "#fff",
+      "--radio-checked-bg-filled-hover": "#0072cf",
+      "--badge-text-color": "#111",
+      "--color-text-state-disabled": "#767676",
+      "--input-dark-text": "#dcdcdc",
+      "--t5-black-600": "#747677",
+      "--color-border-state-pressed": "#0061b3",
+      "--t5-button-border-outlined-loading": "#111112",
+      "--color-border-low-contrast": "#ededed",
+      "--black1000": "#111",
+      "--bg-color": "#fff",
+      "--color-text-default-contrast": "#383838",
+      "--radio-border-focused": "#0072cf",
+      "--t5-button-icon-outlined-disabled": "#929596",
+      "--t5-red-600": "#ce4553",
+      "--t5-button-text-outlined-loading": "#111112",
+      "--color-fill-inverse": "#fff",
+      "--tooltipBackground": "#fff",
+      "--tooltipColor": "#000",
+      "--button-solid-bg": "#156ef5",
+      "--button-solid-bg-hover": "#0a54c4",
+      "--button-solid-bg-active": "#0a54c4",
+      "--button-solid-bg-loading": "#0a54c4",
+      "--button-outline-text": "#0a54c4",
+      "--button-outline-border": "#156ef5",
+      "--button-outline-text-hover": "#0a54c4",
+      "--button-outline-border-hover": "#0a54c4",
+      "--button-outline-bg-hover": "#156ef5",
+      "--button-outline-text-active": "#0a54c4",
+      "--button-outline-border-active": "#0a54c4",
+      "--button-outline-bg-active": "#156ef5",
+      "--button-outline-text-loading": "#0a54c4",
+      "--button-outline-border-loading": "#0a54c4",
+      "--button-outline-bg-loading": "#156ef5",
+      "--button-ghost-text": "#0a54c4",
+      "--button-ghost-text-hover": "#0a54c4",
+      "--button-ghost-bg-hover": "#156ef5",
+      "--button-ghost-text-active": "#0a54c4",
+      "--button-ghost-bg-active": "#156ef5",
+      "--button-ghost-text-loading": "#0a54c4",
+      "--button-ghost-bg-loading": "#156ef5",
+      "--color": "#fff",
+      "--bar-box-shadow": "#000000",
+      "--bar-background": "#0c1116",
+      "--button-primary-color": "#111112",
+      "--button-primary-hover-color": "#111112",
+      "--button-secondary-color": "#fff",
+      "--button-secondary-background": "#ffffff",
+      "--button-secondary-hover-color": "#b6fbe9",
+      "--button-secondary-hover-background": "#ffffff",
+      "--dropdown-color": "#012e37",
+      "--dropdown-link-hover-color": "#088181",
+      "--dialog-color": "#012e37",
+      "--columns-title-color": "#6b7785",
+      "--card-secondary-color": "#05565c",
+      "--card-icon-color": "#088181",
+      "--card-hover-icon-box-shadow": "#7ff8da",
+      "--card-image-svg-border-color": "#05565c",
+      "--card-image-svg-color": "#111112",
+      "--card-image-svg-accent-color": "#088181",
+      "--tabs-button-hover-color": "#088181"
+    },
+    "gradients": []
+  },
+  "logo": {
+    "status": "confirmed",
+    "reason": null,
+    "best": {
+      "selector": "svg.css-6ht02i",
+      "href": null,
+      "type": "svg",
+      "width": 74.34375,
+      "height": 28,
+      "svgContent": "<svg height=\"48\" viewBox=\"0 0 77 29\" xmlns=\"http://www.w3.org/2000/svg\" aria-label=\"Plaid\" class=\"css-6ht02i\"><g fill=\"currentColor\" fill-rule=\"evenodd\"><path d=\"M37.3252 14.9546H36.2239V12.5005H37.2135C38.4162 12.5005 39.0177 12.9124 39.0177 13.7353C39.0177 14.5484 38.4537 14.9546 37.3252 14.9546ZM40.3753 10.9121C39.7365 10.3878 38.6455 10.126 37.1019 10.126H33.6211V20.617H36.2239V17.33H37.3893C38.8052 17.33 39.8431 17.0256 40.5028 16.417C41.2475 15.7359 41.6206 14.8291 41.6206 13.6961C41.6206 12.5218 41.2058 11.5939 40.3753 10.9121ZM46.0756 10.1256H43.3611V20.6173H49.2216V18.2421H46.0758L46.0756 10.1256ZM54.5063 16.9683L55.6241 13.382L56.7254 16.9683H54.5063ZM54.538 10.1256L50.275 20.6173H53.197L53.7559 19.0919H57.46L57.9707 20.6173H60.9256L56.6937 10.1256H54.538ZM62.2824 20.6173H64.9969V10.1256H62.2824V20.6173ZM71.1922 18.2422H70.0263V12.5005H71.2081C72.0385 12.5005 72.6766 12.7536 73.1239 13.2592C73.5712 13.7654 73.7944 14.4828 73.7944 15.4101C73.7944 17.2986 72.9266 18.2422 71.1922 18.2422ZM75.5353 12.0917C75.1737 11.588 74.7422 11.1849 74.2424 10.8806C73.4221 10.3769 72.3043 10.125 70.8885 10.125H67.3119V20.6167H71.4956C73.0068 20.6167 74.2209 20.135 75.1363 19.1701C76.0517 18.2052 76.5091 16.9261 76.5091 15.3319C76.5089 14.0633 76.1842 12.9835 75.5353 12.0917Z\"></path><path d=\"M25.7629 26.2628L28 17.5309L24.9691 14.5001L27.9999 11.4691L25.7628 2.73706L17.0309 0.5L14.0001 3.531L10.969 0.50014L2.23706 2.73734L0 11.4691L3.03128 14.4999L0.00014 17.531L2.2372 26.2629L10.9691 28.5L14.0001 25.469L17.031 28.4999L25.7629 26.2628ZM15.7321 23.7371L18.6186 20.8505L22.2912 24.5233L17.6956 25.7007L15.7321 23.7371ZM11.1136 9.88154L14.0003 6.99502L16.8868 9.8814L14.0001 12.7679L11.1136 9.88154ZM12.2682 14.5L9.38154 17.3865L6.49502 14.5L9.38154 11.6135L12.2682 14.5ZM18.6187 11.6133L21.5053 14.5L18.6186 17.3865L15.7321 14.5L18.6187 11.6133ZM16.8867 19.1186L14.0001 22.0051L11.1135 19.1185L14.0001 16.2319L16.8867 19.1186ZM10.3044 25.7007L5.70864 24.5233L9.38154 20.8504L12.2682 23.7371L10.3044 25.7007ZM4.76308 16.2319L7.6496 19.1185L3.9767 22.7914L2.7993 18.1957L4.76308 16.2319ZM3.9767 6.20836L7.64974 9.8814L4.76308 12.7681L2.7993 10.8041L3.9767 6.20836ZM12.2683 5.26294L9.38168 8.1496L5.70892 4.4767L10.3047 3.2993L12.2683 5.26294ZM17.6959 3.2993L22.2915 4.4767L18.6186 8.14946L15.7321 5.26294L17.6959 3.2993ZM23.2372 12.7681L20.3505 9.8814L24.0233 6.20878L25.2007 10.8046L23.2372 12.7681ZM24.0233 22.7914L20.3505 19.1186L23.2372 16.2321L25.2007 18.1957L24.0233 22.7914Z\"></path></g></svg>",
+      "colors": [
+        "#232424"
+      ],
+      "isLight": false,
+      "isDark": true,
+      "needsDarkBackground": false,
+      "needsLightBackground": true,
+      "ownership": "first-party",
+      "headerScoped": true,
+      "variant": "dark",
+      "brandNameOnLogo": "PLAID",
+      "standaloneSvg": "<svg height=\"48\" viewBox=\"0 0 77 29\" xmlns=\"http://www.w3.org/2000/svg\" aria-label=\"Plaid\" class=\"css-6ht02i\"><g fill=\"#232424\" fill-rule=\"evenodd\"><path d=\"M37.3252 14.9546H36.2239V12.5005H37.2135C38.4162 12.5005 39.0177 12.9124 39.0177 13.7353C39.0177 14.5484 38.4537 14.9546 37.3252 14.9546ZM40.3753 10.9121C39.7365 10.3878 38.6455 10.126 37.1019 10.126H33.6211V20.617H36.2239V17.33H37.3893C38.8052 17.33 39.8431 17.0256 40.5028 16.417C41.2475 15.7359 41.6206 14.8291 41.6206 13.6961C41.6206 12.5218 41.2058 11.5939 40.3753 10.9121ZM46.0756 10.1256H43.3611V20.6173H49.2216V18.2421H46.0758L46.0756 10.1256ZM54.5063 16.9683L55.6241 13.382L56.7254 16.9683H54.5063ZM54.538 10.1256L50.275 20.6173H53.197L53.7559 19.0919H57.46L57.9707 20.6173H60.9256L56.6937 10.1256H54.538ZM62.2824 20.6173H64.9969V10.1256H62.2824V20.6173ZM71.1922 18.2422H70.0263V12.5005H71.2081C72.0385 12.5005 72.6766 12.7536 73.1239 13.2592C73.5712 13.7654 73.7944 14.4828 73.7944 15.4101C73.7944 17.2986 72.9266 18.2422 71.1922 18.2422ZM75.5353 12.0917C75.1737 11.588 74.7422 11.1849 74.2424 10.8806C73.4221 10.3769 72.3043 10.125 70.8885 10.125H67.3119V20.6167H71.4956C73.0068 20.6167 74.2209 20.135 75.1363 19.1701C76.0517 18.2052 76.5091 16.9261 76.5091 15.3319C76.5089 14.0633 76.1842 12.9835 75.5353 12.0917Z\"></path><path d=\"M25.7629 26.2628L28 17.5309L24.9691 14.5001L27.9999 11.4691L25.7628 2.73706L17.0309 0.5L14.0001 3.531L10.969 0.50014L2.23706 2.73734L0 11.4691L3.03128 14.4999L0.00014 17.531L2.2372 26.2629L10.9691 28.5L14.0001 25.469L17.031 28.4999L25.7629 26.2628ZM15.7321 23.7371L18.6186 20.8505L22.2912 24.5233L17.6956 25.7007L15.7321 23.7371ZM11.1136 9.88154L14.0003 6.99502L16.8868 9.8814L14.0001 12.7679L11.1136 9.88154ZM12.2682 14.5L9.38154 17.3865L6.49502 14.5L9.38154 11.6135L12.2682 14.5ZM18.6187 11.6133L21.5053 14.5L18.6186 17.3865L15.7321 14.5L18.6187 11.6133ZM16.8867 19.1186L14.0001 22.0051L11.1135 19.1185L14.0001 16.2319L16.8867 19.1186ZM10.3044 25.7007L5.70864 24.5233L9.38154 20.8504L12.2682 23.7371L10.3044 25.7007ZM4.76308 16.2319L7.6496 19.1185L3.9767 22.7914L2.7993 18.1957L4.76308 16.2319ZM3.9767 6.20836L7.64974 9.8814L4.76308 12.7681L2.7993 10.8041L3.9767 6.20836ZM12.2683 5.26294L9.38168 8.1496L5.70892 4.4767L10.3047 3.2993L12.2683 5.26294ZM17.6959 3.2993L22.2915 4.4767L18.6186 8.14946L15.7321 5.26294L17.6959 3.2993ZM23.2372 12.7681L20.3505 9.8814L24.0233 6.20878L25.2007 10.8046L23.2372 12.7681ZM24.0233 22.7914L20.3505 19.1186L23.2372 16.2321L25.2007 18.1957L24.0233 22.7914Z\"></path></g></svg>",
+      "uploadedUrl": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/logo/360af0d7-47c6-47f7-b9e6-989a2578d9e1.svg"
+    },
+    "candidates": [
+      {
+        "selector": "img",
+        "href": "https://cdn.cookielaw.org/logos/static/ot_company_logo.png",
+        "type": "png",
+        "width": 2042,
+        "height": 280,
+        "svgContent": null,
+        "colors": [],
+        "isLight": false,
+        "isDark": false,
+        "needsDarkBackground": false,
+        "needsLightBackground": false,
+        "ownership": "third-party"
+      },
+      {
+        "selector": "svg.css-6ht02i",
+        "href": null,
+        "type": "svg",
+        "width": 74.34375,
+        "height": 28,
+        "svgContent": "<svg height=\"48\" viewBox=\"0 0 77 29\" xmlns=\"http://www.w3.org/2000/svg\" aria-label=\"Plaid\" class=\"css-6ht02i\"><g fill=\"currentColor\" fill-rule=\"evenodd\"><path d=\"M37.3252 14.9546H36.2239V12.5005H37.2135C38.4162 12.5005 39.0177 12.9124 39.0177 13.7353C39.0177 14.5484 38.4537 14.9546 37.3252 14.9546ZM40.3753 10.9121C39.7365 10.3878 38.6455 10.126 37.1019 10.126H33.6211V20.617H36.2239V17.33H37.3893C38.8052 17.33 39.8431 17.0256 40.5028 16.417C41.2475 15.7359 41.6206 14.8291 41.6206 13.6961C41.6206 12.5218 41.2058 11.5939 40.3753 10.9121ZM46.0756 10.1256H43.3611V20.6173H49.2216V18.2421H46.0758L46.0756 10.1256ZM54.5063 16.9683L55.6241 13.382L56.7254 16.9683H54.5063ZM54.538 10.1256L50.275 20.6173H53.197L53.7559 19.0919H57.46L57.9707 20.6173H60.9256L56.6937 10.1256H54.538ZM62.2824 20.6173H64.9969V10.1256H62.2824V20.6173ZM71.1922 18.2422H70.0263V12.5005H71.2081C72.0385 12.5005 72.6766 12.7536 73.1239 13.2592C73.5712 13.7654 73.7944 14.4828 73.7944 15.4101C73.7944 17.2986 72.9266 18.2422 71.1922 18.2422ZM75.5353 12.0917C75.1737 11.588 74.7422 11.1849 74.2424 10.8806C73.4221 10.3769 72.3043 10.125 70.8885 10.125H67.3119V20.6167H71.4956C73.0068 20.6167 74.2209 20.135 75.1363 19.1701C76.0517 18.2052 76.5091 16.9261 76.5091 15.3319C76.5089 14.0633 76.1842 12.9835 75.5353 12.0917Z\"></path><path d=\"M25.7629 26.2628L28 17.5309L24.9691 14.5001L27.9999 11.4691L25.7628 2.73706L17.0309 0.5L14.0001 3.531L10.969 0.50014L2.23706 2.73734L0 11.4691L3.03128 14.4999L0.00014 17.531L2.2372 26.2629L10.9691 28.5L14.0001 25.469L17.031 28.4999L25.7629 26.2628ZM15.7321 23.7371L18.6186 20.8505L22.2912 24.5233L17.6956 25.7007L15.7321 23.7371ZM11.1136 9.88154L14.0003 6.99502L16.8868 9.8814L14.0001 12.7679L11.1136 9.88154ZM12.2682 14.5L9.38154 17.3865L6.49502 14.5L9.38154 11.6135L12.2682 14.5ZM18.6187 11.6133L21.5053 14.5L18.6186 17.3865L15.7321 14.5L18.6187 11.6133ZM16.8867 19.1186L14.0001 22.0051L11.1135 19.1185L14.0001 16.2319L16.8867 19.1186ZM10.3044 25.7007L5.70864 24.5233L9.38154 20.8504L12.2682 23.7371L10.3044 25.7007ZM4.76308 16.2319L7.6496 19.1185L3.9767 22.7914L2.7993 18.1957L4.76308 16.2319ZM3.9767 6.20836L7.64974 9.8814L4.76308 12.7681L2.7993 10.8041L3.9767 6.20836ZM12.2683 5.26294L9.38168 8.1496L5.70892 4.4767L10.3047 3.2993L12.2683 5.26294ZM17.6959 3.2993L22.2915 4.4767L18.6186 8.14946L15.7321 5.26294L17.6959 3.2993ZM23.2372 12.7681L20.3505 9.8814L24.0233 6.20878L25.2007 10.8046L23.2372 12.7681ZM24.0233 22.7914L20.3505 19.1186L23.2372 16.2321L25.2007 18.1957L24.0233 22.7914Z\"></path></g></svg>",
+        "colors": [
+          "#232424"
+        ],
+        "isLight": false,
+        "isDark": true,
+        "needsDarkBackground": false,
+        "needsLightBackground": true,
+        "ownership": "first-party",
+        "headerScoped": true
+      },
+      {
+        "selector": "img",
+        "href": "https://cdn.cookielaw.org/logos/static/powered_by_logo.svg",
+        "type": "svg",
+        "width": 568,
+        "height": 53,
+        "svgContent": null,
+        "colors": [],
+        "isLight": false,
+        "isDark": false,
+        "needsDarkBackground": false,
+        "needsLightBackground": false,
+        "ownership": "third-party"
+      },
+      {
+        "selector": "img.css-1qifv4f",
+        "href": "https://images.ctfassets.net/ss5kfr270og3/47kT6yvxn5fE5I3Ne7fVru/f8038ab4c155db2f834cea8051cbed5e/homepage_marquee_Monzo.png?fm=webp&q=1&h=60",
+        "type": "png?fm=webp&q=1&h=60",
+        "width": 271,
+        "height": 60,
+        "svgContent": null,
+        "colors": [],
+        "isLight": false,
+        "isDark": false,
+        "needsDarkBackground": false,
+        "needsLightBackground": false,
+        "ownership": "third-party"
+      },
+      {
+        "selector": "img.css-1qifv4f",
+        "href": "https://images.ctfassets.net/ss5kfr270og3/vebvyCNTGsbv06OpATmzL/577406f2c1798902b2264b8d3c95fae4/homepage_marquee_Robinhood.png?fm=webp&q=1&h=60",
+        "type": "png?fm=webp&q=1&h=60",
+        "width": 286,
+        "height": 60,
+        "svgContent": null,
+        "colors": [],
+        "isLight": false,
+        "isDark": false,
+        "needsDarkBackground": false,
+        "needsLightBackground": false,
+        "ownership": "third-party"
+      },
+      {
+        "selector": "svg",
+        "href": null,
+        "type": "svg",
+        "width": 12,
+        "height": 12,
+        "svgContent": "<svg width=\"16\" height=\"16\" focusable=\"false\" aria-hidden=\"true\" role=\"img\" class=\"css-qzxgwt\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#:r40:)\"><path d=\"M14.0303 6.53027L8 12.5605L1.96973 6.53027L3.03027 5.46973L8 10.4395L12.9697 5.46973L14.0303 6.53027Z\" fill=\"currentColor\"></path></g><defs><clipPath id=\":r40:\"><rect width=\"16\" height=\"16\" fill=\"currentColor\"></rect></clipPath></defs></svg>",
+        "colors": [
+          "#232424"
+        ],
+        "isLight": false,
+        "isDark": true,
+        "headerScoped": true,
+        "ownership": "first-party"
+      },
+      {
+        "selector": "svg",
+        "href": null,
+        "type": "svg",
+        "width": 12,
+        "height": 12,
+        "svgContent": "<svg width=\"16\" height=\"16\" focusable=\"false\" aria-hidden=\"true\" role=\"img\" class=\"css-qzxgwt\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#:r41:)\"><path d=\"M14.0303 9.46973L12.9697 10.5303L8 5.56055L3.03027 10.5303L1.96973 9.46973L8 3.43945L14.0303 9.46973Z\" fill=\"currentColor\"></path></g><defs><clipPath id=\":r41:\"><rect width=\"16\" height=\"16\" fill=\"currentColor\"></rect></clipPath></defs></svg>",
+        "colors": [
+          "#232424"
+        ],
+        "isLight": false,
+        "isDark": true,
+        "headerScoped": true,
+        "ownership": "first-party"
+      },
+      {
+        "selector": "svg",
+        "href": null,
+        "type": "svg",
+        "width": 12,
+        "height": 12,
+        "svgContent": "<svg width=\"16\" height=\"16\" focusable=\"false\" aria-hidden=\"true\" role=\"img\" class=\"css-qzxgwt\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#:r42:)\"><path d=\"M14.0303 6.53027L8 12.5605L1.96973 6.53027L3.03027 5.46973L8 10.4395L12.9697 5.46973L14.0303 6.53027Z\" fill=\"currentColor\"></path></g><defs><clipPath id=\":r42:\"><rect width=\"16\" height=\"16\" fill=\"currentColor\"></rect></clipPath></defs></svg>",
+        "colors": [
+          "#232424"
+        ],
+        "isLight": false,
+        "isDark": true,
+        "headerScoped": true,
+        "ownership": "first-party"
+      }
+    ]
+  },
+  "fonts": {
+    "computed": [
+      {
+        "family": "Cern, Helvetica, Arial, sans-serif",
+        "weights": [
+          "400",
+          "600"
+        ],
+        "source": "web"
+      }
+    ],
+    "baseSizePx": 16
+  },
+  "confidence": {
+    "colorExtraction": 0.9,
+    "logoDetection": 0.95,
+    "fontDetection": 0.8
+  },
+  "screenshot": {
+    "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/screenshot.png",
+    "width": 1920,
+    "height": 1080,
+    "sizeBytes": 1835567,
+    "uploadedAt": "2026-09-20T04:27:54.508Z"
+  },
+  "assets": {
+    "b218c3e5-52de-45d0-a0e8-142362c1bb77": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/b218c3e5-52de-45d0-a0e8-142362c1bb77.webp",
+      "name": "AdobeStock_566188450__3_.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "1.98 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 2030,
+        "uploadedAt": "2026-09-20T04:27:54.698Z"
+      }
+    },
+    "2e26332b-c5e3-47cf-93f7-034797c2870b": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/2e26332b-c5e3-47cf-93f7-034797c2870b.webp",
+      "name": "homepage-solutions-border-image.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "5.28 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 5406,
+        "uploadedAt": "2026-09-20T04:27:54.694Z"
+      }
+    },
+    "a5d96136-dfa6-4fd0-933b-1f2635e4b30f": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/a5d96136-dfa6-4fd0-933b-1f2635e4b30f.webp",
+      "name": "homepage-ai-cta-background-desktop.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "362.93 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 371636,
+        "uploadedAt": "2026-09-20T04:27:54.997Z"
+      }
+    },
+    "8fd43eb1-cc4a-4497-8cbf-a942905321ae": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/8fd43eb1-cc4a-4497-8cbf-a942905321ae.webp",
+      "name": "besk-desktop-open.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "342.04 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 350250,
+        "uploadedAt": "2026-09-20T04:27:55.039Z"
+      }
+    },
+    "b44ac021-0726-40b4-8bb7-720a83967cab": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/b44ac021-0726-40b4-8bb7-720a83967cab.webp",
+      "name": "Tail_Holo_Strip__1_.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "4.27 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 4370,
+        "uploadedAt": "2026-09-20T04:27:54.963Z"
+      }
+    },
+    "cf75788f-44a2-489d-9e82-a08887169406": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/cf75788f-44a2-489d-9e82-a08887169406.webp",
+      "name": "homepage-solutions-pbb-background.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "78.91 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 80800,
+        "uploadedAt": "2026-09-20T04:27:55.454Z"
+      }
+    },
+    "58452fa5-00a9-4458-b0b5-0b9228444c95": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/58452fa5-00a9-4458-b0b5-0b9228444c95.webp",
+      "name": "homepage-solutions-credit-scoring-background.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "30.68 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 31418,
+        "uploadedAt": "2026-09-20T04:27:55.216Z"
+      }
+    },
+    "1dcf56b7-24ba-4043-8b9e-a0939a97fec0": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/1dcf56b7-24ba-4043-8b9e-a0939a97fec0.webp",
+      "name": "homepage-solutions-credit-scoring-foreground.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "177.93 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 182202,
+        "uploadedAt": "2026-09-20T04:27:55.474Z"
+      }
+    },
+    "518e9022-3a55-4fea-b287-49545575858b": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/518e9022-3a55-4fea-b287-49545575858b.webp",
+      "name": "homepage-solutions-fraud-protection-background-v2.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "46.75 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 47870,
+        "uploadedAt": "2026-09-20T04:27:55.206Z"
+      }
+    },
+    "8670c8ec-c8e6-4ea6-8341-3eb071838288": {
+      "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/brand/a4ea9297-282e-498c-a792-61850bfe9693/assets/8670c8ec-c8e6-4ea6-8341-3eb071838288.webp",
+      "name": "homepage-solutions-onboarding-background-v2.png",
+      "type": "image",
+      "description": "",
+      "metadata": {
+        "size": "44.54 KB",
+        "mimeType": "image/webp",
+        "sizeBytes": 45612,
+        "uploadedAt": "2026-09-20T04:27:55.220Z"
+      }
+    }
+  }
+}

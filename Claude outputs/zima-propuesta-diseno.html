@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zima — Propuesta de rediseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Direcciones ---------- */
+  :root, [data-dir="indigo"] {
+    --bg:#f6f7fb; --surface:#fff; --surface-alt:#f1f3f9; --ink:#0f1222; --muted:#5b6275; --faint:#9aa1b4;
+    --border:#e4e7f0; --accent:#4f46e5; --accent-hover:#4338ca; --accent-soft:#eef0ff; --accent-ink:#3730a3;
+    --rail:#0f1222; --rail-ink:#aab0c5; --rail-active:#ffffff; --rail-active-bg:rgba(255,255,255,.10);
+    --radius:14px; --shadow:0 1px 2px rgba(15,18,34,.04), 0 4px 14px rgba(15,18,34,.05);
+    --hero: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+  }
+  [data-dir="calido"] {
+    --bg:#faf8f5; --surface:#fff; --surface-alt:#f4f0ea; --ink:#1c1917; --muted:#6b635a; --faint:#a8a097;
+    --border:#ebe5dc; --accent:#ea580c; --accent-hover:#c2410c; --accent-soft:#fff1e8; --accent-ink:#9a3412;
+    --rail:#ffffff; --rail-ink:#78716c; --rail-active:#1c1917; --rail-active-bg:#f4f0ea;
+    --radius:16px; --shadow:0 1px 2px rgba(28,25,23,.04), 0 6px 18px rgba(28,25,23,.05);
+    --hero: linear-gradient(135deg,#1c1917 0%,#44403c 100%);
+  }
+  [data-dir="esmeralda"] {
+    --bg:#f5f7f6; --surface:#fff; --surface-alt:#eef3f1; --ink:#0c1512; --muted:#56635e; --faint:#94a39d;
+    --border:#e0e8e4; --accent:#059669; --accent-hover:#047857; --accent-soft:#e7f7f0; --accent-ink:#065f46;
+    --rail:#ffffff; --rail-ink:#6b7a74; --rail-active:#065f46; --rail-active-bg:#e7f7f0;
+    --radius:12px; --shadow:0 1px 2px rgba(12,21,18,.05);
+    --hero: linear-gradient(135deg,#064e3b 0%,#059669 100%);
+  }
+
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Geist,system-ui,sans-serif;background:#e9eaee;color:var(--ink);-webkit-font-smoothing:antialiased;padding:16px}
+  .picker{max-width:1180px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .picker h1{font-size:15px;font-weight:600;color:#111}
+  .picker p{font-size:12px;color:#555;margin-top:2px}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opts button{font:inherit;font-size:13px;font-weight:550;border:1px solid #d4d6dd;background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .opts button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
+  .sw{width:10px;height:10px;border-radius:50%}
+
+  /* ---------- App ---------- */
+  .app{max-width:1180px;margin:0 auto;height:760px;display:flex;background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,.08);box-shadow:0 20px 50px rgba(0,0,0,.10);transition:background .25s}
+  .rail{width:76px;flex-shrink:0;background:var(--rail);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 8px;gap:2px}
+  [data-dir="indigo"] .rail{border-right-color:transparent}
+  .mark{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;margin-bottom:14px}
+  [data-dir="calido"] .mark{background:var(--ink)}
+  .ri{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:10px;color:var(--rail-ink);font-size:10px;font-weight:550;cursor:pointer;position:relative}
+  .ri svg{width:18px;height:18px}
+  .ri:hover{color:var(--rail-active)}
+  .ri.on{background:var(--rail-active-bg);color:var(--rail-active)}
+  [data-dir="calido"] .ri.on::before,[data-dir="esmeralda"] .ri.on::before{content:"";position:absolute;left:-8px;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+  .rail .sp{flex:1}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  header{height:60px;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .proj{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:6px 10px 6px 6px;border-radius:10px;border:1px solid var(--border)}
+  .proj i{width:22px;height:22px;border-radius:6px;background:var(--accent-soft);color:var(--accent-ink);font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center}
+  .search{flex:1;max-width:360px;height:36px;border-radius:10px;background:var(--surface-alt);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--faint);font-size:13px}
+  .search kbd{margin-left:auto;font-family:"Geist Mono";font-size:11px;border:1px solid var(--border);border-radius:5px;padding:1px 5px;background:var(--surface)}
+  .hsp{flex:1}
+  .btn{font:inherit;font-size:13px;font-weight:600;height:36px;padding:0 14px;border-radius:10px;border:0;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .btn.p{background:var(--accent);color:#fff}
+  .btn.p:hover{background:var(--accent-hover)}
+  [data-dir="calido"] .btn.p{background:var(--ink)}
+  .btn.s{background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--surface-alt);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted)}
+
+  .content{flex:1;overflow:auto;padding:28px 28px 40px}
+  .kick{font-size:11px;font-weight:650;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .title{font-size:28px;font-weight:650;letter-spacing:-.025em;margin-top:6px}
+  .lead{font-size:14px;color:var(--muted);margin-top:4px}
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .kpi{padding:18px}
+  .kpi .l{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:550;color:var(--muted)}
+  .kpi .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+  .kpi .ic svg{width:15px;height:15px}
+  .kpi .v{font-size:28px;font-weight:650;letter-spacing:-.02em;margin-top:10px;font-variant-numeric:tabular-nums}
+  .kpi .d{font-size:12px;margin-top:2px;color:var(--faint)}
+  .kpi .d b{color:#16a34a;font-weight:600}
+  .kpi svg.spark{width:100%;height:34px;margin-top:10px;display:block}
+
+  .row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:14px}
+  .panel{padding:20px}
+  .ph{display:flex;justify-content:space-between;align-items:flex-start}
+  .ph h3{font-size:15px;font-weight:600}
+  .ph p{font-size:12px;color:var(--muted);margin-top:2px}
+  .big{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
+  .tabs{display:inline-flex;background:var(--surface-alt);border-radius:9px;padding:3px;gap:2px}
+  .tabs span{font-size:12px;font-weight:550;padding:4px 10px;border-radius:7px;color:var(--muted)}
+  .tabs span.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  .tools{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}
+  .tool{display:flex;align-items:center;gap:10px;padding:10px;border-radius:11px;border:1px solid var(--border);font-size:13px;font-weight:550;cursor:pointer;transition:border-color .15s,background .15s}
+  .tool:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .tool i{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-style:normal;color:#fff}
+  .tool i svg{width:15px;height:15px}
+  .tool small{display:block;font-size:11px;color:var(--faint);font-weight:450}
+
+  .hero{margin-top:14px;border-radius:var(--radius);background:var(--hero);color:#fff;padding:22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .hero h3{font-size:16px;font-weight:600}
+  .hero p{font-size:13px;opacity:.8;margin-top:3px}
+  .hero .btn{background:#fff;color:#111}
+
+  .notes{max-width:1180px;margin:14px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .note{background:#fff;border-radius:12px;padding:14px 16px;font-size:12.5px;line-height:1.5;color:#333;border:1px solid #dcdde2}
+  .note b{display:block;font-size:13px;color:#111;margin-bottom:4px}
+  .note.on{outline:2px solid #111}
+
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}.notes{grid-template-columns:1fr}.search{display:none}.app{height:auto;min-height:760px}}
+  @media (max-width:560px){.rail{display:none}.kpis{grid-template-columns:1fr}header{padding:0 14px}.content{padding:20px 14px}}
+</style>
+</head>
+<body data-dir="indigo">
+
+<div class="picker">
+  <div>
+    <h1>Zima Admin: 3 direcciones de rediseño</h1>
+    <p>Misma estructura real (rail, Home, KPIs, herramientas). Cambia entre opciones para compararlas.</p>
+  </div>
+  <div class="opts" role="group">
+    <button data-set="indigo" aria-pressed="true"><span class="sw" style="background:#4f46e5"></span>A · Índigo</button>
+    <button data-set="calido" aria-pressed="false"><span class="sw" style="background:#ea580c"></span>B · Cálido</button>
+    <button data-set="esmeralda" aria-pressed="false"><span class="sw" style="background:#059669"></span>C · Esmeralda</button>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="rail">
+    <div class="mark">Z</div>
+    <div class="ri on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .6 3.2 2.5 3.5 5.5"/></svg>Clients</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>Emails</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Tracker</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg>Studio</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg>Redes</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Accesos</div>
+    <div class="sp"></div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>Galería</div>
+    <div class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.8-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.8 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.8H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</div>
+  </aside>
+
+  <div class="main">
+    <header>
+      <div class="proj"><i>M</i>Moun ▾</div>
+      <div class="search">⌕ Buscar herramientas, clientes… <kbd>⌘K</kbd></div>
+      <div class="hsp"></div>
+      <button class="btn s">Docs</button>
+      <button class="btn p">+ Nuevo acceso</button>
+      <div class="av">JM</div>
+    </header>
+
+    <div class="content">
+      <div class="top">
+        <div>
+          <div class="kick">Overview</div>
+          <div class="title">Buenos días, Juan</div>
+          <div class="lead">Esto es lo que pasa hoy en Moun.</div>
+        </div>
+        <div class="tabs"><span>24h</span><span class="on">7 días</span><span>30 días</span></div>
+      </div>
+
+      <div class="kpis">
+        <div class="card kpi"><div class="l">Clients<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/></svg></span></div><div class="v">1.284</div><div class="d"><b>+12%</b> vs semana pasada</div><svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><path d="M0 28 L20 24 L40 26 L60 17 L80 19 L100 10 L120 6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="card kpi"><div class="l">Emails<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg></span></div><div class="v">4</div><div class="d">cuentas conectadas</div><svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><path d="M0 26 L30 26 L60 18 L90 18 L120 12" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="card kpi"><div class="l">OpenAI · 7d<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7"/></svg></span></div><div class="v">$38,40</div><div class="d"><b>−4%</b> gasto</div><svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><path d="M0 14 L20 20 L40 12 L60 22 L80 16 L100 20 L120 18" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="card kpi"><div class="l">Accesos<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span></div><div class="v">17</div><div class="d">3 nuevos este mes</div><svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><path d="M0 28 L40 24 L80 16 L120 10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+
+      <div class="row">
+        <div class="card panel">
+          <div class="ph"><div><h3>OpenAI spend</h3><p>Últimos 7 días</p></div><div><div class="big">$38,40</div><p style="font-size:11px;color:var(--faint);text-align:right">total del periodo</p></div></div>
+          <svg viewBox="0 0 560 170" style="width:100%;height:190px;margin-top:10px" preserveAspectRatio="none">
+            <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".18"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+            <g stroke="var(--border)"><line x1="0" x2="560" y1="40" y2="40"/><line x1="0" x2="560" y1="90" y2="90"/><line x1="0" x2="560" y1="140" y2="140"/></g>
+            <path d="M8 120 L98 96 L188 110 L278 62 L368 78 L458 44 L552 58 L552 162 L8 162Z" fill="url(#g)"/>
+            <polyline points="8,120 98,96 188,110 278,62 368,78 458,44 552,58" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="458" cy="44" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="card panel">
+          <div class="ph"><div><h3>Herramientas</h3><p>Acceso rápido</p></div></div>
+          <div class="tools">
+            <div class="tool"><i style="background:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg></i><span>Emails<small>4 cuentas</small></span></div>
+            <div class="tool"><i style="background:#db2777"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg></i><span>Studio<small>8 módulos</small></span></div>
+            <div class="tool"><i style="background:#0d9488"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i><span>Tracker<small>Vistas</small></span></div>
+            <div class="tool"><i style="background:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/></svg></i><span>Redes<small>Publicar</small></span></div>
+            <div class="tool"><i style="background:#ea580c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></i><span>Galería<small>312 assets</small></span></div>
+            <div class="tool"><i style="background:#475569"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7"/></svg></i><span>Stats<small>Analytics</small></span></div>
+          </div>
+          <div class="hero" style="padding:16px;margin-top:12px"><div><h3 style="font-size:14px">Conecta Supabase</h3><p style="font-size:12px">Para ver clientes reales</p></div><button class="btn" style="height:32px;font-size:12px">Conectar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <div class="note" data-n="indigo"><b>A · Índigo, moderno SaaS</b>Rail oscuro que ancla la navegación, acento índigo en CTAs, KPIs y gráficos. Sombras suaves, radio 14px. El más "producto tech".</div>
+  <div class="note" data-n="calido"><b>B · Cálido, editorial</b>Neutros cálidos, CTA negro y naranja como acento (el naranja que ya usa Studio). Barra activa lateral. Evoluciona lo que ya tienes, con más personalidad.</div>
+  <div class="note" data-n="esmeralda"><b>C · Esmeralda, sobrio</b>Grises fríos, acento verde, casi sin sombras y radio 12px. Plano y denso, pensado para datos y uso diario.</div>
+</div>
+
+<script>
+  const btns=document.querySelectorAll('[data-set]'), notes=document.querySelectorAll('.note');
+  function set(d){document.body.dataset.dir=d;btns.forEach(b=>b.setAttribute('aria-pressed',b.dataset.set===d));notes.forEach(n=>n.classList.toggle('on',n.dataset.n===d));}
+  btns.forEach(b=>b.onclick=()=>set(b.dataset.set)); set('indigo');
+</script>
+</body>
+</html>

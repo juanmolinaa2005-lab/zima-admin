@@ -1,0 +1,11 @@
+.git
+.next
+.vercel
+node_modules
+.env*
+supabase/.temp
+*.tsbuildinfo
+**/*.check.ts
+AGENTS.md
+CLAUDE.md
+Claude outputs

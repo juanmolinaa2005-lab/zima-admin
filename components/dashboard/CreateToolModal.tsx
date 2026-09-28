@@ -2,20 +2,27 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CloseIcon } from "./icons";
-import { normalizeUrl } from "@/lib/tools";
+import { normalizeUrl } from "@/lib/types";
 
 type CreateToolModalProps = {
   open: boolean;
+  mode?: "app" | "social";
   onClose: () => void;
   onCreate: (name: string, url: string) => void;
 };
 
-export function CreateToolModal({ open, onClose, onCreate }: CreateToolModalProps) {
+export function CreateToolModal({
+  open,
+  mode = "app",
+  onClose,
+  onCreate,
+}: CreateToolModalProps) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const isSocial = mode === "social";
 
   useEffect(() => {
     if (!open) return;
@@ -24,7 +31,7 @@ export function CreateToolModal({ open, onClose, onCreate }: CreateToolModalProp
     setError("");
     const t = window.setTimeout(() => nameRef.current?.focus(), 50);
     return () => window.clearTimeout(t);
-  }, [open]);
+  }, [open, mode]);
 
   useEffect(() => {
     if (!open) return;
@@ -43,18 +50,22 @@ export function CreateToolModal({ open, onClose, onCreate }: CreateToolModalProp
     const normalized = normalizeUrl(url);
 
     if (!trimmedName) {
-      setError("Escribe un nombre para la herramienta.");
+      setError(
+        isSocial
+          ? "Enter a name (e.g. Instagram, TikTok…)."
+          : "Enter a name for the tool."
+      );
       return;
     }
     if (!normalized) {
-      setError("Pega un link válido (ej. https://ejemplo.com).");
+      setError("Paste a valid link (e.g. https://instagram.com/…).");
       return;
     }
 
     try {
       new URL(normalized);
     } catch {
-      setError("El link no es válido.");
+      setError("That link is not valid.");
       return;
     }
 
@@ -67,79 +78,76 @@ export function CreateToolModal({ open, onClose, onCreate }: CreateToolModalProp
       <button
         type="button"
         className="absolute inset-0 bg-[#0a2540]/45 backdrop-blur-[2px] animate-fade-in"
-        aria-label="Cerrar"
+        aria-label="Close"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative w-full max-w-md rounded-xl border border-[#e3e8ee] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.18)] animate-scale-in"
+        className="relative w-full max-w-md rounded-xl bg-white shadow-[0_16px_48px_rgba(22,24,29,0.14)] animate-scale-in"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[#e3e8ee] px-5 py-4">
-          <div>
-            <h2 id={titleId} className="text-[15px] font-semibold text-[#0a2540]">
-              Nueva herramienta
-            </h2>
-            <p className="mt-0.5 text-[13px] text-[#697386]">
-              Se abrirá como pestaña dentro del dashboard.
-            </p>
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3 rounded-xl bg-[var(--accent)] p-4 text-white">
+            <div>
+              <h2 id={titleId} className="text-[15px] font-semibold">
+                {isSocial ? "Nueva red" : "Nuevo acceso directo"}
+              </h2>
+              <p className="mt-1 text-[12px] text-white/70">
+                Se abre en otra pestaña.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25"
+              aria-label="Close"
+            >
+              <CloseIcon className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1.5 text-[#697386] transition hover:bg-[#f6f9fc] hover:text-[#0a2540]"
-            aria-label="Cerrar"
-          >
-            <CloseIcon className="h-4 w-4" />
-          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
-          <label className="block">
-            <span className="mb-1.5 block text-[13px] font-medium text-[#0a2540]">
+        <form onSubmit={handleSubmit} className="space-y-3 px-5 pb-5">
+          <label className="block rounded-xl bg-[var(--surface-alt)] p-4">
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
               Nombre
             </span>
             <input
               ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Analytics, CRM, Docs…"
-              className="w-full rounded-lg border border-[#e3e8ee] bg-white px-3 py-2.5 text-[14px] text-[#0a2540] outline-none transition placeholder:text-[#a3acb9] focus:border-[#635bff] focus:ring-2 focus:ring-[#635bff]/20"
+              placeholder={
+                isSocial ? "Instagram, TikTok…" : "Notion, Linear, Stripe…"
+              }
+              className="ui-input !text-[14px]"
             />
           </label>
 
-          <label className="block">
-            <span className="mb-1.5 block text-[13px] font-medium text-[#0a2540]">
+          <label className="block rounded-xl bg-[var(--surface-alt)] p-4">
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
               Link
             </span>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://…"
-              className="w-full rounded-lg border border-[#e3e8ee] bg-white px-3 py-2.5 text-[14px] text-[#0a2540] outline-none transition placeholder:text-[#a3acb9] focus:border-[#635bff] focus:ring-2 focus:ring-[#635bff]/20"
+              className="ui-input !text-[14px]"
             />
           </label>
 
           {error ? (
-            <p className="rounded-lg bg-[#fff5f5] px-3 py-2 text-[13px] text-[#cd3d64]">
+            <p className="rounded-full bg-[var(--danger-soft)] px-4 py-2 text-[13px] text-[var(--danger)]">
               {error}
             </p>
           ) : null}
 
           <div className="flex items-center justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-[#425466] transition hover:bg-[#f6f9fc]"
-            >
-              Cancelar
+            <button type="button" onClick={onClose} className="ui-btn-secondary">
+              Cancel
             </button>
-            <button
-              type="submit"
-              className="rounded-lg bg-[#635bff] px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_1px_2px_rgba(50,50,93,0.12)] transition hover:bg-[#5851ea]"
-            >
-              Crear y abrir
+            <button type="submit" className="ui-btn-primary">
+              {isSocial ? "Add" : "Crear"}
             </button>
           </div>
         </form>

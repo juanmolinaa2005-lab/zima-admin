@@ -1,0 +1,15 @@
+---
+description: After finishing a change, deploy to Vercel production without waiting to be asked.
+alwaysApply: true
+---
+
+# Deploy after every change
+
+When a code or config change is complete (feature, fix, or UI), deploy to production in the same turn. Do not wait for the user to say deploy.
+
+1. Run `npx tsc --noEmit --pretty false`.
+2. If it passes: `npx vercel@59.10.0 deploy --prod --yes --scope juanmolinaa2005-6036s-projects` from the repo root.
+3. If the build fails, fix TypeScript/build errors and deploy again.
+4. Reply with https://zima-admin.vercel.app when production is ready.
+
+Do not generate paid OpenAI/fal/Kling jobs from Cursor as part of deploy. Do not git commit unless the user asks.

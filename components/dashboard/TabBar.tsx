@@ -1,6 +1,6 @@
 "use client";
 
-import type { OpenTab } from "@/lib/tools";
+import type { OpenTab } from "@/lib/types";
 import { CloseIcon } from "./icons";
 
 type TabBarProps = {
@@ -14,16 +14,16 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose }: TabBarProps) {
   if (tabs.length === 0) return null;
 
   return (
-    <div className="flex h-10 shrink-0 items-end gap-0.5 overflow-x-auto border-b border-[#e3e8ee] bg-[#f6f9fc] px-2 pt-1.5">
+    <div className="flex h-10 shrink-0 items-center gap-1.5 overflow-x-auto border-b border-[var(--border)] bg-[var(--background)] px-3">
       {tabs.map((tab) => {
         const active = tab.id === activeTabId;
         return (
           <div
             key={tab.id}
-            className={`group flex max-w-[220px] shrink-0 items-center gap-1 rounded-t-md border border-b-0 px-2.5 py-1.5 text-[12px] transition ${
+            className={`group flex max-w-[220px] shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[12px] transition ${
               active
-                ? "border-[#e3e8ee] bg-white text-[#0a2540] shadow-[0_-1px_0_#fff]"
-                : "border-transparent text-[#697386] hover:bg-white/70 hover:text-[#0a2540]"
+                ? "border-[var(--border)] bg-white text-[var(--foreground)] shadow-[var(--shadow-sm)]"
+                : "border-transparent bg-transparent text-[var(--muted)] hover:bg-white hover:text-[var(--foreground)]"
             }`}
           >
             <button
@@ -40,10 +40,10 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose }: TabBarProps) {
                 e.stopPropagation();
                 onClose(tab.id);
               }}
-              className={`rounded p-0.5 transition hover:bg-[#eef2f7] hover:text-[#0a2540] ${
+              className={`rounded-full p-0.5 transition hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] ${
                 active ? "opacity-70" : "opacity-0 group-hover:opacity-70"
               }`}
-              aria-label={`Cerrar ${tab.title}`}
+              aria-label={`Close ${tab.title}`}
             >
               <CloseIcon className="h-3 w-3" />
             </button>

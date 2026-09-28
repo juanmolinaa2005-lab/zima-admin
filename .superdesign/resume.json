@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "existing-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "baselineDraftId": "683c224c-83ae-4bc1-95b7-e14a424c68a3",
+      "activeDraftId": "c1915e5d-93ae-4f95-9cfd-1e8429af0648",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md",
+        "components/projects/ProjectsPage.tsx",
+        "app/globals.css",
+        ".superdesign/website/stripe.com/design.md"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/init/theme.md": "81536be9b1c3b1712cdb0ab5ae58337f55df8d952db9308e45056b7107645904",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3"
+      },
+      "components": [
+        {
+          "name": "AppSidebar",
+          "id": "6a164252-a00b-4797-9656-753fbcea25aa",
+          "sourcePath": "components/dashboard/Sidebar.tsx"
+        }
+      ],
+      "drafts": {
+        "683c224c-83ae-4bc1-95b7-e14a424c68a3": {
+          "title": "Current Projects",
+          "visualDirection": "pixel-perfect current Projects workspace",
+          "currentVersion": 1
+        },
+        "bc9dec37-0333-4469-9f2a-a88d995c82f9": {
+          "title": "Zima Admin \u2014 Stripe Dashboard Style",
+          "visualDirection": "Stripe Dashboard product tool: white, violet CTA, hairline cards",
+          "parentDraftId": "683c224c-83ae-4bc1-95b7-e14a424c68a3",
+          "currentVersion": 1
+        },
+        "c1915e5d-93ae-4f95-9cfd-1e8429af0648": {
+          "title": "Zima \u2014 iOS Settings Projects",
+          "visualDirection": "iOS Settings grouped product, exact Projects IA",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:50:00.000Z"
+    },
+    "/login": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "64caa3a8-4b1f-49e1-8f84-5c12b166ba16",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "64caa3a8-4b1f-49e1-8f84-5c12b166ba16": {
+          "title": "Login",
+          "visualDirection": "Stripe Dashboard login",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "/projects/[id]": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "f4c1c987-093e-4c2a-93c9-182fe7eb2b37",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "f4c1c987-093e-4c2a-93c9-182fe7eb2b37": {
+          "title": "Dashboard Home",
+          "visualDirection": "Stripe Dashboard home shell",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "accesos": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "f73b5cc9-880e-47e7-a30c-a64161d7c0fd",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "f73b5cc9-880e-47e7-a30c-a64161d7c0fd": {
+          "title": "Accesos",
+          "visualDirection": "Stripe Dashboard Accesos",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "estudio": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "63c0745e-c04c-4942-8aa7-0d0b1b051e5d",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "63c0745e-c04c-4942-8aa7-0d0b1b051e5d": {
+          "title": "Estudio",
+          "visualDirection": "Stripe Dashboard Estudio",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "emails": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "39401f9f-7a7b-4b92-8bb7-e24d744d851b",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "39401f9f-7a7b-4b92-8bb7-e24d744d851b": {
+          "title": "Emails",
+          "visualDirection": "Stripe Dashboard mail",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "/projects/[id]/settings": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "f24ec6ea-09de-4998-8cfa-0780aa23c420",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "f24ec6ea-09de-4998-8cfa-0780aa23c420": {
+          "title": "Settings",
+          "visualDirection": "Stripe Dashboard settings",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    },
+    "/docs": {
+      "targetKind": "new-ui",
+      "projectId": "ae8ae7f0-7916-4359-bfe8-1539391ea657",
+      "activeDraftId": "58981d6e-5056-45c7-9b0a-5e5e4c95d5f2",
+      "sourceTarget": "/",
+      "sourceDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/website/stripe.com/design.md",
+        "app/globals.css",
+        "components/auth/LoginForm.tsx",
+        "components/projects/ProjectsPage.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "09a3a35abe6ae0deaa47072b91a5c77524aaaecdd21ab1b40254f9ab56ce5ec8",
+        ".superdesign/website/stripe.com/design.md": "3c38b0642b96b6dfbf6c226af0bbcd9f6034532d4628d0fc87b3b41d8bf447b3",
+        "app/globals.css": "af20f65fe053ba2e0855513f6d4df1757a4f51d4fa31c46eb7d9b1c66874d1be",
+        "components/auth/LoginForm.tsx": "c09a98c46f8ddaf5db502ef174a6a7564c664f96846abf6776a878354c877a08",
+        "components/projects/ProjectsPage.tsx": "ab264ba41890a8b3e927c0e1d7d2c5531e000c6fe35aeefc9cc9b60219c4ee49"
+      },
+      "drafts": {
+        "58981d6e-5056-45c7-9b0a-5e5e4c95d5f2": {
+          "title": "Docs",
+          "visualDirection": "Stripe Dashboard docs",
+          "parentDraftId": "bc9dec37-0333-4469-9f2a-a88d995c82f9",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-20T04:38:00.000Z"
+    }
+  }
+}
