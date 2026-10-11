@@ -122,7 +122,7 @@ export function TeamPanel({ team, onChange }: TeamPanelProps) {
           onAction={() => setOpen(true)}
         />
       ) : (
-        <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+        <ul className="ui-card mt-6 divide-y divide-[var(--border)] overflow-hidden">
           {team.map((member) => {
             const initials = member.name
               .split(" ")
@@ -134,9 +134,9 @@ export function TeamPanel({ team, onChange }: TeamPanelProps) {
             return (
               <li
                 key={member.id}
-                className="flex items-center gap-3 rounded-xl bg-white p-5"
+                className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-[var(--background)]"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[image:var(--accent-metal)] text-[12px] font-bold text-white">
                   {initials || "?"}
                 </span>
                 <div className="min-w-0 flex-1">

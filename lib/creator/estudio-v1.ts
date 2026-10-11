@@ -7,14 +7,6 @@ import {
 
 export const ESTUDIO_NAV_GROUPS = [
   {
-    label: "Home",
-    items: [
-      { id: "product", label: "Producto" },
-      { id: "inspiration", label: "Viral Content" },
-      { id: "blitz", label: "Blitz" },
-    ],
-  },
-  {
     label: "Creation",
     items: [{ id: "creator-imagen", label: "Creator Imagen" }],
   },
@@ -26,6 +18,10 @@ export const ESTUDIO_NAV_GROUPS = [
       { id: "simulador", label: "Simulador" },
       { id: "dynamics", label: "Dynamics" },
     ],
+  },
+  {
+    label: "Redes",
+    items: [{ id: "redes", label: "Redes" }],
   },
   {
     label: "Library",

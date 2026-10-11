@@ -10,6 +10,77 @@ export const VT_PLATFORMS = [
   { id: "snapchat", label: "Snapchat" },
 ] as const;
 
+const TIKTOK_PATH =
+  "M14.1 3.1c.4 2.5 1.8 4.4 4.2 5v2.4a7.1 7.1 0 0 1-4.1-1.3v6.7a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v2.6a3 3 0 1 0 2.1 2.9V3.1h2.5Z";
+
+export function PlatformLogo({ id, className = "h-[18px] w-[18px]" }: { id: string; className?: string }) {
+  if (id === "facebook") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="11" fill="#0866FF" />
+        <path fill="#fff" d="M13.4 21.9v-7.1h2.4l.4-2.8h-2.8v-1.8c0-.8.3-1.4 1.4-1.4h1.5V6.3c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7V12H8.1v2.8h2.4v7.1c.9.1 2 .1 2.9 0Z" />
+      </svg>
+    );
+  }
+  if (id === "tiktok") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" aria-hidden>
+        <path fill="#25F4EE" d={TIKTOK_PATH} transform="translate(-0.7 .35)" />
+        <path fill="#FE2C55" d={TIKTOK_PATH} transform="translate(.7 -.25)" />
+        <path fill="#111" d={TIKTOK_PATH} />
+      </svg>
+    );
+  }
+  if (id === "instagram") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" aria-hidden>
+        <defs>
+          <radialGradient id="vt-ig-mark" cx="30%" cy="107%" r="120%">
+            <stop offset="0%" stopColor="#feda75" />
+            <stop offset="28%" stopColor="#fa7e1e" />
+            <stop offset="52%" stopColor="#d62976" />
+            <stop offset="76%" stopColor="#962fbf" />
+            <stop offset="100%" stopColor="#4f5bd5" />
+          </radialGradient>
+        </defs>
+        <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#vt-ig-mark)" />
+        <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="4.8" fill="none" stroke="#fff" strokeWidth="1.6" />
+        <circle cx="16.7" cy="7.2" r="1.05" fill="#fff" />
+      </svg>
+    );
+  }
+  if (id === "youtube") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" aria-hidden>
+        <rect x="1.2" y="5" width="21.6" height="14" rx="4" fill="#FF0033" />
+        <path d="M10 9.1v5.8l5.2-2.9L10 9.1Z" fill="#fff" />
+      </svg>
+    );
+  }
+  if (id === "snapchat") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" aria-hidden>
+        <rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="#FFFC00" />
+        <path
+          d="M12 5.2c2.3 0 4 1.8 4 4.1v1.8c.3.1.7.1 1.1 0 .4-.2.8.3.5.6-.4.4-1 .6-1.5.8.5 1.3 1.5 2.2 2.7 2.5.3.1.3.5 0 .6-.5.2-1.1.3-1.6.4-.2.3-.1.8-.5.9-.6.1-1.1-.1-1.7.2-.6.3-1.3 1.1-3 1.1s-2.4-.8-3-1.1c-.6-.3-1.1-.1-1.7-.2-.4-.1-.3-.6-.5-.9-.5-.1-1.1-.2-1.6-.4-.3-.1-.3-.5 0-.6 1.2-.3 2.2-1.2 2.7-2.5-.5-.2-1.1-.4-1.5-.8-.3-.3.1-.8.5-.6.4.1.8.1 1.1 0V9.3c0-2.3 1.7-4.1 4-4.1Z"
+          fill="#fff"
+          stroke="#111"
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#111"
+        d="M17.75 3h3.07l-6.71 7.67L22 21h-6.18l-4.84-6.33L5.44 21H2.37l7.18-8.2L2 3h6.34l4.37 5.78L17.75 3Zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43Z"
+      />
+    </svg>
+  );
+}
+
 export function PlatformChip({
   id,
   label,
@@ -25,14 +96,23 @@ export function PlatformChip({
     <button
       type="button"
       title={label}
+      aria-label={label}
+      aria-pressed={Boolean(active)}
       onClick={onClick}
-      className={`flex h-9 w-9 items-center justify-center rounded-lg border text-[10px] font-bold transition ${
+      className={`relative flex h-9 w-9 items-center justify-center rounded-lg border bg-white transition ${
         active
-          ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-          : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--border-strong)]"
+          ? "border-[#111113] shadow-[0_0_0_3px_rgba(17,17,19,0.1)]"
+          : "border-[var(--border)] hover:-translate-y-px hover:border-[var(--border-strong)] hover:shadow-[0_2px_6px_rgba(17,24,39,0.08)]"
       }`}
     >
-      {id === "tiktok" ? "TT" : id === "instagram" ? "IG" : id === "youtube" ? "YT" : id === "snapchat" ? "SC" : "X"}
+      <PlatformLogo id={id} />
+      {active ? (
+        <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#111113] ring-2 ring-white">
+          <svg viewBox="0 0 24 24" className="h-2 w-2" fill="none" aria-hidden>
+            <path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      ) : null}
     </button>
   );
 }

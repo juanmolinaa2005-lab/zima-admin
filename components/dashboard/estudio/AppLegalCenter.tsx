@@ -2,15 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  domainRedirects,
   fillLegalText,
   hostedLegalUrl,
   LEGAL_DOCS,
+  ownSiteLinks,
+  ownSiteVercelCode,
   type LegalDocId,
+  type LegalHistoryItem,
   type LegalNotice,
+  type LegalProfile,
   type LegalState,
 } from "@/lib/creator/app-legal";
 import { LEGAL_COUNTRIES, legalCountryByName } from "@/lib/creator/legal-countries";
+import { LegalBlockEditor } from "./LegalBlockEditor";
 
 type MailAccount = { id: string; email: string; display_name: string | null };
 
@@ -21,7 +25,8 @@ const inputClass =
 
 export function AppLegalCenter({ projectId }: { projectId: string }) {
   const [state, setState] = useState<LegalResponse | null>(null);
-  const [docId, setDocId] = useState<LegalDocId>("privacy");
+  const [docId, setDocId] = useState<string>("privacy");
+  const [profileOpen, setProfileOpen] = useState(false);
   const [editingLabel, setEditingLabel] = useState(false);
   const [accounts, setAccounts] = useState<MailAccount[]>([]);
   const [accountId, setAccountId] = useState("");
@@ -32,6 +37,12 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState("");
+  const [ownSiteOpen, setOwnSiteOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState<number | null>(null);
+  const ownSiteRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancel = false;
@@ -85,9 +96,44 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
     };
   }, [projectId]);
 
+  useEffect(() => {
+    if (!ownSiteOpen) return;
+    function onPointer(event: MouseEvent) {
+      if (!ownSiteRef.current?.contains(event.target as Node)) setOwnSiteOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOwnSiteOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [ownSiteOpen]);
+
+  useEffect(() => {
+    if (!historyOpen) return;
+    function onPointer(event: MouseEvent) {
+      if (!historyRef.current?.contains(event.target as Node)) setHistoryOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setHistoryOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [historyOpen]);
+
   const draft = state?.draft;
   const origin = state?.origin || "https://vantko.com";
-  const doc = draft?.docs[docId];
+  const builtinDoc = LEGAL_DOCS.find((item) => item.id === docId);
+  const doc = builtinDoc
+    ? draft?.docs[builtinDoc.id]
+    : draft?.extras.find((item) => item.id === docId);
   const dirty = useMemo(() => {
     if (!state?.published || !draft) return Boolean(draft);
     return JSON.stringify(state.published.profile) !== JSON.stringify(draft.profile) ||
@@ -107,36 +153,118 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
     });
   }
 
-  function patchDocLabel(id: LegalDocId, value: string) {
+  function patchDocLabel(id: string, value: string) {
     setState((current) => {
       if (!current) return current;
+      if (LEGAL_DOCS.some((item) => item.id === id)) {
+        const docKey = id as LegalDocId;
+        return {
+          ...current,
+          draft: {
+            ...current.draft,
+            docs: {
+              ...current.draft.docs,
+              [docKey]: { ...current.draft.docs[docKey], label: value.slice(0, 40) },
+            },
+          },
+        };
+      }
       return {
         ...current,
         draft: {
           ...current.draft,
-          docs: {
-            ...current.draft.docs,
-            [id]: { ...current.draft.docs[id], label: value.slice(0, 40) },
-          },
+          extras: current.draft.extras.map((item) =>
+            item.id === id ? { ...item, label: value.slice(0, 40) } : item
+          ),
         },
       };
     });
   }
 
-  function patchDoc(key: "title" | "body", value: string) {
+  function patchDoc(key: "title" | "body" | "color", value: string) {
+    setState((current) => {
+      if (!current) return current;
+      if (LEGAL_DOCS.some((item) => item.id === docId)) {
+        const docKey = docId as LegalDocId;
+        return {
+          ...current,
+          draft: {
+            ...current.draft,
+            docs: {
+              ...current.draft.docs,
+              [docKey]: { ...current.draft.docs[docKey], [key]: value },
+            },
+          },
+        };
+      }
+      return {
+        ...current,
+        draft: {
+          ...current.draft,
+          extras: current.draft.extras.map((item) =>
+            item.id === docId ? { ...item, [key]: value } : item
+          ),
+        },
+      };
+    });
+  }
+
+  function addExtra() {
+    const id = `extra-${Math.random().toString(36).slice(2, 8)}`;
     setState((current) => {
       if (!current) return current;
       return {
         ...current,
         draft: {
           ...current.draft,
-          docs: {
-            ...current.draft.docs,
-            [docId]: { ...current.draft.docs[docId], [key]: value },
-          },
+          extras: [
+            ...current.draft.extras,
+            { id, label: "Espacio", title: "Documento", body: "", color: "" },
+          ],
         },
       };
     });
+    setDocId(id);
+    setEditingLabel(true);
+  }
+
+  function finishLabel(id: string, fallback: string, raw: string) {
+    const label = raw.slice(0, 40).trim() || fallback;
+    patchDocLabel(id, label);
+    setEditingLabel(false);
+    const source = state?.draft;
+    if (!source) return;
+    const builtin = LEGAL_DOCS.find((item) => item.id === id);
+    const nextDraft = builtin
+      ? {
+          ...source,
+          docs: {
+            ...source.docs,
+            [builtin.id]: { ...source.docs[builtin.id], label },
+          },
+        }
+      : {
+          ...source,
+          extras: source.extras.map((item) => (item.id === id ? { ...item, label } : item)),
+        };
+    void post("save", undefined, nextDraft);
+  }
+
+  function removeExtra(id: string) {
+    setState((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        draft: {
+          ...current.draft,
+          extras: current.draft.extras.filter((item) => item.id !== id),
+        },
+      };
+    });
+    if (docId === id) {
+      setDocId("privacy");
+      setEditingLabel(false);
+    }
   }
 
   async function post(
@@ -193,8 +321,33 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
     );
   }
 
-  const redirects = domainRedirects(draft.profile, origin);
-  const preview = fillLegalText(doc.body, draft.profile, state.published?.publishedAt);
+  const missingProfile = (
+    [
+      ["nombre", draft.profile.appName.trim()],
+      ["razón social", draft.profile.legalName.trim()],
+      ["dominio", draft.profile.domain.trim()],
+      ["correo", draft.profile.contactEmail.includes("@") ? "ok" : ""],
+      ["domicilio", draft.profile.address.trim()],
+      ["país", draft.profile.region.trim()],
+    ] as const
+  )
+    .filter(([, value]) => !value)
+    .map(([label]) => label);
+
+  const docCards = [
+    ...LEGAL_DOCS.map((item) => ({
+      id: item.id,
+      label: draft.docs[item.id].label || item.label,
+      fallback: item.label,
+      custom: false,
+    })),
+    ...draft.extras.map((item) => ({
+      id: item.id,
+      label: item.label || "Espacio",
+      fallback: "Espacio",
+      custom: true,
+    })),
+  ];
 
   return (
     <div className="h-full min-h-0 overflow-y-auto">
@@ -202,102 +355,129 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
         <div className="space-y-4">
           <section className="rounded-xl border border-[var(--border)] bg-white p-5">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-[15px] font-semibold text-[var(--foreground)]">Datos de la app</h2>
+              <button
+                type="button"
+                onClick={() => setProfileOpen((open) => !open)}
+                className={`inline-flex min-w-0 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-left transition duration-200 ${
+                  profileOpen
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                    : "border-[var(--border-strong)] bg-[var(--surface-alt)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                }`}
+                aria-expanded={profileOpen}
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--accent)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                  <ChevronIcon open={profileOpen} />
+                </span>
+                <span className="text-[14px] font-semibold text-[var(--foreground)]">Datos de la app</span>
+                <span className="text-[11px] font-semibold text-[var(--muted)]">
+                  {profileOpen ? "Recoger" : "Abrir"}
+                </span>
+              </button>
               <button
                 type="button"
                 disabled={Boolean(busy)}
                 onClick={() => void post("save")}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#5b4dff] px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50"
               >
                 <SaveIcon />
                 {busy === "save" ? "Guardando…" : "Guardar"}
               </button>
             </div>
-            <p className="mt-3 text-[12px] leading-relaxed text-[var(--muted)]">
-              El dominio y el correo se insertan solos en los documentos con {"{{dominio}}"} y {"{{email}}"}.
-              Al publicar, la misma URL pasa a mostrar la versión nueva.
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <Field label="Nombre de la app">
-                <input
-                  className={inputClass}
-                  value={draft.profile.appName}
-                  onChange={(e) => patchProfile("appName", e.target.value)}
-                  placeholder="Nova"
-                />
-              </Field>
-              <Field label="Razón social">
-                <input
-                  className={inputClass}
-                  value={draft.profile.legalName}
-                  onChange={(e) => patchProfile("legalName", e.target.value)}
-                  placeholder="Tu empresa, S.L."
-                />
-              </Field>
-              <Field label="Dominio">
-                <input
-                  className={inputClass}
-                  value={draft.profile.domain}
-                  onChange={(e) => patchProfile("domain", e.target.value)}
-                  placeholder="app.tudominio.com"
-                  spellCheck={false}
-                />
-              </Field>
-              <Field label="Correo de contacto">
-                <input
-                  className={inputClass}
-                  value={draft.profile.contactEmail}
-                  onChange={(e) => patchProfile("contactEmail", e.target.value)}
-                  placeholder="legal@tudominio.com"
-                  spellCheck={false}
-                />
-              </Field>
-              <Field label="Domicilio">
-                <input
-                  className={inputClass}
-                  value={draft.profile.address}
-                  onChange={(e) => patchProfile("address", e.target.value)}
-                  placeholder="Calle, ciudad, código postal"
-                />
-              </Field>
-              <Field label="País">
-                <CountryPicker
-                  value={draft.profile.region}
-                  onChange={(region) => patchProfile("region", region)}
-                />
-              </Field>
+            <div
+              className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{ gridTemplateRows: profileOpen ? "1fr" : "0fr" }}
+            >
+              <div className="overflow-hidden" {...(profileOpen ? {} : { inert: true })}>
+                <p className="mt-3 text-[12px] leading-relaxed text-[var(--muted)]">
+                  El dominio y el correo se insertan solos en los documentos con {"{{dominio}}"} y {"{{email}}"}.
+                  Al publicar, la misma URL pasa a mostrar la versión nueva.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <Field label="Nombre de la app">
+                    <input
+                      className={inputClass}
+                      value={draft.profile.appName}
+                      onChange={(e) => patchProfile("appName", e.target.value)}
+                      placeholder="Nova"
+                    />
+                  </Field>
+                  <Field label="Razón social">
+                    <input
+                      className={inputClass}
+                      value={draft.profile.legalName}
+                      onChange={(e) => patchProfile("legalName", e.target.value)}
+                      placeholder="Tu empresa, S.L."
+                    />
+                  </Field>
+                  <Field label="Dominio">
+                    <input
+                      className={inputClass}
+                      value={draft.profile.domain}
+                      onChange={(e) => patchProfile("domain", e.target.value)}
+                      placeholder="app.tudominio.com"
+                      spellCheck={false}
+                    />
+                  </Field>
+                  <Field label="Correo de contacto">
+                    <input
+                      className={inputClass}
+                      value={draft.profile.contactEmail}
+                      onChange={(e) => patchProfile("contactEmail", e.target.value)}
+                      placeholder="legal@tudominio.com"
+                      spellCheck={false}
+                    />
+                  </Field>
+                  <Field label="Domicilio">
+                    <input
+                      className={inputClass}
+                      value={draft.profile.address}
+                      onChange={(e) => patchProfile("address", e.target.value)}
+                      placeholder="Calle, ciudad, código postal"
+                    />
+                  </Field>
+                  <Field label="País">
+                    <CountryPicker
+                      value={draft.profile.region}
+                      onChange={(region) => patchProfile("region", region)}
+                    />
+                  </Field>
+                </div>
+              </div>
+            </div>
+            <div
+              className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{ gridTemplateRows: profileOpen ? "0fr" : "1fr" }}
+            >
+              <div className="overflow-hidden">
+                {missingProfile.length ? (
+                  <p className="pt-3 text-[13px] font-medium text-[var(--danger)]">
+                    {missingProfile.length === 1
+                      ? `Falta ${missingProfile[0]}`
+                      : `Falta ${missingProfile.slice(0, -1).join(", ")} y ${missingProfile[missingProfile.length - 1]}`}
+                  </p>
+                ) : (
+                  <p className="truncate pt-3 text-[13px] text-[var(--muted)]">
+                    {[draft.profile.appName, draft.profile.domain, draft.profile.region].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
             </div>
           </section>
 
           <section className="rounded-xl border border-[var(--border)] bg-white p-5">
-            <div className="flex flex-wrap items-end gap-1 border-b border-[var(--border)]">
-              {LEGAL_DOCS.map((item) => {
+            <div className="flex flex-wrap items-center gap-1.5">
+              {docCards.map((item) => {
                 const active = docId === item.id;
-                const label = draft.docs[item.id].label || item.label;
                 if (active && editingLabel) {
                   return (
                     <input
                       key={item.id}
                       autoFocus
-                      value={label}
+                      value={item.label}
                       aria-label="Nombre del documento"
-                      className="w-36 rounded-full border border-[var(--accent)] bg-white px-3 py-1.5 text-[12px] font-semibold text-[var(--foreground)] outline-none"
+                      className="h-8 w-36 rounded-full border border-[var(--accent)] bg-white px-3 text-[12px] font-semibold text-[var(--foreground)] outline-none"
                       onChange={(e) => patchDocLabel(item.id, e.target.value)}
-                      onBlur={(e) => {
-                        const value = e.currentTarget.value.slice(0, 40).trim() || item.label;
-                        const nextDraft = {
-                          ...draft,
-                          docs: {
-                            ...draft.docs,
-                            [item.id]: { ...draft.docs[item.id], label: value },
-                          },
-                        };
-                        setState((current) =>
-                          current ? { ...current, draft: nextDraft } : current
-                        );
-                        setEditingLabel(false);
-                        void post("save", undefined, nextDraft);
-                      }}
+                      onBlur={(e) => finishLabel(item.id, item.fallback, e.currentTarget.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") e.currentTarget.blur();
                         if (e.key === "Escape") setEditingLabel(false);
@@ -306,34 +486,62 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
                   );
                 }
                 return (
-                  <span key={item.id} className="inline-flex items-center gap-0.5">
+                  <div
+                    key={item.id}
+                    className={`inline-flex h-8 items-center gap-0.5 rounded-full border pl-3 ${
+                      active
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)] pr-1"
+                        : "border-[var(--border)] bg-white pr-3"
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => {
                         setEditingLabel(false);
                         setDocId(item.id);
                       }}
-                      className={`-mb-px border-b-2 px-2.5 py-2 text-[13px] font-medium ${
-                        active
-                          ? "border-[#5b4dff] font-semibold text-[var(--foreground)]"
-                          : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
+                      className={`text-[12px] font-semibold ${
+                        active ? "text-[var(--foreground)]" : "text-[var(--muted)]"
                       }`}
                     >
-                      {label}
+                      {item.label}
                     </button>
                     {active ? (
-                      <button
-                        type="button"
-                        aria-label="Editar nombre"
-                        onClick={() => setEditingLabel(true)}
-                        className="grid h-7 w-7 place-items-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]"
-                      >
-                        <PencilIcon />
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Editar nombre"
+                          onClick={() => setEditingLabel(true)}
+                          className="grid h-6 w-6 place-items-center rounded-full text-[var(--muted)] hover:bg-white hover:text-[var(--foreground)]"
+                        >
+                          <PencilIcon />
+                        </button>
+                        {item.custom ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = draft.extras.find((extra) => extra.id === item.id);
+                              if (current?.body.trim() && !window.confirm("¿Quitar este espacio?")) return;
+                              removeExtra(item.id);
+                            }}
+                            className="pr-1.5 text-[11px] font-semibold text-[var(--danger)]"
+                          >
+                            Quitar
+                          </button>
+                        ) : null}
+                      </>
                     ) : null}
-                  </span>
+                  </div>
                 );
               })}
+              <button
+                type="button"
+                onClick={addExtra}
+                title="Espacio personalizado"
+                className="inline-flex h-8 items-center rounded-full border border-dashed border-[var(--border-strong)] bg-[var(--surface-alt)] px-3 text-[12px] font-semibold text-[var(--foreground)] hover:border-[var(--accent)]"
+              >
+                Más
+              </button>
             </div>
             <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
               Título
@@ -343,14 +551,27 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
                 onChange={(e) => patchDoc("title", e.target.value)}
               />
             </label>
-            <label className="mt-3 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
-              Texto
+            <div className="mt-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
+                  Texto
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEditorOpen(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-3.5 text-[13px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                >
+                  <ExpandIcon />
+                  Expandir
+                </button>
+              </div>
               <textarea
                 className={`${inputClass} mt-1.5 min-h-[280px] resize-y font-normal normal-case leading-relaxed tracking-normal`}
+                style={doc.color ? { color: doc.color } : undefined}
                 value={doc.body}
                 onChange={(e) => patchDoc("body", e.target.value)}
               />
-            </label>
+            </div>
             <p className="mt-2 text-[12px] text-[var(--muted-soft)]">
               Una línea que empiece por # es un título. Variables: {"{{app}}"} {"{{razon}}"} {"{{dominio}}"} {"{{email}}"} {"{{direccion}}"} {"{{region}}"}.
             </p>
@@ -367,7 +588,7 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
                 type="button"
                 disabled={Boolean(busy)}
                 onClick={() => void post("publish")}
-                className="rounded-lg bg-[#5b4dff] px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+                className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
               >
                 {busy === "publish" ? "Publicando…" : "Publicar"}
               </button>
@@ -384,15 +605,76 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <div ref={historyRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setHistoryOpen((open) => !open)}
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[13px] font-semibold text-white"
+              aria-expanded={historyOpen}
+            >
+              Historial de versiones
+            </button>
+            {historyOpen ? (
+              <VersionHistory
+                items={versionEntries(state)}
+                selected={historyVersion}
+                onSelect={(version) =>
+                  setHistoryVersion((current) => (current === version ? null : version))
+                }
+              />
+            ) : null}
+          </div>
           <section className="rounded-xl border border-[var(--border)] bg-white p-5">
-            <h2 className="flex items-center gap-2 text-[14px] font-semibold text-[var(--foreground)]">
-              <LinkMark />
-              Enlaces públicos
-            </h2>
-            <p className="mt-1 text-[12px] leading-relaxed text-[var(--muted)]">
-              Pega estas URLs en la App Store y en la app.
-            </p>
-            <ul className="mt-3 space-y-2">
+            <div ref={ownSiteRef} className="relative flex items-center justify-between gap-3">
+              <h2 className="flex min-w-0 items-center gap-2 text-[14px] font-semibold text-[var(--foreground)]">
+                <LinkMark />
+                Enlaces públicos
+              </h2>
+              <button
+                type="button"
+                onClick={() => setOwnSiteOpen((open) => !open)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[13px] font-semibold text-white"
+                aria-expanded={ownSiteOpen}
+              >
+                Usa tu web
+              </button>
+              {ownSiteOpen ? (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+                  <button
+                    type="button"
+                    aria-label="Cerrar"
+                    className="absolute inset-0 bg-black/40 backdrop-blur-md"
+                    onClick={() => setOwnSiteOpen(false)}
+                  />
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Usa tu web"
+                    className="relative flex max-h-[min(760px,92dvh)] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_80px_rgba(0,0,0,0.28)]"
+                  >
+                    <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
+                          Tu dominio
+                        </p>
+                        <h3 className="text-[18px] font-semibold text-[var(--foreground)]">Usa tu web</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOwnSiteOpen(false)}
+                        className="rounded-full px-3 py-1.5 text-[13px] font-semibold text-[var(--muted)] hover:bg-[var(--surface-alt)]"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                      <OwnSiteHelp profile={draft.profile} origin={origin} copied={copied} onCopy={copy} />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <ul className="mt-4 space-y-2">
               {LEGAL_DOCS.map((item) => {
                 const url = hostedLegalUrl(origin, draft.profile, item.id);
                 return (
@@ -412,32 +694,6 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
                 );
               })}
             </ul>
-          </section>
-
-          <section className="rounded-xl border border-[var(--border)] bg-white p-5">
-            <h2 className="flex items-center gap-2 text-[14px] font-semibold text-[var(--foreground)]">
-              <GlobeMark />
-              En tu dominio
-            </h2>
-            {redirects.length ? (
-              <>
-                <p className="mt-1 text-[12px] leading-relaxed text-[var(--muted)]">
-                  Redirige estas rutas de {draft.profile.domain} a la URL alojada.
-                </p>
-                <ul className="mt-3 space-y-3">
-                  {redirects.map((item) => (
-                    <li key={item.from} className="text-[12px] leading-relaxed">
-                      <p className="font-medium text-[var(--foreground)]">{item.from.replace(/^https?:\/\//, "")}</p>
-                      <p className="text-[var(--muted)]">→ {item.to.replace(/^https?:\/\//, "")}</p>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <p className="mt-2 text-[12px] text-[var(--muted-soft)]">
-                Cuando pongas el dominio verás las rutas para redirigir /privacy, /terms, /cookies y /aviso.
-              </p>
-            )}
           </section>
 
           <section className="rounded-xl border border-[var(--border)] bg-white p-5">
@@ -484,7 +740,7 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
               type="button"
               disabled={Boolean(busy) || !accountId || !state.published || !audience}
               onClick={() => void post("notify", { accountId, subject, note })}
-              className="mt-3 rounded-lg bg-[#5b4dff] px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+              className="mt-3 rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
             >
               {busy === "notify" ? "Enviando…" : "Enviar aviso"}
             </button>
@@ -501,16 +757,262 @@ export function AppLegalCenter({ projectId }: { projectId: string }) {
               </p>
             ) : null}
           </section>
-
-          <section className="rounded-xl border border-[var(--border)] bg-[#fbfbfc] p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
-              Vista previa
-            </p>
-            <p className="mt-2 line-clamp-6 whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--foreground-soft)]">
-              {preview.slice(0, 420)}
-            </p>
-          </section>
         </div>
+      </div>
+      <LegalBlockEditor
+        open={editorOpen}
+        title={doc.title}
+        body={doc.body}
+        color={doc.color}
+        docLabel={doc.label || "Documento"}
+        profile={draft.profile}
+        onClose={() => setEditorOpen(false)}
+        onApply={({ title: nextTitle, body: nextBody, color }) => {
+          patchDoc("title", nextTitle);
+          patchDoc("body", nextBody);
+          patchDoc("color", color);
+          setEditorOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function versionEntries(state: LegalState): LegalHistoryItem[] {
+  const published = state.published;
+  if (state.history.length) {
+    return state.history.map((item) => ({
+      ...item,
+      snapshot:
+        item.snapshot || (published && published.version === item.version ? published : null),
+    }));
+  }
+  if (!published) return [];
+  return [
+    {
+      version: published.version,
+      publishedAt: published.publishedAt,
+      snapshot: published,
+    },
+  ];
+}
+
+function VersionHistory({
+  items,
+  selected,
+  onSelect,
+}: {
+  items: LegalHistoryItem[];
+  selected: number | null;
+  onSelect: (version: number) => void;
+}) {
+  const latest = items.reduce((max, item) => Math.max(max, item.version), 0);
+  return (
+    <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[min(440px,70dvh)] overflow-y-auto rounded-xl border border-[var(--border)] bg-white p-3 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
+      {items.length ? (
+        <ul className="space-y-1">
+          {items.map((item) => {
+            const open = selected === item.version;
+            const when = new Date(item.publishedAt).toLocaleString("es", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return (
+              <li key={item.version} className="rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => onSelect(item.version)}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-[var(--surface-alt)]"
+                  aria-expanded={open}
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold text-[var(--foreground)]">
+                      Versión {item.version}
+                    </span>
+                    <span className="block text-[11px] text-[var(--muted)]">{when}</span>
+                  </span>
+                  {item.version === latest ? (
+                    <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--foreground)]">
+                      En línea
+                    </span>
+                  ) : null}
+                </button>
+                {open ? <VersionBody item={item} /> : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="px-1 py-1 text-[12px] leading-relaxed text-[var(--muted)]">
+          Todavía no hay versiones publicadas.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function VersionBody({ item }: { item: LegalHistoryItem }) {
+  if (!item.snapshot) {
+    return (
+      <p className="px-2 pb-2 text-[12px] leading-relaxed text-[var(--muted)]">
+        Esta versión solo tiene la fecha. El texto se guarda a partir de la próxima publicación.
+      </p>
+    );
+  }
+  const snapshot = item.snapshot;
+  const docs = [
+    ...LEGAL_DOCS.map((meta) => ({
+      id: meta.id,
+      label: snapshot.docs[meta.id].label || meta.label,
+      title: snapshot.docs[meta.id].title,
+      body: snapshot.docs[meta.id].body,
+    })),
+    ...snapshot.extras,
+  ];
+  return (
+    <div className="space-y-3 px-2 pb-2">
+      {docs.map((document) => (
+        <div key={document.id}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
+            {document.label}
+          </p>
+          <p className="mt-0.5 text-[13px] font-semibold text-[var(--foreground)]">
+            {fillLegalText(document.title, snapshot.profile, item.publishedAt)}
+          </p>
+          <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--muted)]">
+            {fillLegalText(document.body, snapshot.profile, item.publishedAt)}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OwnSiteHelp({
+  profile,
+  origin,
+  copied,
+  onCopy,
+}: {
+  profile: LegalProfile;
+  origin: string;
+  copied: string;
+  onCopy: (value: string, key: string) => void;
+}) {
+  const [host, setHost] = useState<"any" | "vercel" | "netlify" | "nginx">("any");
+  const links = ownSiteLinks(profile, origin);
+  if (!links.length) {
+    return (
+      <p className="text-[13px] leading-relaxed text-[var(--danger)]">
+        Escribe el dominio en Datos de la app. Con eso salen direcciones como tudominio.com/privacy-policy.
+      </p>
+    );
+  }
+  const rows = links.map((link) => ({ ...link, path: new URL(link.from).pathname }));
+  const snippets = {
+    vercel: ownSiteVercelCode(profile, origin),
+    netlify: rows
+      .map(
+        (link) =>
+          `[[redirects]]\n  from = "${link.path}"\n  to = "${link.to}"\n  status = 200\n  force = true`
+      )
+      .join("\n\n"),
+    nginx: rows
+      .map((link) => {
+        const destination = new URL(link.to);
+        return `location = ${link.path} {\n  proxy_pass ${link.to};\n  proxy_ssl_server_name on;\n  proxy_set_header Host ${destination.host};\n}`;
+      })
+      .join("\n\n"),
+  };
+  const hosts = [
+    ["any", "Cualquier web"],
+    ["vercel", "Vercel"],
+    ["netlify", "Netlify"],
+    ["nginx", "Nginx"],
+  ] as const;
+
+  return (
+    <div className="space-y-5">
+      <p className="text-[14px] leading-relaxed text-[var(--foreground)]">
+        En la App Store pega direcciones de tu dominio. Quien las abra tiene que seguir viendo tu web en la barra, y el texto es el que publicas aquí.
+      </p>
+      <ol className="space-y-3 text-[13px] leading-relaxed text-[var(--muted)]">
+        <li>
+          <span className="font-semibold text-[var(--foreground)]">1. Copia estas direcciones.</span> Son las que van en la ficha de la tienda y dentro de la app.
+        </li>
+        <li>
+          <span className="font-semibold text-[var(--foreground)]">2. Tu web muestra esa página por debajo.</span> Cada ruta pide el documento a Vantko y lo enseña sin cambiar la dirección. Eso es un proxy, no una redirección: un 301 o un 302 mandaría al visitante a vantko.com.
+        </li>
+      </ol>
+      <ul className="space-y-2">
+        {rows.map((link) => (
+          <li key={link.id} className="rounded-xl border border-[var(--border)] px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[12px] font-semibold text-[var(--foreground)]">{link.label}</p>
+              <button
+                type="button"
+                onClick={() => onCopy(link.from, `own-${link.id}`)}
+                className="shrink-0 rounded-full bg-[var(--surface-alt)] px-2.5 py-1 text-[11px] font-semibold text-[var(--foreground)]"
+              >
+                {copied === `own-${link.id}` ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+            <p className="mt-1 truncate text-[12px] text-[var(--foreground)]">{link.from}</p>
+            <p className="mt-0.5 truncate text-[11px] text-[var(--muted)]">muestra el contenido de {link.to}</p>
+          </li>
+        ))}
+      </ul>
+      <div>
+        <p className="text-[12px] font-semibold text-[var(--foreground)]">Según dónde esté alojada tu web</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {hosts.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setHost(id)}
+              className={`rounded-full px-3 py-1 text-[12px] font-semibold ${
+                host === id
+                  ? "bg-[var(--accent)] text-white"
+                  : "bg-[var(--surface-alt)] text-[var(--foreground)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {host === "any" ? (
+          <p className="mt-3 text-[13px] leading-relaxed text-[var(--muted)]">
+            En el panel de tu hosting, WordPress, Cloudflare o el servidor, crea un proxy de cada ruta hacia la URL de Vantko. Si solo encuentras “redirección”, no la uses: tiene que conservar tu dominio en la barra.
+          </p>
+        ) : (
+          <div className="mt-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
+                {host === "vercel" ? "vercel.json" : host === "netlify" ? "netlify.toml" : "nginx"}
+              </p>
+              <button
+                type="button"
+                onClick={() => onCopy(snippets[host], "own-code")}
+                className="rounded-full bg-[var(--surface-alt)] px-2.5 py-1 text-[11px] font-semibold text-[var(--foreground)]"
+              >
+                {copied === "own-code" ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+            <pre className="mt-2 max-h-52 overflow-auto rounded-xl bg-[var(--surface-alt)] p-3 text-[11px] leading-relaxed text-[var(--foreground-soft)]">
+              {snippets[host]}
+            </pre>
+            <p className="mt-2 text-[12px] leading-relaxed text-[var(--muted)]">
+              {host === "vercel"
+                ? "Los rewrites de Vercel sirven la página y dejan la dirección en tu dominio."
+                : host === "netlify"
+                  ? "El estado 200 en Netlify es un proxy. Un 301 cambiaría la dirección."
+                  : "Nginx pide la página a Vantko y la responde como si fuera tuya."}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -622,6 +1124,33 @@ function CountryPicker({
   );
 }
 
+function ExpandIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 5.5H5.5V9M15 5.5h3.5V9M9 18.5H5.5V15M15 18.5h3.5V15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`h-3.5 w-3.5 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-90" : ""}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path d="M9 6.5 15 12 9 17.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function SaveIcon() {
   return (
     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -639,7 +1168,7 @@ function SaveIcon() {
 
 function LinkMark() {
   return (
-    <svg className="h-4 w-4 text-[#5b4dff]" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg className="h-4 w-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M10 13.5a4 4 0 0 0 5.7.4l2.3-2.3a4 4 0 0 0-5.7-5.7L11 7.2"
         stroke="currentColor"
@@ -652,15 +1181,6 @@ function LinkMark() {
         strokeWidth="1.7"
         strokeLinecap="round"
       />
-    </svg>
-  );
-}
-
-function GlobeMark() {
-  return (
-    <svg className="h-4 w-4 text-[#5b4dff]" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M4 12h16M12 4c2.2 2.4 2.2 13.6 0 16M12 4c-2.2 2.4-2.2 13.6 0 16" stroke="currentColor" strokeWidth="1.7" />
     </svg>
   );
 }

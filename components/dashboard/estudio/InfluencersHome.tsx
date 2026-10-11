@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type FormEvent } from "react";
 import { ApiMissingBanner } from "../ApiMissingBanner";
 import { CloseIcon, PlusIcon, TrashIcon } from "../icons";
 import {
@@ -146,11 +146,51 @@ function InactiveStatusIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M9 12h6"
+        d="M9 9 15 15M15 9 9 15"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function flyCoverTo(from: DOMRect, src: string, dest: DOMRect) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = "";
+  img.className =
+    "pointer-events-none fixed z-[80] rounded-xl object-cover shadow-[0_16px_40px_rgba(17,24,39,0.28)]";
+  img.style.left = `${from.left}px`;
+  img.style.top = `${from.top}px`;
+  img.style.width = `${from.width}px`;
+  img.style.height = `${from.height}px`;
+  img.style.transformOrigin = "center center";
+  document.body.appendChild(img);
+  const dx = dest.left + dest.width / 2 - (from.left + from.width / 2);
+  const dy = dest.top + dest.height / 2 - (from.top + from.height / 2);
+  const scale = Math.min(18 / from.width, 18 / from.height);
+  const animation = img.animate(
+    [
+      { transform: "translate3d(0,0,0) scale(1)", opacity: 1 },
+      {
+        transform: `translate3d(${dx}px, ${dy}px, 0) scale(${scale})`,
+        opacity: 0,
+      },
+    ],
+    { duration: 780, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
+  );
+  const remove = () => img.remove();
+  animation.onfinish = remove;
+  animation.oncancel = remove;
+}
+
+function DotsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="6" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="18" cy="12" r="1.6" />
     </svg>
   );
 }
@@ -161,12 +201,16 @@ export function InfluencersHome({
   onChange,
   title = "Influencers",
   renderStudio,
+  embedStudioId = null,
+  onCloseStudio,
 }: {
   projectId: string;
   influencers: EstudioInfluencer[];
   onChange: (list: EstudioInfluencer[]) => void;
   title?: string;
   renderStudio?: (influencer: EstudioInfluencer, onBack: () => void, onOpenPhotos: () => void) => ReactNode;
+  embedStudioId?: string | null;
+  onCloseStudio?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -181,17 +225,44 @@ export function InfluencersHome({
   const [error, setError] = useState("");
   const [openai, setOpenai] = useState<{ connected: boolean } | null>(null);
   const [photosId, setPhotosId] = useState<string | null>(null);
-  const [studioId, setStudioId] = useState<string | null>(null);
+  const [studioId, setStudioId] = useState<string | null>(embedStudioId);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState("");
   const [listFilter, setListFilter] = useState<"active" | "inactive">("active");
+  const filterRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const toggleLock = useRef(false);
+  const pendingFlip = useRef<{
+    at: number;
+    spots: Map<string, { left: number; top: number }>;
+  } | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
   const swipeX = useRef<number | null>(null);
   const migrated = useRef(false);
   const onChangeRef = useRef(onChange);
   const referenceInput = useRef<HTMLInputElement>(null);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  useEffect(() => {
+    if (!menuId) return;
+    function onPointer(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("[data-influencer-menu]")) return;
+      setMenuId(null);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuId(null);
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuId]);
 
   useEffect(() => {
     if (!referenceFile) {
@@ -221,6 +292,7 @@ export function InfluencersHome({
   }, [projectId]);
 
   function persistListFilter(next: "active" | "inactive") {
+    pendingFlip.current = null;
     setListFilter(next);
     try {
       localStorage.setItem(filterFlag(projectId), next);
@@ -496,6 +568,48 @@ export function InfluencersHome({
   const visible = influencers.filter((item) =>
     listFilter === "active" ? isInfluencerActive(item) : !isInfluencerActive(item)
   );
+  const visibleIds = visible.map((item) => item.id).join("\n");
+  useLayoutEffect(() => {
+    const pending = pendingFlip.current;
+    pendingFlip.current = null;
+    const list = listRef.current;
+    if (!pending || !list || performance.now() - pending.at > 1200) return;
+    const listBox = list.getBoundingClientRect();
+    list.querySelectorAll<HTMLElement>("[data-influencer-id]").forEach((node) => {
+      node.getAnimations().forEach((animation) => animation.cancel());
+      const id = node.dataset.influencerId;
+      if (!id) return;
+      const previous = pending.spots.get(id);
+      if (!previous) return;
+      const box = node.getBoundingClientRect();
+      const dx = previous.left - (box.left - listBox.left);
+      const dy = previous.top - (box.top - listBox.top);
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      const frames =
+        Math.abs(dy) < 8
+          ? [
+              { transform: `translate3d(${dx}px, ${dy}px, 0)` },
+              { transform: "translate3d(0,0,0)" },
+            ]
+          : [
+              {
+                transform: `translate3d(${dx}px, ${dy}px, 0)`,
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+              },
+              {
+                transform: `translate3d(0px, ${dy}px, 0)`,
+                offset: 0.55,
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+              },
+              { transform: "translate3d(0,0,0)" },
+            ];
+      node.animate(frames, {
+        duration: 1100,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        fill: "both",
+      });
+    });
+  }, [visibleIds]);
   const studio = influencers.find((item) => item.id === studioId) ?? null;
   const deleteTarget = influencers.find((item) => item.id === deleteId) ?? null;
   const viewable = selected ? viewablePhotos(selected) : [];
@@ -587,16 +701,60 @@ export function InfluencersHome({
   }
 
   async function toggleActive(item: EstudioInfluencer) {
-    if (togglingId || deleting || busy) return;
+    if (toggleLock.current || deleting || busy) return;
+    toggleLock.current = true;
     const next = !isInfluencerActive(item);
     setTogglingId(item.id);
+    setMenuId((current) => (current === item.id ? null : current));
     setError("");
-    apply(
-      influencers.map((entry) =>
-        entry.id === item.id ? { ...entry, active: next } : entry
-      )
-    );
+    const motionStarted = performance.now();
     try {
+      const card = document.querySelector(`[data-influencer-id="${item.id}"]`);
+      const shell = card?.querySelector("[data-influencer-cover]");
+      if (shell instanceof HTMLElement) {
+        const shrink = shell.animate(
+          [{ transform: "scale(1)" }, { transform: "scale(0.22)" }],
+          {
+            duration: 420,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            fill: "forwards",
+          }
+        );
+        try {
+          await shrink.finished;
+        } catch {
+          /* A refresh can drop the card before the shrink ends. */
+        }
+      }
+      const list = listRef.current;
+      if (list) {
+        const listBox = list.getBoundingClientRect();
+        const spots = new Map<string, { left: number; top: number }>();
+        list.querySelectorAll<HTMLElement>("[data-influencer-id]").forEach((node) => {
+          const id = node.dataset.influencerId;
+          if (!id || id === item.id) return;
+          const box = node.getBoundingClientRect();
+          spots.set(id, { left: box.left - listBox.left, top: box.top - listBox.top });
+        });
+        pendingFlip.current = { at: performance.now(), spots };
+      }
+      const media = card?.querySelector("img");
+      const dest = filterRef.current?.querySelector(
+        `[data-filter="${next ? "active" : "inactive"}"]`
+      );
+      if (media instanceof HTMLImageElement && dest instanceof HTMLElement) {
+        const from = media.getBoundingClientRect();
+        const src = media.currentSrc || media.src;
+        if (src && from.width > 0 && from.height > 0) {
+          flyCoverTo(from, src, dest.getBoundingClientRect());
+        }
+      }
+      if (card instanceof HTMLElement) card.style.visibility = "hidden";
+      apply(
+        influencers.map((entry) =>
+          entry.id === item.id ? { ...entry, active: next } : entry
+        )
+      );
       const response = await fetch(
         `/api/projects/${projectId}/creator/influencers`,
         {
@@ -609,13 +767,19 @@ export function InfluencersHome({
       if (!response.ok) {
         throw new Error(data.error || "No se pudo cambiar el estado");
       }
+      const remaining = 1700 - (performance.now() - motionStarted);
+      if (remaining > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, remaining));
+      }
       apply((data.influencers ?? []) as EstudioInfluencer[]);
     } catch (cause) {
+      pendingFlip.current = null;
       setError(
         cause instanceof Error ? cause.message : "No se pudo cambiar el estado"
       );
       await reload().catch(() => undefined);
     } finally {
+      toggleLock.current = false;
       setTogglingId("");
     }
   }
@@ -868,13 +1032,21 @@ export function InfluencersHome({
     </div>
   ) : null;
 
+  function closeStudio() {
+    if (onCloseStudio) {
+      onCloseStudio();
+      return;
+    }
+    setStudioId(null);
+  }
+
   if (studio) {
     return (
       <>
-        {renderStudio ? renderStudio(studio, () => setStudioId(null), () => setPhotosId(studio.id)) : <InfluencerStudio
+        {renderStudio ? renderStudio(studio, closeStudio, () => setPhotosId(studio.id)) : <InfluencerStudio
           projectId={projectId}
           influencer={studio}
-          onBack={() => setStudioId(null)}
+          onBack={closeStudio}
           onChange={apply}
           onOpenPhotos={() => setPhotosId(studio.id)}
         />}
@@ -893,10 +1065,14 @@ export function InfluencersHome({
       description="Elige quién aparece. Luego unes un hook (el movimiento) con la demo de la app."
       actions={
         <>
-          <div className="flex rounded-lg bg-[var(--surface-alt)] p-1 ring-1 ring-[var(--border)]">
+          <div
+            ref={filterRef}
+            className="flex rounded-full bg-[var(--surface-alt)] p-1 ring-1 ring-[var(--border)]"
+          >
             <button
               type="button"
-              className={`rounded-md px-3 py-1.5 text-[13px] transition ${
+              data-filter="active"
+              className={`rounded-full px-3 py-1.5 text-[13px] transition ${
                 listFilter === "active"
                   ? "bg-white font-semibold text-[var(--foreground)] shadow-[var(--shadow-sm)]"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -908,7 +1084,8 @@ export function InfluencersHome({
             </button>
             <button
               type="button"
-              className={`rounded-md px-3 py-1.5 text-[13px] transition ${
+              data-filter="inactive"
+              className={`rounded-full px-3 py-1.5 text-[13px] transition ${
                 listFilter === "inactive"
                   ? "bg-white font-semibold text-[var(--foreground)] shadow-[var(--shadow-sm)]"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -986,14 +1163,14 @@ export function InfluencersHome({
           </p>
         </div>
       ) : (
-        <ul className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <ul ref={listRef} className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {visible.map((item) => {
             const cover = influencerCoverUrl(item);
             const progress = influencerProgress(item);
             const active = isInfluencerActive(item);
             return (
-              <li key={item.id} className="min-w-0">
-                <div className="relative overflow-hidden rounded-xl bg-[#111827] shadow-[0_16px_40px_rgba(17,24,39,0.14)]">
+              <li key={item.id} data-influencer-id={item.id} className="min-w-0">
+                <div data-influencer-cover className="relative overflow-hidden rounded-xl bg-[#111827] shadow-[0_16px_40px_rgba(17,24,39,0.14)]">
                   <button
                     type="button"
                     onClick={() => setStudioId(item.id)}
@@ -1028,29 +1205,14 @@ export function InfluencersHome({
                   ) : null}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setError("");
-                      setDeleteId(item.id);
-                    }}
-                    className="absolute right-[6.25rem] top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white shadow-sm transition hover:bg-black/75"
-                    aria-label={`Eliminar a ${item.name}`}
-                    title="Eliminar"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
+                    role="switch"
+                    aria-checked={active}
+                    disabled={togglingId === item.id}
                     onClick={(e) => {
                       e.stopPropagation();
                       void toggleActive(item);
                     }}
-                    disabled={togglingId === item.id}
-                    className={`absolute right-14 top-3 flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm transition disabled:opacity-50 ${
-                      active
-                        ? "bg-emerald-500 hover:bg-emerald-600"
-                        : "bg-black/55 hover:bg-black/75"
-                    }`}
+                    className="absolute right-14 top-3 grid h-9 w-[4.5rem] grid-cols-2 items-center rounded-full bg-black/55 p-0.5 text-white shadow-sm transition disabled:opacity-50"
                     aria-label={
                       active
                         ? `Desactivar a ${item.name}`
@@ -1058,24 +1220,70 @@ export function InfluencersHome({
                     }
                     title={active ? "Activo" : "Inactivo"}
                   >
-                    {active ? (
-                      <ActiveStatusIcon className="h-4 w-4" />
-                    ) : (
-                      <InactiveStatusIcon className="h-4 w-4" />
-                    )}
+                    <span
+                      className={`pointer-events-none absolute top-0.5 h-8 w-[calc(50%-0.125rem)] rounded-full transition ${
+                        active ? "left-0.5 bg-emerald-500" : "right-0.5 bg-white/20"
+                      }`}
+                    />
+                    <span
+                      className={`relative z-10 flex h-8 items-center justify-center ${
+                        active ? "text-white" : "text-white/55"
+                      }`}
+                    >
+                      <ActiveStatusIcon className="block h-4 w-4" />
+                    </span>
+                    <span
+                      className={`relative z-10 flex h-8 items-center justify-center ${
+                        active ? "text-white/55" : "text-white"
+                      }`}
+                    >
+                      <InactiveStatusIcon className="block h-4 w-4" />
+                    </span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPhotosId(item.id);
-                    }}
-                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white shadow-sm transition hover:bg-black/75"
-                    aria-label="Ver fotos y generación"
-                    title="Ver fotos"
-                  >
-                    <ImageStackIcon className="h-4 w-4" />
-                  </button>
+                  <div className="absolute right-3 top-3" data-influencer-menu>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuId((current) => (current === item.id ? null : item.id));
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white shadow-sm transition hover:bg-black/75"
+                      aria-label={`Acciones de ${item.name}`}
+                      aria-expanded={menuId === item.id}
+                      title="Acciones"
+                    >
+                      <DotsIcon className="h-4 w-4" />
+                    </button>
+                    {menuId === item.id ? (
+                      <div className="absolute right-0 top-11 z-20 w-40 overflow-hidden rounded-xl bg-black/55 py-1 text-white shadow-sm backdrop-blur-md">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuId(null);
+                            setPhotosId(item.id);
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-white hover:bg-white/10"
+                        >
+                          <ImageStackIcon className="h-4 w-4" />
+                          Fotos
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuId(null);
+                            setError("");
+                            setDeleteId(item.id);
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-red-300 hover:bg-white/10"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                          Eliminar
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </li>
             );

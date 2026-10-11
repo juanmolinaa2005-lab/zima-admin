@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { useCallback, useEffect, useState, type ComponentType, type SVGProps } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import type { Project } from "@/lib/types";
@@ -57,6 +58,10 @@ export function BusinessDashboard({
   const router = useRouter();
   const userKey = userEmail ?? "default";
   const [workspace, updateWorkspace] = useBusinessWorkspace(userKey);
+  const clearLegacyDocuments = useCallback(
+    () => updateWorkspace((prev) => ({ ...prev, documents: [] })),
+    [updateWorkspace]
+  );
   const [section, setSection] = useState<BusinessSection>("proyectos");
   const [connected, setConnected] = useState(initialConnected);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -82,17 +87,17 @@ export function BusinessDashboard({
     <div className="flex min-h-dvh bg-[var(--background)]">
       <aside className="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
         <div className="flex h-14 items-center gap-2.5 border-b border-[var(--border)] px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white shadow-[0_2px_6px_rgba(99,91,255,0.35)]">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white shadow-[0_2px_6px_rgba(0,0,0,0.28)]">
             Z
           </div>
           <div className="min-w-0">
             <p className="text-[14px] font-semibold text-[var(--foreground)]">
               My Business
             </p>
-            <p className="truncate text-[11px] text-[var(--muted)]">Admin</p>
+            <p className="truncate text-[11px] text-[var(--muted)]">Zima Admin</p>
           </div>
         </div>
-        <nav aria-label="Secciones" className="flex flex-1 flex-col gap-0.5 px-3 pt-4">
+        <nav aria-label="Secciones" className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-4">
           <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-soft)]">
             Workspace
           </p>
@@ -113,20 +118,52 @@ export function BusinessDashboard({
               </button>
             );
           })}
+
+          {projects.length > 0 ? (
+            <>
+              <p className="mb-1.5 mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-soft)]">
+                Proyectos
+              </p>
+              {projects.slice(0, 8).map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="ui-nav-item group"
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-[var(--accent-soft)] text-[10px] font-bold text-[var(--accent-ink)]">
+                    {(project.name.trim()[0] || "P").toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{project.name}</span>
+                  <span className="text-[11px] text-[var(--muted-soft)] opacity-0 transition group-hover:opacity-100">
+                    →
+                  </span>
+                </Link>
+              ))}
+            </>
+          ) : null}
         </nav>
         <div className="border-t border-[var(--border)] p-3">
-          <p className="truncate px-2 text-[11px] text-[var(--muted-soft)]">
-            {userEmail ?? "Workspace"}
-          </p>
-          <form action={signOut} className="mt-1">
-            <button
-              type="submit"
-              className="ui-nav-item hover:!bg-[var(--danger-soft)] hover:!text-[var(--danger)]"
-            >
-              <LogoutIcon className="h-4 w-4 opacity-70" />
-              Sign out
-            </button>
-          </form>
+          <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[image:var(--accent-metal)] text-[11px] font-bold text-white">
+              {(userEmail?.[0] ?? "?").toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[12px] font-semibold text-[var(--foreground)]">
+                {userEmail ?? "Workspace"}
+              </span>
+              <span className="block text-[11px] text-[var(--muted-soft)]">Admin</span>
+            </span>
+            <form action={signOut}>
+              <button
+                type="submit"
+                title="Cerrar sesión"
+                aria-label="Cerrar sesión"
+                className="rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"
+              >
+                <LogoutIcon className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 
@@ -159,7 +196,7 @@ export function BusinessDashboard({
                     connected ? "bg-[var(--success)]" : "bg-[var(--accent)]"
                   }`}
                 />
-                {connected ? "Supabase connected" : "Connect Supabase"}
+                {connected ? "Supabase conectado" : "Conectar Supabase"}
               </button>
               <form action={signOut} className="md:hidden">
                 <button
@@ -182,7 +219,7 @@ export function BusinessDashboard({
                   onClick={() => go(item.id)}
                   className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold ${
                     active
-                      ? "bg-[var(--accent)] text-white shadow-[0_2px_5px_rgba(99,91,255,0.3)]"
+                      ? "bg-[var(--accent)] text-white shadow-[0_2px_5px_rgba(0,0,0,0.28)]"
                       : "bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--border)]"
                   }`}
                 >
@@ -209,8 +246,8 @@ export function BusinessDashboard({
           ) : null}
           {section === "documents" ? (
             <DocumentsPanel
-              documents={workspace.documents}
-              onChange={updateWorkspace}
+              legacy={workspace.documents}
+              onLegacyImported={clearLegacyDocuments}
             />
           ) : null}
           {section === "contratos" ? (

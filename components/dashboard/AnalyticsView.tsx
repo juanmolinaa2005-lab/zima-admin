@@ -122,7 +122,7 @@ export function AnalyticsView({ linkedRef, projectId }: AnalyticsViewProps) {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white transition hover:bg-[#5046e5]"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white transition hover:bg-[var(--accent-hover)]"
             aria-label="Añadir plataforma"
           >
             <PlusIcon className="h-4 w-4" />

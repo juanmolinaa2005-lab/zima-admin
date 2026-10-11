@@ -24,6 +24,7 @@ export type ProjectToolRow = ProjectTool;
 export type ToolKind =
   | "home"
   | "miapp"
+  | "launch"
   | "apps"
   | "clients"
   | "emails"
@@ -34,6 +35,8 @@ export type ToolKind =
   | "gallery"
   | "redes"
   | "viewtracker"
+  | "market"
+  | "monetization"
   | "link"
   | "social";
 
@@ -116,12 +119,15 @@ export function normalizeUrl(input: string): string {
 export function builtInTools(): WorkspaceTool[] {
   return [
     { id: "miapp", name: "Mi app", kind: "miapp" },
-    { id: "home", name: "Home", kind: "home" },
+    { id: "launch", name: "Lanzamiento", kind: "launch" },
+    { id: "home", name: "Overview", kind: "home" },
     { id: "apps", name: "Accesos directos", kind: "apps" },
     { id: "clients", name: "Clients", kind: "clients" },
     { id: "emails", name: "Emails", kind: "emails" },
     { id: "analytics", name: "Analytics", kind: "analytics" },
-    { id: "viewtracker", name: "ViewTracker", kind: "viewtracker" },
+    { id: "viewtracker", name: "Marketing", kind: "viewtracker" },
+    { id: "market", name: "Market", kind: "market" },
+    { id: "monetization", name: "Monetization", kind: "monetization" },
     { id: "marketing", name: "Creator Studio", kind: "marketing" },
     { id: "gallery", name: "Galería", kind: "gallery" },
     { id: "redes", name: "Redes", kind: "redes" },

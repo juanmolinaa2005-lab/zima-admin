@@ -16,7 +16,9 @@ import {
   PageHead,
   StatusOk,
   Toolbar,
+  VT_PLATFORMS,
 } from "./vt-ui";
+import { NetworkAccountsAside, relatedVideos, type TrackedAccount } from "./AccountsPage";
 
 export type TrackedVideo = {
   id: string;
@@ -63,12 +65,20 @@ export function VideosPage({ projectId }: { projectId: string }) {
   const [platform, setPlatform] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<TrackedAccount[]>([]);
+  const [accountIds, setAccountIds] = useState<string[]>([]);
 
   async function load() {
-    const res = await fetch(`/api/projects/${projectId}/viewtracker/videos`);
+    const [res, accountsData] = await Promise.all([
+      fetch(`/api/projects/${projectId}/viewtracker/videos`),
+      fetch(`/api/projects/${projectId}/viewtracker/accounts`)
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .catch(() => ({ items: [] })),
+    ]);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "No se pudieron cargar los videos");
     setItems((data.items ?? []) as TrackedVideo[]);
+    setAccounts((accountsData.items ?? []) as TrackedAccount[]);
   }
 
   useEffect(() => {
@@ -86,10 +96,31 @@ export function VideosPage({ projectId }: { projectId: string }) {
     };
   }, [projectId]);
 
+  const accountVideos = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const account of accounts) {
+      map.set(account.id, new Set(relatedVideos(account, items).map((v) => v.id)));
+    }
+    return map;
+  }, [accounts, items]);
+
+  const accountOptions = useMemo(
+    () =>
+      accounts
+        .filter((account) => !platform || account.platform === platform)
+        .map((account) => ({ account, count: accountVideos.get(account.id)?.size ?? 0 }))
+        .sort((a, b) => b.count - a.count),
+    [accounts, accountVideos, platform]
+  );
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const allowed = accountIds.length
+      ? new Set(accountIds.flatMap((id) => [...(accountVideos.get(id) ?? [])]))
+      : null;
     return items.filter((v) => {
       if (platform && v.platform !== platform) return false;
+      if (allowed && !allowed.has(v.id)) return false;
       if (!q) return true;
       return (
         (v.title || "").toLowerCase().includes(q) ||
@@ -97,7 +128,11 @@ export function VideosPage({ projectId }: { projectId: string }) {
         v.url.toLowerCase().includes(q)
       );
     });
-  }, [items, search, platform]);
+  }, [items, search, platform, accountIds, accountVideos]);
+
+  function toggleAccount(id: string) {
+    setAccountIds((prev) => (prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]));
+  }
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -159,7 +194,17 @@ export function VideosPage({ projectId }: { projectId: string }) {
     if (!res.ok) setItems((prev) => [video, ...prev]);
   }
 
+  const networkGroups = useMemo(() => {
+    const known = new Set<string>(VT_PLATFORMS.map((p) => p.id));
+    const groups = VT_PLATFORMS.map((p) => ({ id: p.id as string, label: p.label as string, list: accountOptions.filter((o) => o.account.platform === p.id) }));
+    const others = accountOptions.filter((o) => !known.has(o.account.platform || ""));
+    if (others.length) groups.push({ id: "web", label: "Otras", list: others });
+    return groups;
+  }, [accountOptions]);
+
   return (
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+    <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-6 md:pb-6">
     <div className="space-y-4">
       <PageHead
         title="Videos"
@@ -209,13 +254,17 @@ export function VideosPage({ projectId }: { projectId: string }) {
         onSearch={setSearch}
         searchPlaceholder="Search videos"
         platform={platform}
-        onPlatform={setPlatform}
+        onPlatform={(next) => {
+          setPlatform(next);
+          setAccountIds([]);
+        }}
         extra={
-          <span className="rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-[13px] text-[var(--muted)]">
-            All time UTC
+          <span className="rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-[13px] tabular-nums text-[var(--muted)]">
+            {filtered.length === items.length ? `${items.length} videos` : `${filtered.length} de ${items.length} videos`}
           </span>
         }
       />
+
 
       {loading ? (
         <EmptyTable message="Cargando videos…" />
@@ -335,6 +384,34 @@ export function VideosPage({ projectId }: { projectId: string }) {
           </table>
         </div>
       )}
+    </div>
+    </div>
+    <NetworkAccountsAside
+      overviewLabel="Todas las cuentas"
+      overviewSubtitle={`${items.length} videos`}
+      overviewActive={accountIds.length === 0}
+      onOverview={() => setAccountIds([])}
+      groups={networkGroups.map((group) => ({
+        id: group.id,
+        label: group.label,
+        items: group.list.map(({ account, count }) => ({
+          id: account.id,
+          handle: (account.username || account.displayName || "cuenta").replace(/^@/, ""),
+          avatarUrl: account.avatarUrl,
+          active: accountIds.includes(account.id),
+          trailing: (
+            <span
+              className={`rounded-full px-1.5 text-[10px] font-semibold tabular-nums ${
+                accountIds.includes(account.id) ? "bg-[#111113] text-white" : "bg-black/[0.05] text-[var(--muted)]"
+              }`}
+            >
+              {count}
+            </span>
+          ),
+        })),
+      }))}
+      onSelect={toggleAccount}
+    />
     </div>
   );
 }

@@ -1,12 +1,12 @@
 const THEME_KEY = "zima:accent-theme";
 
-/** Zima accent (Stripe-style indigo). Kept in sync with :root in app/globals.css. */
+/** Zima accent (brushed black metal). Kept in sync with :root in app/globals.css. */
 export const ACCENT_THEME = {
-  accent: "#635bff",
-  soft: "#f0efff",
-  hover: "#5046e5",
-  border: "#c9c6ff",
-  rgb: "99, 91, 255",
+  accent: "#141416",
+  soft: "#f3f4f6",
+  hover: "#2a2a2e",
+  border: "#d4d4d8",
+  rgb: "20, 20, 22",
 } as const;
 
 /** @deprecated kept for backwards compatibility; use ACCENT_THEME. */

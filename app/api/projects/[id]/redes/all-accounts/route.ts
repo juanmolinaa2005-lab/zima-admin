@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { blotatoListAccounts } from "@/lib/blotato/client";
 import { getBlotatoApiKey } from "@/lib/blotato/user-key";
 import { requireProjectOwner } from "@/lib/mail/access";
-import { resolveSocialAvatar } from "@/lib/redes/avatar";
 import { hydrateMissingAvatar } from "@/lib/redes/avatar-server";
+import { persistProfileAvatar, publicProfileUrl } from "@/lib/viewtracker/avatar-cache";
+import { fetchPublicAccountStats } from "@/lib/viewtracker/stats";
 import { isSocialPlatform, type SocialPlatform } from "@/lib/redes/types";
 
 type Params = { params: Promise<{ id: string }> };
@@ -30,6 +31,40 @@ export type UnifiedAccount = {
   hasLoginCredentials: boolean;
 };
 
+async function blotatoAvatar(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  projectId: string,
+  platform: string,
+  username: string | null,
+  current: string | null | undefined
+): Promise<string | null> {
+  const cached = await persistProfileAvatar(supabase, {
+    projectId,
+    platform,
+    username,
+    sourceUrl: null,
+    reuse: true,
+  });
+  if (cached) return cached;
+  let source =
+    current && current.startsWith("http") && !current.includes("unavatar.io") ? current : null;
+  if (!source) {
+    const page = publicProfileUrl(platform, username);
+    if (page) {
+      const stats = await fetchPublicAccountStats(page, platform);
+      source = stats.thumbnailUrl;
+    }
+  }
+  return persistProfileAvatar(supabase, {
+    projectId,
+    platform,
+    username,
+    sourceUrl: source,
+    reuse: true,
+  });
+}
+
 export async function GET(_request: Request, { params }: Params) {
   const { id: projectId } = await params;
   const gate = await requireProjectOwner(projectId);
@@ -51,15 +86,18 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: nativeErr.message }, { status: 500 });
   }
 
-  for (const row of nativeRows ?? []) {
+  const nativeAccounts = await Promise.all(
+    (nativeRows ?? []).map(async (row) => {
     const platform = row.platform as string;
-    if (!isSocialPlatform(platform)) continue;
+    if (!isSocialPlatform(platform)) return null;
     const avatarUrl = await hydrateMissingAvatar({
       id: row.id as string,
       platform,
       username: (row.username as string) || null,
       avatarUrl: (row.avatar_url as string) || null,
       tokensCipher: (row.tokens_ciphertext as string) || null,
+      projectId,
+      supabase,
       save: async (next) => {
         await supabase
           .from("project_social_accounts")
@@ -67,10 +105,10 @@ export async function GET(_request: Request, { params }: Params) {
           .eq("id", row.id);
       },
     });
-    accounts.push({
+    return {
       key: `native:${row.id}`,
       platform,
-      source: "native",
+      source: "native" as const,
       externalKey: row.id as string,
       label:
         (row.display_name as string) ||
@@ -84,7 +122,11 @@ export async function GET(_request: Request, { params }: Params) {
       connectedAt:
         (row.connected_at as string) || (row.created_at as string) || null,
       hasLoginCredentials: false,
-    });
+    };
+    })
+  );
+  for (const account of nativeAccounts) {
+    if (account) accounts.push(account);
   }
 
   try {
@@ -107,11 +149,7 @@ export async function GET(_request: Request, { params }: Params) {
             (a.username ? `@${a.username}` : `Blotato ${id.slice(0, 6)}`),
           username: a.username || null,
           displayName: a.nickname || null,
-          avatarUrl: resolveSocialAvatar({
-            platform,
-            username: a.username || null,
-            avatarUrl: a.avatarUrl,
-          }),
+          avatarUrl: await blotatoAvatar(supabase, projectId, platform, a.username || null, a.avatarUrl),
           status: "active",
           connectedAt: null,
           hasLoginCredentials: false,

@@ -63,7 +63,7 @@ export function ProjectsPanel({
   }, [connected, userKey]);
 
   function handleDelete(id: string, name: string) {
-    if (!window.confirm(`Delete project “${name}”?`)) return;
+    if (!window.confirm(`¿Eliminar el proyecto “${name}”?`)) return;
     startTransition(async () => {
       await deleteProject(id);
       router.refresh();
@@ -86,7 +86,7 @@ export function ProjectsPanel({
   return (
     <>
       {!connected ? (
-        <div className="relative mb-6 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-xl bg-[linear-gradient(135deg,#635bff_0%,#8b5cf6_55%,#0ea5e9_130%)] p-5 text-white shadow-[var(--shadow-md)]">
+        <div className="relative mb-6 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-xl bg-[image:var(--accent-metal)] p-5 text-white shadow-[var(--shadow-md)]">
           <div>
             <p className="text-[15px] font-semibold">Conecta Supabase</p>
             <p className="mt-1 text-[13px] text-white/80">
@@ -110,7 +110,7 @@ export function ProjectsPanel({
         action={
           <button type="button" onClick={handleCreateClick} className="ui-btn-primary">
             <PlusIcon className="h-4 w-4" />
-            New project
+            Nuevo proyecto
           </button>
         }
       />
@@ -141,62 +141,99 @@ export function ProjectsPanel({
         <EmptyState
           title="Sin proyectos"
           body="Crea el primero."
-          actionLabel="Create project"
+          actionLabel="Crear proyecto"
           onAction={handleCreateClick}
         />
       ) : (
-        <ul className="mt-6 grid gap-3.5 sm:grid-cols-2">
-          {projects.map((project) => {
-            const linked = project.supabase_project_ref
-              ? remoteNames[project.supabase_project_ref] ??
-                project.supabase_project_ref
-              : null;
-            return (
-              <li key={project.id} className="group relative">
-                <Link
-                  href={`/projects/${project.id}`}
-                  className="ui-card ui-card-hover block p-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[14px] font-bold text-[var(--accent-ink)]">
-                      {(project.name.trim()[0] || "P").toUpperCase()}
-                    </span>
-                    <p className="min-w-0 truncate text-[15px] font-semibold text-[var(--foreground)]">
-                      {project.name}
-                    </p>
-                  </div>
-                  {project.description ? (
-                    <p className="mt-1 line-clamp-2 text-[13px] text-[var(--muted)]">
-                      {project.description}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-[13px] text-[var(--muted-soft)]">
-                      No description
-                    </p>
-                  )}
-                  <p className="mt-4 flex items-center gap-1.5 border-t border-[var(--border)] pt-3 text-[12px] font-medium text-[var(--muted-soft)]">
-                    <span
-                      aria-hidden
-                      className={`h-1.5 w-1.5 rounded-full ${linked ? "bg-[var(--success)]" : "bg-[var(--border-strong)]"}`}
-                    />
-                    {linked
-                      ? `Clients ← ${linked}`
-                      : "No Supabase project linked"}
-                  </p>
-                </Link>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => handleDelete(project.id, project.name)}
-                  className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--muted-soft)] opacity-0 transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] group-hover:opacity-100"
-                  aria-label={`Delete ${project.name}`}
-                >
-                  <TrashIcon className="h-3.5 w-3.5" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <section className="ui-card mt-6 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-3.5">
+            <h2 className="text-[14px] font-semibold text-[var(--foreground)]">
+              Todos los proyectos
+            </h2>
+            <span className="ui-tag ui-tag-muted">{projects.length}</span>
+          </div>
+          <table className="w-full text-left text-[13px]">
+            <thead className="hidden bg-[var(--background)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)] sm:table-header-group">
+              <tr>
+                <th className="px-5 py-2.5 font-semibold">Proyecto</th>
+                <th className="hidden px-3 py-2.5 font-semibold md:table-cell">Descripción</th>
+                <th className="px-3 py-2.5 font-semibold">Supabase</th>
+                <th className="w-24 px-5 py-2.5" aria-label="Acciones" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {projects.map((project) => {
+                const linked = project.supabase_project_ref
+                  ? remoteNames[project.supabase_project_ref] ??
+                    project.supabase_project_ref
+                  : null;
+                return (
+                  <tr
+                    key={project.id}
+                    className="group cursor-pointer transition hover:bg-[var(--background)]"
+                    onClick={() => router.push(`/projects/${project.id}`)}
+                  >
+                    <td className="px-5 py-3.5">
+                      <Link
+                        href={`/projects/${project.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-3"
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[14px] font-bold text-[var(--accent-ink)]">
+                          {(project.name.trim()[0] || "P").toUpperCase()}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-[var(--foreground)]">
+                            {project.name}
+                          </span>
+                          <span className="block truncate text-[12px] text-[var(--muted-soft)] md:hidden">
+                            {project.description || "Sin descripción"}
+                          </span>
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="hidden max-w-[320px] px-3 py-3.5 md:table-cell">
+                      <span className="line-clamp-1 text-[var(--muted)]">
+                        {project.description || (
+                          <span className="text-[var(--muted-soft)]">Sin descripción</span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3.5">
+                      {linked ? (
+                        <span className="ui-tag ui-tag-success">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+                          <span className="max-w-[140px] truncate">{linked}</span>
+                        </span>
+                      ) : (
+                        <span className="ui-tag ui-tag-muted">Sin vincular</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(project.id, project.name);
+                          }}
+                          className="rounded-lg p-1.5 text-[var(--muted-soft)] opacity-0 transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] group-hover:opacity-100"
+                          aria-label={`Eliminar ${project.name}`}
+                        >
+                          <TrashIcon className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-[12px] font-semibold text-[var(--accent)] opacity-0 transition group-hover:opacity-100">
+                          Abrir →
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
       )}
 
       <CreateProjectModal

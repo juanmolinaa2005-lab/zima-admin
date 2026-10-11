@@ -292,8 +292,8 @@ function ImageSlot({
               }}
               className={`overflow-hidden rounded-lg ring-offset-2 ${
                 preview === asset.publicUrl
-                  ? "ring-2 ring-[#5046e5]"
-                  : "hover:ring-2 hover:ring-[#c9c6ff]"
+                  ? "ring-2 ring-[var(--accent)]"
+                  : "hover:ring-2 hover:ring-[var(--accent-border)]"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -536,7 +536,7 @@ export function LayersFlow({
                 step={0.5}
                 value={textSize}
                 onChange={(e) => setTextSize(Number(e.target.value))}
-                className="mt-1 w-full accent-[#5046e5]"
+                className="mt-1 w-full accent-[var(--accent)]"
               />
             </label>
           </div>
@@ -573,7 +573,7 @@ export function LayersFlow({
               step={1}
               value={imageScale}
               onChange={(e) => setImageScale(Number(e.target.value))}
-              className="mt-1 w-full accent-[#5046e5]"
+              className="mt-1 w-full accent-[var(--accent)]"
             />
           </label>
         </LayerCard>

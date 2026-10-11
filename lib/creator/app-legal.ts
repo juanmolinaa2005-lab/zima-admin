@@ -40,11 +40,17 @@ export type LegalDocument = {
   label: string;
   title: string;
   body: string;
+  color: string;
+};
+
+export type LegalExtra = LegalDocument & {
+  id: string;
 };
 
 export type LegalBundle = {
   profile: LegalProfile;
   docs: Record<LegalDocId, LegalDocument>;
+  extras: LegalExtra[];
 };
 
 export type LegalPublication = LegalBundle & {
@@ -55,6 +61,7 @@ export type LegalPublication = LegalBundle & {
 export type LegalHistoryItem = {
   version: number;
   publishedAt: string;
+  snapshot: LegalBundle | null;
 };
 
 export type LegalNotice = {
@@ -101,6 +108,11 @@ function clip(value: unknown, max: number) {
   return String(value ?? "").replace(/\u0000/g, "").trim().slice(0, max);
 }
 
+function parseColor(value: unknown) {
+  const color = clip(value, 7).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(color) ? color : "";
+}
+
 export function normalizeDomain(value: string) {
   const raw = value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
   if (!raw) return "";
@@ -117,23 +129,28 @@ export function defaultBundle(appName = ""): LegalBundle {
         label: "Privacidad",
         title: "Política de privacidad",
         body: privacyTemplate(),
+        color: "",
       },
       terms: {
         label: "Términos",
         title: "Términos y condiciones",
         body: termsTemplate(),
+        color: "",
       },
       cookies: {
         label: "Cookies",
         title: "Política de cookies",
         body: cookiesTemplate(),
+        color: "",
       },
       notice: {
         label: "Aviso legal",
         title: "Aviso legal",
         body: noticeTemplate(),
+        color: "",
       },
     },
+    extras: [],
   };
 }
 
@@ -261,9 +278,32 @@ export function parseBundle(raw: unknown, fallbackName = ""): LegalBundle {
       label: clip(row.label, 40) || meta.label,
       title: clip(row.title, 120) || meta.title,
       body: clip(row.body, 40000) || base.docs[meta.id].body,
+      color: parseColor(row.color),
     };
   }
-  return { profile, docs };
+  return { profile, docs, extras: parseExtras(source.extras) };
+}
+
+function parseExtras(raw: unknown): LegalExtra[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const extras: LegalExtra[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const id = clip(row.id, 40).toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (!id || seen.has(id) || isLegalDocId(id)) continue;
+    seen.add(id);
+    extras.push({
+      id,
+      label: clip(row.label, 40) || "Espacio",
+      title: clip(row.title, 120) || "Documento",
+      body: clip(row.body, 40000),
+      color: parseColor(row.color),
+    });
+    if (extras.length >= 20) break;
+  }
+  return extras;
 }
 
 export function parsePublication(raw: unknown): LegalPublication | null {
@@ -285,7 +325,8 @@ export function parseHistory(raw: unknown): LegalHistoryItem[] {
       const version = Number(row.version);
       const publishedAt = clip(row.publishedAt, 40);
       if (!Number.isFinite(version) || !publishedAt) return null;
-      return { version, publishedAt };
+      const snapshot = row.docs && typeof row.docs === "object" ? parseBundle(row) : null;
+      return { version, publishedAt, snapshot };
     })
     .filter((item): item is LegalHistoryItem => Boolean(item))
     .slice(0, 12);
@@ -365,6 +406,38 @@ export function hostedLegalUrl(origin: string, profile: LegalProfile, doc: Legal
   const base = origin.replace(/\/$/, "");
   const slug = legalPublicSlug(profile);
   return `${base}/${slug}/${legalDocMeta(doc).path}`;
+}
+
+const OWN_SITE_PATH: Record<LegalDocId, string> = {
+  privacy: "privacy-policy",
+  terms: "terms",
+  cookies: "cookies",
+  notice: "aviso-legal",
+};
+
+export function ownSiteLinks(profile: LegalProfile, origin: string) {
+  const domain = normalizeDomain(profile.domain);
+  if (!domain) return [];
+  return LEGAL_DOCS.map((doc) => ({
+    id: doc.id,
+    label: doc.label,
+    from: `https://${domain}/${OWN_SITE_PATH[doc.id]}`,
+    to: hostedLegalUrl(origin, profile, doc.id),
+  }));
+}
+
+export function ownSiteVercelCode(profile: LegalProfile, origin: string) {
+  const links = ownSiteLinks(profile, origin);
+  return JSON.stringify(
+    {
+      rewrites: links.map((link) => ({
+        source: new URL(link.from).pathname,
+        destination: link.to,
+      })),
+    },
+    null,
+    2
+  );
 }
 
 export function domainRedirects(profile: LegalProfile, origin: string) {

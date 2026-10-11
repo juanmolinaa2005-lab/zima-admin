@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, type ComponentType, type SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
+import { HomeIcon, UsersIcon } from "../icons";
 import { AppLegalCenter } from "./AppLegalCenter";
+import { ProductHome } from "./ProductHome";
 
-type AppToolId = "screenshots" | "legal";
+export type AppSection = "overview" | "product" | "clients" | "screenshots" | "legal";
 
 function strokeIcon(d: string) {
   return function Icon({ className }: SVGProps<SVGSVGElement>) {
@@ -27,6 +29,7 @@ const ShotIcon = strokeIcon(
 const IconMark = strokeIcon("M8 4.5h8v15H8v-15Zm4 13.2h.01M9 8h6");
 const VideoMark = strokeIcon("M5 8h10v8H5V8Zm10 2 4-1.6v7.2L15 14");
 const LegalMark = strokeIcon("M7 3.5h7l3 3V20.5H7v-17Zm7 0v3h3M9.5 12h5M9.5 15.5h5");
+const ProductMark = strokeIcon("M4 11.5 12.5 3h5.5v5.5L10 16.5 4 11.5Zm11-5.2h.01");
 
 function NavItem({
   label,
@@ -48,13 +51,13 @@ function NavItem({
       disabled={soon}
       className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] transition ${
         active
-          ? "bg-[#ecebff] font-semibold text-[#3c3489]"
+          ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent-ink)]"
           : soon
             ? "cursor-default font-medium text-[#c4c8d0]"
             : "font-medium text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]"
       }`}
     >
-      <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#5b4dff]" : ""}`} />
+      <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[var(--accent)]" : ""}`} />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {soon ? (
         <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
@@ -65,8 +68,19 @@ function NavItem({
   );
 }
 
-export function LaAppHome({ projectId }: { projectId: string }) {
-  const [tool, setTool] = useState<AppToolId>("screenshots");
+export function LaAppHome({
+  projectId,
+  section,
+  onSection,
+  overview,
+  clients,
+}: {
+  projectId: string;
+  section: AppSection;
+  onSection: (section: AppSection) => void;
+  overview: ReactNode;
+  clients: ReactNode;
+}) {
   return (
     <div className="flex h-full min-h-0 overflow-hidden bg-[var(--background)]">
       <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--background)] md:flex">
@@ -75,14 +89,32 @@ export function LaAppHome({ projectId }: { projectId: string }) {
           <p className="mt-0.5 truncate text-[11px] text-[var(--muted-soft)]">Herramientas de tienda</p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-2.5 py-3">
-          <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.10em] text-[var(--muted-soft)]">
+          <NavItem
+            label="Overview"
+            active={section === "overview"}
+            icon={HomeIcon}
+            onClick={() => onSection("overview")}
+          />
+          <NavItem
+            label="Producto"
+            active={section === "product"}
+            icon={ProductMark}
+            onClick={() => onSection("product")}
+          />
+          <NavItem
+            label="Clients"
+            active={section === "clients"}
+            icon={UsersIcon}
+            onClick={() => onSection("clients")}
+          />
+          <p className="mb-1 mt-5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.10em] text-[var(--muted-soft)]">
             General
           </p>
           <NavItem
             label="App Screenshot"
-            active={tool === "screenshots"}
+            active={section === "screenshots"}
             icon={ShotIcon}
-            onClick={() => setTool("screenshots")}
+            onClick={() => onSection("screenshots")}
           />
           <NavItem label="Preview video" active={false} icon={VideoMark} soon />
           <p className="mb-1 mt-5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.10em] text-[var(--muted-soft)]">
@@ -94,52 +126,64 @@ export function LaAppHome({ projectId }: { projectId: string }) {
           </p>
           <NavItem
             label="Privacidad y términos"
-            active={tool === "legal"}
+            active={section === "legal"}
             icon={LegalMark}
-            onClick={() => setTool("legal")}
+            onClick={() => onSection("legal")}
           />
         </div>
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex gap-2 border-b border-[var(--border)] px-3 py-2 md:hidden">
-          <button
-            type="button"
-            onClick={() => setTool("screenshots")}
-            className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
-              tool === "screenshots" ? "bg-[var(--accent)] text-white" : "bg-white text-[var(--muted)]"
-            }`}
-          >
-            Screenshots
-          </button>
-          <button
-            type="button"
-            onClick={() => setTool("legal")}
-            className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
-              tool === "legal" ? "bg-[var(--accent)] text-white" : "bg-white text-[var(--muted)]"
-            }`}
-          >
-            Legal
-          </button>
+        <div className="flex gap-2 overflow-x-auto border-b border-[var(--border)] px-3 py-2 md:hidden">
+          {(
+            [
+              ["overview", "Overview"],
+              ["product", "Producto"],
+              ["clients", "Clients"],
+              ["screenshots", "Screenshots"],
+              ["legal", "Legal"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onSection(id)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold ${
+                section === id ? "bg-[var(--accent)] text-white" : "bg-white text-[var(--muted)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        {tool === "legal" ? (
-          <AppLegalCenter projectId={projectId} />
-        ) : (
-      <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center p-3 md:p-4">
-        <a
-          href={`/projects/${projectId}/app-screenshots`}
-          target="_blank"
-          rel="noreferrer"
-          className="flex min-h-[240px] w-full max-w-[560px] flex-col items-center justify-center rounded-xl border border-black/[0.06] bg-white px-10 py-12 text-center shadow-[0_10px_32px_rgba(17,24,39,0.05)] transition hover:border-black/[0.10] hover:shadow-[0_16px_40px_rgba(17,24,39,0.07)]"
-        >
-          <span className="text-[28px] font-semibold tracking-tight text-[#111318]">
-            Open editor
-          </span>
-          <span className="mt-2 text-[14px] text-[var(--muted)]">
-            Se abre en una pestaña nueva
-          </span>
-        </a>
-      </div>
-        )}
+        {section === "overview" ? (
+          <div className="min-h-0 flex-1 overflow-hidden">{overview}</div>
+        ) : null}
+        {section === "product" ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <ProductHome projectId={projectId} />
+          </div>
+        ) : null}
+        {section === "clients" ? (
+          <div className="min-h-0 flex-1 overflow-hidden">{clients}</div>
+        ) : null}
+        {section === "legal" ? <AppLegalCenter projectId={projectId} /> : null}
+        {section === "screenshots" ? (
+          <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center p-3 md:p-4">
+            <a
+              href={`/projects/${projectId}/app-screenshots`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-h-[240px] w-full max-w-[560px] flex-col items-center justify-center rounded-xl border border-black/[0.06] bg-white px-10 py-12 text-center shadow-[0_10px_32px_rgba(17,24,39,0.05)] transition hover:border-black/[0.10] hover:shadow-[0_16px_40px_rgba(17,24,39,0.07)]"
+            >
+              <span className="text-[28px] font-semibold tracking-tight text-[#111318]">
+                Open editor
+              </span>
+              <span className="mt-2 text-[14px] text-[var(--muted)]">
+                Se abre en una pestaña nueva
+              </span>
+            </a>
+          </div>
+        ) : null}
       </div>
     </div>
   );

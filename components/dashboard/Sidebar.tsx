@@ -1,26 +1,29 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { WorkspaceTool } from "@/lib/types";
 import { signOut } from "@/app/auth/actions";
 import {
-  GridIcon,
-  HomeIcon,
-  LogoutIcon,
-  MailIcon,
-  MarketingIcon,
-  MiAppIcon,
   GalleryIcon,
+  GridIcon,
+  LogoutIcon,
+  PanelCollapseIcon,
   PlusIcon,
-  RedesIcon,
+  SearchIcon,
+  SelectorIcon,
   SettingsIcon,
   TrashIcon,
-  UseIcon,
-  UsersIcon,
-  ViewTrackerIcon,
 } from "./icons";
 import { MobileFabMenu, type MobileNavSection } from "./MobileFabMenu";
+import {
+  NAV_GROUPS,
+  faviconFor,
+  findTool,
+  hostOf,
+  toolMeta,
+  type IconComp,
+} from "./nav";
 
 type SidebarProps = {
   tools: WorkspaceTool[];
@@ -28,6 +31,9 @@ type SidebarProps = {
   userEmail: string | null;
   projectName: string;
   projectId: string;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onSearch: () => void;
   onSelectHome: () => void;
   onSelectTool: (tool: WorkspaceTool) => void;
   onCreateClick: () => void;
@@ -42,104 +48,151 @@ type MenuState = {
   y: number;
 } | null;
 
-type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
-
-const RAIL_ITEM =
-  "relative mb-0.5 flex w-full flex-col items-center gap-1 rounded-[10px] px-1 py-2 text-center transition-colors duration-200";
-const RAIL_IDLE =
-  "text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]";
-const RAIL_ACTIVE = "bg-[var(--accent-soft)] text-[var(--accent-ink)]";
+const SOCIAL_COLORS = [
+  "#141416",
+  "#e11d48",
+  "#2563eb",
+  "#0d9488",
+  "#7c3aed",
+  "#db2777",
+  "#0891b2",
+];
 
 function socialAccent(seed: string) {
-  const colors = [
-    "#635bff",
-    "#e11d48",
-    "#2563eb",
-    "#0d9488",
-    "#7c3aed",
-    "#db2777",
-    "#0891b2",
-  ];
   let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i) * 17) % colors.length;
-  return colors[h]!;
+  for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i) * 17) % SOCIAL_COLORS.length;
+  return SOCIAL_COLORS[h]!;
 }
 
-function SocialAvatar({ tool }: { tool: WorkspaceTool }) {
+/** Favicon / custom icon with a letter fallback. */
+export function ToolAvatar({
+  tool,
+  size = "sm",
+}: {
+  tool: WorkspaceTool;
+  size?: "sm" | "md";
+}) {
   const [broken, setBroken] = useState(false);
-  let host = "";
-  try {
-    host = tool.url ? new URL(tool.url).hostname.replace(/^www\./, "") : "";
-  } catch {
-    host = "";
-  }
-  const favicon = host
-    ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`
-    : null;
-  const letter = (tool.name.trim()[0] || host[0] || "?").toUpperCase();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const favicon = faviconFor(tool.url);
 
-  if (tool.iconUrl && !broken) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={tool.iconUrl}
-        alt=""
-        className="h-full w-full object-cover"
-        onError={() => setBroken(true)}
-      />
-    );
-  }
-  if (favicon && !broken) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={favicon}
-        alt=""
-        className="h-full w-full object-contain p-1.5"
-        onError={() => setBroken(true)}
-      />
-    );
-  }
+  // The image can fail before React hydrates (onError never fires) — check on mount.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth === 0) setBroken(true);
+  }, []);
+  const letter = (tool.name.trim()[0] || hostOf(tool.url)[0] || "?").toUpperCase();
+  const box =
+    size === "md"
+      ? "h-9 w-9 rounded-[10px] text-[13px]"
+      : "h-5 w-5 rounded-[6px] text-[10px]";
+  const src = !broken ? tool.iconUrl || favicon : null;
+
   return (
     <span
-      className="flex h-full w-full items-center justify-center text-[12px] font-bold text-white"
-      style={{ background: socialAccent(tool.name || host) }}
+      className={`flex shrink-0 items-center justify-center overflow-hidden bg-white font-bold text-white shadow-[var(--shadow-xs)] ring-1 ring-black/[0.06] ${box}`}
+      style={src ? undefined : { background: socialAccent(tool.name || tool.url || "") }}
     >
-      {letter}
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          ref={imgRef}
+          src={src}
+          alt=""
+          className={tool.iconUrl ? "h-full w-full object-cover" : "h-[70%] w-[70%] object-contain"}
+          onError={() => setBroken(true)}
+        />
+      ) : (
+        letter
+      )}
     </span>
   );
 }
 
-function RailItem({
+function NavButton({
   label,
-  active,
   icon: Icon,
+  active,
+  collapsed,
   onClick,
+  href,
+  trailing,
+  standalone,
 }: {
   label: string;
-  active: boolean;
-  icon: IconComp;
-  onClick: () => void;
+  icon?: IconComp;
+  active?: boolean;
+  collapsed: boolean;
+  onClick?: () => void;
+  href?: string;
+  trailing?: React.ReactNode;
+  /** Outside the sliding indicator: paints its own active surface. */
+  standalone?: boolean;
 }) {
+  const cls = `ui-press group relative z-[1] flex w-full font-medium transition-colors duration-200 ${
+    collapsed
+      ? "min-h-[52px] flex-col items-center justify-center gap-1 rounded-[10px] px-0.5 py-1.5 text-[10px] leading-tight"
+      : "h-9 flex-row items-center gap-2.5 rounded-[10px] px-2.5 text-[13px]"
+  } ${
+    active
+      ? `text-[var(--foreground)] ${standalone ? "bg-white shadow-[0_0_0_1px_var(--border),var(--shadow-sm)]" : ""}`
+      : "text-[var(--muted)] hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+  }`;
+  const inner = (
+    <>
+      {Icon ? (
+        <Icon
+          className={`h-[17px] w-[17px] shrink-0 transition-transform duration-300 ease-[var(--ease-spring)] group-hover:scale-110 ${
+            active ? "text-[var(--foreground)]" : "text-[var(--muted-soft)] group-hover:text-[var(--foreground)]"
+          }`}
+        />
+      ) : null}
+      <span className={collapsed ? "line-clamp-2 w-full text-center" : "min-w-0 flex-1 truncate text-left"}>
+        {label}
+      </span>
+      {collapsed ? null : trailing}
+    </>
+  );
+  if (href) {
+    return (
+      <Link href={href} title={collapsed ? label : undefined} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
   return (
     <button
       type="button"
-      title={label}
+      title={collapsed ? label : undefined}
       aria-current={active ? "page" : undefined}
+      data-nav-active={active && !standalone ? "true" : undefined}
       onClick={onClick}
-      className={`${RAIL_ITEM} ${active ? RAIL_ACTIVE : RAIL_IDLE}`}
+      className={cls}
     >
-      {active ? (
-        <span
-          aria-hidden
-          className="absolute -left-1.5 top-2 bottom-2 w-[3px] rounded-r-full bg-[var(--accent)]"
-        />
-      ) : null}
-      <Icon className="h-[18px] w-[18px]" />
-      <span className="w-full px-0.5 text-[10px] font-medium leading-tight">
-        {label}
-      </span>
+      {inner}
     </button>
+  );
+}
+
+function GroupLabel({
+  children,
+  collapsed,
+  action,
+}: {
+  children: React.ReactNode;
+  collapsed: boolean;
+  action?: React.ReactNode;
+}) {
+  if (collapsed) {
+    return <div className="mx-auto my-2.5 h-px w-7 bg-[var(--border-strong)]/70" aria-hidden />;
+  }
+  return (
+    <div className="flex items-center justify-between px-2.5 pb-1.5 pt-5">
+      <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-soft)]">
+        {children}
+      </p>
+      {action}
+    </div>
   );
 }
 
@@ -149,6 +202,9 @@ export function Sidebar({
   userEmail,
   projectName,
   projectId,
+  collapsed,
+  onToggleCollapsed,
+  onSearch,
   onSelectHome,
   onSelectTool,
   onCreateClick,
@@ -156,20 +212,28 @@ export function Sidebar({
   onDeleteTool,
   onConfigureIcon,
 }: SidebarProps) {
-  const home = tools.find((t) => t.kind === "home");
-  const miapp = tools.find((t) => t.kind === "miapp");
   const apps = tools.find((t) => t.kind === "apps");
-  const clients = tools.find((t) => t.kind === "clients");
-  const emails = tools.find((t) => t.kind === "emails");
-  const useTool = tools.find((t) => t.kind === "analytics" || t.kind === "use");
-  const viewTracker = tools.find((t) => t.kind === "viewtracker");
-  const marketing = tools.find((t) => t.kind === "marketing");
   const gallery = tools.find((t) => t.kind === "gallery");
-  const redes = tools.find((t) => t.kind === "redes");
+  const linkTools = tools.filter((t) => t.kind === "link");
   const socialTools = tools.filter((t) => t.kind === "social");
 
   const [menu, setMenu] = useState<MenuState>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navInnerRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState<{ top: number; height: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const root = navInnerRef.current;
+    if (!root) return;
+    const measure = () => {
+      const el = root.querySelector<HTMLElement>('[data-nav-active="true"]');
+      setIndicator(el ? { top: el.offsetTop, height: el.offsetHeight } : null);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(root);
+    return () => ro.disconnect();
+  }, [activeToolId, collapsed, tools.length]);
 
   useEffect(() => {
     if (!menu) return;
@@ -187,121 +251,58 @@ export function Sidebar({
     };
   }, [menu]);
 
+  function isActive(tool: WorkspaceTool | undefined) {
+    if (!tool) return false;
+    if (tool.kind === "home") return activeToolId === "home";
+    if (tool.kind === "analytics" || tool.kind === "use") {
+      return activeToolId === tool.id || activeToolId === "analytics";
+    }
+    return activeToolId === tool.id;
+  }
+
+  function select(tool: WorkspaceTool) {
+    if (tool.kind === "home") onSelectHome();
+    else onSelectTool(tool);
+  }
+
+  const groups = NAV_GROUPS.map((group) => ({
+    label: group.label,
+    tools: group.kinds
+      .map((kind) => findTool(tools, kind))
+      .filter((tool): tool is WorkspaceTool => Boolean(tool && tool.kind !== "gallery")),
+  })).filter((g) => g.tools.length > 0);
+
+  // ---------- Mobile (bottom sheet) ----------
   const mobileSections: MobileNavSection[] = [
-    {
-      label: "Main",
-      items: [
-        ...(miapp
-          ? [
-              {
-                id: "miapp",
-                label: "Mi app",
-                icon: MiAppIcon,
-                active: activeToolId === miapp.id,
-                onClick: () => onSelectTool(miapp),
-              },
-            ]
-          : []),
-        ...(home
-          ? [
-              {
-                id: "home",
-                label: "Overview",
-                icon: HomeIcon,
-                active: activeToolId === home.id,
-                onClick: onSelectHome,
-              },
-            ]
-          : []),
-        ...(clients
-          ? [
-              {
-                id: "clients",
-                label: "Clients",
-                icon: UsersIcon,
-                active: activeToolId === clients.id,
-                onClick: () => onSelectTool(clients),
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      label: "Tools",
-      items: [
-        ...(emails
-          ? [
-              {
-                id: "emails",
-                label: "Emails",
-                icon: MailIcon,
-                active: activeToolId === emails.id,
-                onClick: () => onSelectTool(emails),
-              },
-            ]
-          : []),
-        ...(useTool
-          ? [
-              {
-                id: "analytics",
-                label: "Analytics",
-                icon: UseIcon,
-                active: activeToolId === useTool.id || activeToolId === "analytics",
-                onClick: () => onSelectTool(useTool),
-              },
-            ]
-          : []),
-        ...(viewTracker
-          ? [
-              {
-                id: "viewtracker",
-                label: "ViewTracker",
-                icon: ViewTrackerIcon,
-                active: activeToolId === viewTracker.id,
-                onClick: () => onSelectTool(viewTracker),
-              },
-            ]
-          : []),
-        ...(marketing
-          ? [
-              {
-                id: "marketing",
-                label: "Creator Studio",
-                icon: MarketingIcon,
-                active: activeToolId === marketing.id,
-                onClick: () => onSelectTool(marketing),
-              },
-            ]
-          : []),
-        ...(redes
-          ? [
-              {
-                id: "redes",
-                label: "Redes",
-                icon: RedesIcon,
-                active: activeToolId === redes.id,
-                onClick: () => onSelectTool(redes),
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      label: "Manage",
-      items: [
-        ...(apps
-          ? [
+    ...groups.map((group) => ({
+      label: group.label ?? "Principal",
+      items: group.tools.map((tool) => {
+        const meta = toolMeta(tool.kind);
+        return {
+          id: tool.id,
+          label: meta.label,
+          icon: meta.icon,
+          active: isActive(tool),
+          onClick: () => select(tool),
+        };
+      }),
+    })),
+    ...(apps
+      ? [
+          {
+            label: "Accesos",
+            items: [
               {
                 id: "apps",
                 label: "Accesos directos",
                 icon: GridIcon,
-                active: activeToolId === apps.id,
+                active: isActive(apps),
                 onClick: () => onSelectTool(apps),
               },
-            ]
-          : []),
-      ],
-    },
+            ],
+          },
+        ]
+      : []),
   ];
 
   const mobileMenu = (
@@ -310,7 +311,7 @@ export function Sidebar({
       onOpenChange={setMobileOpen}
       title="Zima Admin"
       subtitle={projectName}
-      fabLabel="Open menu"
+      fabLabel="Abrir menú"
       fabClassName="bottom-5 right-4"
       sections={mobileSections}
       footer={
@@ -345,19 +346,9 @@ export function Sidebar({
                 onSelectTool(gallery);
                 setMobileOpen(false);
               }}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[14px] font-medium hover:bg-[var(--surface-alt)] ${
-                activeToolId === gallery.id
-                  ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                  : "text-[var(--foreground-soft)]"
-              }`}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[14px] font-medium text-[var(--foreground-soft)] hover:bg-[var(--surface-alt)]"
             >
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-                  activeToolId === gallery.id
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "bg-[var(--surface-alt)] text-[var(--muted)]"
-                }`}
-              >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--muted)]">
                 <GalleryIcon className="h-4 w-4" />
               </span>
               Galería
@@ -371,7 +362,7 @@ export function Sidebar({
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--muted)]">
               <SettingsIcon className="h-4 w-4" />
             </span>
-            Settings
+            Ajustes
           </Link>
           <form action={signOut}>
             <button
@@ -381,7 +372,7 @@ export function Sidebar({
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--danger-soft)] text-[var(--danger)]">
                 <LogoutIcon className="h-4 w-4" />
               </span>
-              Sign out
+              Cerrar sesión
             </button>
           </form>
         </div>
@@ -389,166 +380,280 @@ export function Sidebar({
     />
   );
 
-  const collapsedNav = (
-    <>
-      {miapp ? (
-        <RailItem
-          label="Mi app"
-          active={activeToolId === miapp.id}
-          icon={MiAppIcon}
-          onClick={() => onSelectTool(miapp)}
-        />
-      ) : null}
-      {home ? (
-        <RailItem
-          label="Home"
-          active={activeToolId === home.id}
-          icon={HomeIcon}
-          onClick={onSelectHome}
-        />
-      ) : null}
-      {clients ? (
-        <RailItem
-          label="Clients"
-          active={activeToolId === clients.id}
-          icon={UsersIcon}
-          onClick={() => onSelectTool(clients)}
-        />
-      ) : null}
-      {emails ? (
-        <RailItem
-          label="Emails"
-          active={activeToolId === emails.id}
-          icon={MailIcon}
-          onClick={() => onSelectTool(emails)}
-        />
-      ) : null}
-      {useTool ? (
-        <RailItem
-          label="Stats"
-          active={activeToolId === useTool.id || activeToolId === "analytics"}
-          icon={UseIcon}
-          onClick={() => onSelectTool(useTool)}
-        />
-      ) : null}
-      {viewTracker ? (
-        <RailItem
-          label="Tracker"
-          active={activeToolId === viewTracker.id}
-          icon={ViewTrackerIcon}
-          onClick={() => onSelectTool(viewTracker)}
-        />
-      ) : null}
-      {marketing ? (
-        <RailItem
-          label="Studio"
-          active={activeToolId === marketing.id}
-          icon={MarketingIcon}
-          onClick={() => onSelectTool(marketing)}
-        />
-      ) : null}
-      {redes ? (
-        <RailItem
-          label="Redes"
-          active={activeToolId === redes.id}
-          icon={RedesIcon}
-          onClick={() => onSelectTool(redes)}
-        />
-      ) : null}
-      {apps ? (
-        <RailItem
-          label="Accesos"
-          active={activeToolId === apps.id}
-          icon={GridIcon}
-          onClick={() => onSelectTool(apps)}
-        />
-      ) : null}
-    </>
-  );
-
+  // ---------- Desktop ----------
+  const userInitial = (userEmail?.trim()[0] || "U").toUpperCase();
   return (
     <>
       {mobileMenu}
-    <aside className="hidden h-full w-[76px] shrink-0 flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--surface)] md:flex">
-      <div className="flex h-14 shrink-0 items-center justify-center border-b border-[var(--border)]">
-        <Link
-          href="/"
-          title="Zima Admin"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white shadow-[0_2px_6px_rgba(99,91,255,0.35)]"
-        >
-          Z
-        </Link>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col px-1.5">
-        <nav aria-label="Herramientas" className="min-h-0 flex-1 overflow-y-auto pb-2 pt-2">{collapsedNav}</nav>
-        <div className="shrink-0 space-y-0.5 border-t border-[var(--border)] pb-2 pt-1.5">
-          {socialTools.length > 0 ? (
-            <div className="flex max-h-[88px] flex-col items-center gap-1 overflow-y-auto px-1 pb-1">
-              {socialTools.map((tool) => (
-                <button
-                  key={tool.id}
-                  type="button"
-                  title={tool.name}
-                  aria-label={tool.name}
-                  onClick={() => onSelectTool(tool)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setMenu({ tool, x: e.clientX, y: e.clientY });
-                  }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--border)] bg-white shadow-[var(--shadow-sm)] transition hover:ring-2 hover:ring-[var(--accent-border)]"
-                >
-                  <SocialAvatar tool={tool} />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onCreateSocialClick}
-              title="Añadir cuenta"
-              className={`${RAIL_ITEM} ${RAIL_IDLE}`}
-            >
-              <PlusIcon className="h-[18px] w-[18px]" />
-              <span className="text-[10px] font-medium leading-tight">Social</span>
-            </button>
-          )}
+      <aside
+        aria-label="Navegación del proyecto"
+        className={`ui-shell-rail hidden h-full shrink-0 flex-col border-r border-[var(--border)] transition-[width] duration-300 ease-[var(--ease)] md:flex ${
+          collapsed ? "w-[76px]" : "w-[252px]"
+        }`}
+      >
+        {/* Project switcher */}
+        <div className={`flex shrink-0 items-center pb-1 pt-3 ${collapsed ? "px-2" : "px-3"}`}>
           <Link
             href="/"
-            className={`${RAIL_ITEM} ${RAIL_IDLE}`}
+            title="Cambiar de proyecto"
+            className={`ui-press group flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-1.5 transition hover:bg-white hover:shadow-[0_0_0_1px_var(--border),var(--shadow-sm)] ${
+              collapsed ? "flex-col justify-center gap-1" : ""
+            }`}
           >
-            <span aria-hidden className="flex h-[18px] items-center text-[15px] leading-none">←</span>
-            <span className="text-[10px] font-medium leading-tight">Inicio</span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--accent-metal)] text-[13px] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_4px_10px_-2px_rgba(17,17,20,0.4)] transition-transform duration-300 ease-[var(--ease-spring)] group-hover:rotate-[-6deg] group-hover:scale-105">
+              {(projectName.trim()[0] || "Z").toUpperCase()}
+            </span>
+            {collapsed ? (
+              <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-[var(--foreground-soft)]">
+                {projectName}
+              </span>
+            ) : (
+              <>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold leading-tight text-[var(--foreground)]">
+                    {projectName}
+                  </span>
+                  <span className="block truncate text-[11px] leading-tight text-[var(--muted-soft)]">
+                    Zima Admin
+                  </span>
+                </span>
+                <SelectorIcon className="h-4 w-4 shrink-0 text-[var(--muted-soft)] transition group-hover:text-[var(--foreground)]" />
+              </>
+            )}
           </Link>
+        </div>
+
+        {/* Search */}
+        <div className={`shrink-0 pb-1 pt-2 ${collapsed ? "px-2" : "px-3"}`}>
+          <button
+            type="button"
+            onClick={onSearch}
+            title={collapsed ? "Buscar (⌘K)" : undefined}
+            className={`ui-press group flex h-9 w-full items-center rounded-[10px] border border-[var(--border)] bg-white text-[var(--muted-soft)] shadow-[var(--shadow-xs)] transition hover:border-[var(--border-strong)] hover:text-[var(--foreground)] ${
+              collapsed ? "justify-center" : "gap-2 px-2.5 text-[13px]"
+            }`}
+          >
+            <SearchIcon className="h-4 w-4 shrink-0" />
+            {collapsed ? null : (
+              <>
+                <span className="flex-1 text-left">Buscar…</span>
+                <span className="ui-kbd">⌘K</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Main nav */}
+        <nav className={`min-h-0 flex-1 overflow-y-auto pb-3 pt-1 ${collapsed ? "px-2" : "px-3"}`}>
+          <div ref={navInnerRef} className="relative">
+            <div
+              aria-hidden
+              className="ui-nav-indicator"
+              style={{
+                transform: `translateY(${indicator?.top ?? 0}px)`,
+                height: indicator?.height ?? 0,
+                opacity: indicator ? 1 : 0,
+              }}
+            />
+            {groups.map((group, i) => (
+              <div key={group.label ?? `g${i}`} className="space-y-0.5">
+                {group.label ? (
+                  <GroupLabel collapsed={collapsed}>{group.label}</GroupLabel>
+                ) : null}
+                {group.tools.map((tool) => {
+                  const meta = toolMeta(tool.kind);
+                  return (
+                    <NavButton
+                      key={tool.id}
+                      label={meta.label}
+                      icon={meta.icon}
+                      active={isActive(tool)}
+                      collapsed={collapsed}
+                      onClick={() => select(tool)}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+
+            {/* Accesos directos */}
+            <div className="space-y-0.5">
+              <GroupLabel
+                collapsed={collapsed}
+                action={
+                  <button
+                    type="button"
+                    onClick={onCreateClick}
+                    title="Nuevo acceso"
+                    className="rounded-md p-0.5 text-[var(--muted-soft)] transition duration-300 hover:rotate-90 hover:bg-white hover:text-[var(--foreground)]"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" />
+                  </button>
+                }
+              >
+                Accesos
+              </GroupLabel>
+              {apps ? (
+                <NavButton
+                  label="Todos los accesos"
+                  icon={GridIcon}
+                  active={isActive(apps)}
+                  collapsed={collapsed}
+                  onClick={() => onSelectTool(apps)}
+                  trailing={
+                    linkTools.length > 0 ? (
+                      <span className="rounded-full bg-black/[0.05] px-1.5 text-[11px] font-semibold tabular-nums text-[var(--muted)]">
+                        {linkTools.length}
+                      </span>
+                    ) : null
+                  }
+                />
+              ) : null}
+              {collapsed
+                ? null
+                : linkTools.slice(0, 5).map((tool) => (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      onClick={() => onSelectTool(tool)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setMenu({ tool, x: e.clientX, y: e.clientY });
+                      }}
+                      title={hostOf(tool.url) || tool.name}
+                      className="ui-press group flex h-9 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-[13px] font-medium text-[var(--muted)] transition hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+                    >
+                      <ToolAvatar tool={tool} />
+                      <span className="min-w-0 flex-1 truncate text-left">{tool.name}</span>
+                      <span className="-translate-x-1 text-[11px] text-[var(--muted-soft)] opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100">
+                        ↗
+                      </span>
+                    </button>
+                  ))}
+            </div>
+
+            {/* Redes sociales */}
+            <div className="space-y-0.5">
+              <GroupLabel
+                collapsed={collapsed}
+                action={
+                  <button
+                    type="button"
+                    onClick={onCreateSocialClick}
+                    title="Añadir cuenta social"
+                    className="rounded-md p-0.5 text-[var(--muted-soft)] transition duration-300 hover:rotate-90 hover:bg-white hover:text-[var(--foreground)]"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" />
+                  </button>
+                }
+              >
+                Cuentas sociales
+              </GroupLabel>
+              {socialTools.length === 0 ? (
+                collapsed ? (
+                  <NavButton
+                    label="Añadir cuenta social"
+                    icon={PlusIcon}
+                    collapsed
+                    onClick={onCreateSocialClick}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onCreateSocialClick}
+                    className="ui-press flex h-9 w-full items-center gap-2.5 rounded-[10px] border border-dashed border-[var(--border-strong)] px-2.5 text-[12px] font-medium text-[var(--muted)] transition hover:border-[var(--foreground)] hover:bg-white hover:text-[var(--foreground)]"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" />
+                    Añadir cuenta
+                  </button>
+                )
+              ) : (
+                socialTools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    title={collapsed ? tool.name : undefined}
+                    onClick={() => onSelectTool(tool)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setMenu({ tool, x: e.clientX, y: e.clientY });
+                    }}
+                    className={`ui-press flex w-full items-center font-medium text-[var(--muted)] transition hover:bg-black/[0.035] hover:text-[var(--foreground)] ${
+                      collapsed
+                        ? "min-h-[52px] flex-col justify-center gap-1 rounded-[10px] px-0.5 py-1.5 text-[10px] leading-tight"
+                        : "h-9 flex-row gap-2.5 rounded-[10px] px-2.5 text-[13px]"
+                    }`}
+                  >
+                    <ToolAvatar tool={tool} />
+                    <span className={collapsed ? "w-full truncate text-center" : "min-w-0 flex-1 truncate text-left"}>
+                      {tool.name}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className={`shrink-0 space-y-0.5 border-t border-[var(--border)] py-2 ${collapsed ? "px-2" : "px-3"}`}>
           {gallery ? (
-            <RailItem
+            <NavButton
               label="Galería"
-              active={activeToolId === gallery.id}
               icon={GalleryIcon}
+              active={isActive(gallery)}
+              collapsed={collapsed}
+              standalone
               onClick={() => onSelectTool(gallery)}
             />
           ) : null}
-          <Link
+          <NavButton
+            label="Ajustes"
+            icon={SettingsIcon}
+            collapsed={collapsed}
+            standalone
             href={`/projects/${projectId}/settings`}
-            className={`${RAIL_ITEM} ${RAIL_IDLE}`}
-          >
-            <SettingsIcon className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium leading-tight">Ajustes</span>
-          </Link>
-          <Link
-            href="/"
-            className={`${RAIL_ITEM} ${RAIL_IDLE}`}
-          >
-            <GridIcon className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium leading-tight">My Business</span>
-          </Link>
+          />
+          <div className={`flex items-center gap-1 pt-1.5 ${collapsed ? "flex-col" : ""}`}>
+            <form action={signOut} className={collapsed ? "" : "min-w-0 flex-1"}>
+              <button
+                type="submit"
+                title={`${userEmail ?? "Cuenta"} · Cerrar sesión`}
+                className={`ui-press group flex w-full items-center gap-2 rounded-[10px] p-1.5 text-left transition hover:bg-black/[0.035] ${
+                  collapsed ? "justify-center" : ""
+                }`}
+              >
+                <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6366f1,#ec4899)] text-[11px] font-semibold text-white">
+                  {userInitial}
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f6f6f8] bg-[var(--success)]" />
+                </span>
+                {collapsed ? null : (
+                  <>
+                    <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[var(--foreground-soft)]">
+                      {userEmail ?? "Cuenta"}
+                    </span>
+                    <LogoutIcon className="h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)] opacity-0 transition group-hover:opacity-100" />
+                  </>
+                )}
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              title={collapsed ? "Expandir menú" : "Contraer menú"}
+              aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
+              className="ui-press flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[var(--muted-soft)] transition hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+            >
+              <PanelCollapseIcon className={`h-4 w-4 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
 
       {menu ? (
         <div
           role="menu"
-          className="fixed z-[100] min-w-[200px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-white p-1 shadow-[var(--shadow-lg)]"
+          className="animate-scale-in fixed z-[100] min-w-[200px] origin-top-left overflow-hidden rounded-xl border border-[var(--border)] bg-white/95 p-1 shadow-[var(--shadow-lg)] backdrop-blur-xl"
           style={{ left: menu.x, top: menu.y }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -562,7 +667,7 @@ export function Sidebar({
             }}
           >
             <GridIcon className="h-3.5 w-3.5 text-[var(--accent)]" />
-            Configure icon
+            Configurar icono
           </button>
           <button
             type="button"
@@ -574,7 +679,7 @@ export function Sidebar({
             }}
           >
             <TrashIcon className="h-3.5 w-3.5" />
-            {menu.tool.kind === "social" ? "Delete social" : "Eliminar acceso"}
+            {menu.tool.kind === "social" ? "Eliminar cuenta social" : "Eliminar acceso"}
           </button>
         </div>
       ) : null}

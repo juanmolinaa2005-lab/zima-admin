@@ -57,7 +57,7 @@ export function MobileFabMenu({
 
   const fabTone =
     accent === "dark"
-      ? "bg-[var(--accent)] text-white shadow-[0_8px_24px_rgba(99,91,255,0.35)] hover:bg-[var(--accent-hover)]"
+      ? "bg-[var(--accent)] text-white shadow-[0_8px_24px_rgba(0,0,0,0.28)] hover:bg-[var(--accent-hover)]"
       : "bg-[var(--accent)] text-white shadow-[0_8px_24px_rgba(var(--accent-rgb),0.35)] hover:bg-[var(--accent-hover)]";
 
   return (

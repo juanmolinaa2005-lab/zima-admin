@@ -153,7 +153,7 @@ function CarouselGlyph({ className = "h-4 w-4" }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" aria-hidden>
       <rect x="5" y="4" width="11" height="15" rx="1.6" fill="#D6D3D1" />
       <rect x="7.2" y="5.5" width="11" height="15" rx="1.6" fill="#A8A29E" />
-      <rect x="9.5" y="5" width="11" height="15" rx="1.8" fill="#635bff" />
+      <rect x="9.5" y="5" width="11" height="15" rx="1.8" fill="#141416" />
       <rect x="11.2" y="7.2" width="7.6" height="8.2" rx="0.8" fill="#FFEDD5" />
     </svg>
   );

@@ -103,21 +103,28 @@ export async function GET(_request: Request, { params }: Params) {
   if (!gate.ok) return gate.response;
 
   const { supabase, user } = gate;
-  const { data, error } = await supabase
-    .from("project_tracked_videos")
-    .select("*")
-    .eq("project_id", projectId)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(500);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const pageSize = 1000;
+  const rows: VideoRow[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("project_tracked_videos")
+      .select("*")
+      .eq("project_id", projectId)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    const batch = (data ?? []) as VideoRow[];
+    rows.push(...batch);
+    if (batch.length < pageSize) break;
   }
 
-  return NextResponse.json({
-    items: (data as VideoRow[] | null)?.map(serializeVideo) ?? [],
-  });
+  return NextResponse.json(
+    { items: rows.map(serializeVideo) },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
 
 export async function POST(request: Request, { params }: Params) {

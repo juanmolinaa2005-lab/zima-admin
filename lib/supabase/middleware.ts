@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isPublicRoute =
+    path === "/" ||
     path.startsWith("/login") ||
     path.startsWith("/auth") ||
     path.startsWith("/api/cron/") ||

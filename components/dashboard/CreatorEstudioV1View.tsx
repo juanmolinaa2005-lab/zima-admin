@@ -50,11 +50,10 @@ import {
 import { InfluencersHome } from "./estudio/InfluencersHome";
 import { AppDemoHome } from "./estudio/AppDemoHome";
 import { SimuladorHome } from "./estudio/SimuladorHome";
-import { ViralContentHome } from "./estudio/ViralContentHome";
-import { ProductHome } from "./estudio/ProductHome";
 import { DynamicsHome } from "./estudio/DynamicsHome";
 import { EstudioMobileNav, EstudioSidebar } from "./estudio/EstudioSidebar";
 import { GalleryView } from "./GalleryView";
+import { RedesView } from "./RedesView";
 import { CloseIcon, PlusIcon } from "./icons";
 
 type HiggsStatus = {
@@ -107,12 +106,26 @@ function formatDate(iso: string) {
   }
 }
 
-export function CreatorEstudioV1View({ projectId }: { projectId: string }) {
-  const [section, setSection] = useState<EstudioSectionId>("influencers");
+export function CreatorEstudioV1View({
+  projectId,
+  initialSection,
+  onSectionChange,
+  onOpenGallery,
+}: {
+  projectId: string;
+  initialSection?: EstudioSectionId;
+  onSectionChange?: (id: EstudioSectionId) => void;
+  onOpenGallery?: () => void;
+}) {
+  const [section, setSection] = useState<EstudioSectionId>(initialSection ?? "influencers");
   const [pieces, setPieces] = useState<EstudioPiece[]>([]);
   const [influencers, setInfluencers] = useState<EstudioInfluencer[]>([]);
   const [automations, setAutomations] = useState<EstudioAutomation[]>([]);
   const imageQueues = useImageQueueWorker(projectId);
+
+  useEffect(() => {
+    if (initialSection) setSection(initialSection);
+  }, [initialSection]);
 
   useEffect(() => {
     setPieces(loadPieces(projectId));
@@ -120,17 +133,15 @@ export function CreatorEstudioV1View({ projectId }: { projectId: string }) {
     setAutomations(loadAutomations(projectId));
   }, [projectId]);
 
-  const drafts = pieces.filter((p) => p.status === "draft");
-
   function go(id: EstudioSectionId) {
     setSection(id);
+    onSectionChange?.(id);
   }
 
   return (
     <div className="studio-shell flex h-full min-h-0">
       <EstudioSidebar
         section={section}
-        draftCount={drafts.length}
         imageQueueCount={imageQueues.activeCount}
         onSelect={go}
       />
@@ -139,8 +150,8 @@ export function CreatorEstudioV1View({ projectId }: { projectId: string }) {
         <div
           className={`min-h-0 flex-1 ${
             section === "library" ||
-            section === "blitz" ||
-            section === "dynamics"
+            section === "dynamics" ||
+            section === "redes"
               ? "overflow-hidden"
               : "overflow-y-auto"
           }`}
@@ -160,12 +171,6 @@ export function CreatorEstudioV1View({ projectId }: { projectId: string }) {
               <GalleryView projectId={projectId} />
             </div>
           </div>
-        ) : null}
-        {section === "product" ? (
-          <ProductHome projectId={projectId} />
-        ) : null}
-        {section === "blitz" ? (
-          <BlitzHome projectId={projectId} />
         ) : null}
         {section === "creator-imagen" ? (
           <CreatorImagenHome
@@ -190,8 +195,8 @@ export function CreatorEstudioV1View({ projectId }: { projectId: string }) {
         {section === "simulador" ? (
           <SimuladorHome projectId={projectId} />
         ) : null}
-        {section === "inspiration" ? (
-          <ViralContentHome projectId={projectId} />
+        {section === "redes" ? (
+          <RedesView projectId={projectId} onOpenGallery={onOpenGallery} />
         ) : null}
       </div>
       </div>
@@ -948,7 +953,7 @@ function BlitzHome({ projectId }: { projectId: string }) {
     const productContext = loadProductContext(projectId);
     if (!productContext) {
       setError(
-        "Falta el producto. Ábrelo en Producto (arriba de Blitz) y pega los detalles."
+        "Falta el producto. Ábrelo en Mi app → Producto y pega los detalles."
       );
       return;
     }

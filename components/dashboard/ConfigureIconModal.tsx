@@ -210,7 +210,7 @@ export function ConfigureIconModal({
                 type="button"
                 disabled={loading || !file}
                 onClick={handleSave}
-                className="rounded-lg bg-[var(--accent)] px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-[#5046e5] disabled:opacity-60"
+                className="rounded-lg bg-[var(--accent)] px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
               >
                 {loading ? "Saving…" : "Save"}
               </button>

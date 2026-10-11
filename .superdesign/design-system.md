@@ -1,7 +1,7 @@
 # Zima Admin — Design system
 
 ## Product
-Zima Admin (vantko) is a project workspace: pick a project, then use a 76px icon rail to open Home, Accesos, Emails, Stats, Tracker, Studio, Redes, Gallery, Settings. Spanish product chrome. Mark is a filled ink circle with a white **Z** (no logo file).
+Zima Admin (vantko) is a project workspace: pick a project, then use a 248px labeled sidebar (collapsible to a 64px rail, auto-collapsed in tools that have their own nav) to open Home, Accesos, Emails, Stats, Tracker, Studio, Redes, Gallery, Settings. A global top bar holds the breadcrumb, Docs, "Nuevo acceso" and the account menu; ⌘K opens a command palette. Spanish product chrome. Mark is a filled ink circle with a white **Z** (no logo file).
 
 ## JTBD
 Open the right tool fast. Cards and rails stay quiet so media and data can be loud.
@@ -19,7 +19,9 @@ Tokens live in `app/globals.css` (`:root`) and `lib/theme.ts` (accent). Use `var
 - Primary CTA: accent fill, white text, subtle accent glow (`.ui-btn-primary`)
 - Active nav: `--accent-soft` fill + `--accent-ink` text (+ 3px accent bar on the rail)
 - Page head: `.ui-kicker` (accent, uppercase) → `.ui-title` (26px/650) → `.ui-lead`
-- Header 56px white with 1px `--border` hairline; rail 76px white, 10px labels under 18px icons
+- Top bar 56px white with 1px `--border` hairline; sidebar 248px (groups: principal, Clientes y datos, Contenido, Accesos, Cuentas sociales) or 64px rail
+- Nav metadata (labels, descriptions, icons, colors) lives in `components/dashboard/nav.ts`
+- Lists use Stripe-style table cards: one `.ui-card` with hairline-divided rows
 - Tool tiles use a per-tool color chip (see `TOOL_COLORS` in HomeView)
 - Motion: 200ms `cubic-bezier(0.25,1,0.5,1)` for hovers; 180–200ms fade/scale on login and modals
 

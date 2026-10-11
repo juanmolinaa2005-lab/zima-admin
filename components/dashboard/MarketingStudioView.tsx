@@ -873,7 +873,7 @@ export function MarketingStudioView({ projectId }: MarketingStudioViewProps) {
                       <div className="flex aspect-video flex-col items-center justify-center gap-3">
                         {(selectedJob.status === "queued" ||
                           selectedJob.status === "in_progress") && (
-                          <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border)] border-t-[#635bff]" />
+                          <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]" />
                         )}
                         <p className="text-[13px] text-[var(--muted)]">
                           {statusMeta(selectedJob.status).label}

@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zima Admin",
-  description: "Panel de administración Zima",
+  title: "Vantko · Ya creaste tu producto. ¿Qué sigue?",
+  description:
+    "Vantko guía a solo founders y equipos pequeños para lanzar su app o producto web, conseguir usuarios y empezar a cobrar.",
 };
 
 export const viewport: Viewport = {

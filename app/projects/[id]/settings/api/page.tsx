@@ -24,7 +24,7 @@ export default async function ApiSettingsRoute({ params }: PageProps) {
       projectName={project.name}
       userEmail={user?.email ?? null}
       title="API"
-      subtitle="Central place for all provider keys."
+      subtitle="Todas las claves de tus proveedores en un solo lugar."
       backHref={`/projects/${project.id}/settings`}
       backLabel="← Settings"
     >

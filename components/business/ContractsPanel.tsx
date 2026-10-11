@@ -169,11 +169,11 @@ export function ContractsPanel({ contracts, onChange }: ContractsPanelProps) {
           onAction={() => setOpen(true)}
         />
       ) : (
-        <ul className="mt-5 space-y-2">
+        <ul className="ui-card mt-6 divide-y divide-[var(--border)] overflow-hidden">
           {contracts.map((contract) => (
             <li
               key={contract.id}
-              className="flex items-start gap-3 rounded-xl bg-white p-5"
+              className="flex items-start gap-3 px-5 py-4 transition hover:bg-[var(--background)]"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

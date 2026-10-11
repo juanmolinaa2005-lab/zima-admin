@@ -18,6 +18,7 @@ export type BusinessDocument = {
   url: string;
   notes: string;
   createdAt: string;
+  file?: { path: string; name: string; size: number; type: string };
 };
 
 export type BusinessContract = {

@@ -1944,7 +1944,7 @@ export function DynamicsEditor({
                     {part.previewUrl ? (
                       <video src={part.previewUrl} muted playsInline className="h-6 w-6 rounded object-cover" />
                     ) : (
-                      <span className="grid h-6 w-6 place-items-center rounded bg-[#eef2ff] text-[9px] font-bold text-[#4338ca]">
+                      <span className="grid h-6 w-6 place-items-center rounded bg-[var(--accent-soft)] text-[9px] font-bold text-[var(--accent-ink)]">
                         {DYNAMIC_PART_KIND_LABELS[part.kind].slice(0, 1)}
                       </span>
                     )}
@@ -2109,7 +2109,7 @@ export function DynamicsEditor({
                   {part.previewUrl ? (
                     <video src={part.previewUrl} muted playsInline className="h-7 w-7 rounded object-cover" />
                   ) : (
-                    <span className="grid h-7 w-7 place-items-center rounded bg-[#eef2ff] text-[10px] font-bold text-[#4338ca]">
+                    <span className="grid h-7 w-7 place-items-center rounded bg-[var(--accent-soft)] text-[10px] font-bold text-[var(--accent-ink)]">
                       M
                     </span>
                   )}

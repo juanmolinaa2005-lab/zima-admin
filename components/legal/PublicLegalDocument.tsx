@@ -5,6 +5,7 @@ import {
   type LegalDocId,
   type LegalPublication,
 } from "@/lib/creator/app-legal";
+import { LegalInline } from "@/components/legal/LegalInline";
 
 export function PublicLegalDocument({
   published,
@@ -32,20 +33,60 @@ export function PublicLegalDocument({
       <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-soft)]">
         {published.profile.appName || "Documento legal"}
       </p>
-      <h1 className="mt-2 text-[32px] font-semibold tracking-tight">{title}</h1>
+      <h1 className="mt-2 text-[32px] font-semibold tracking-tight" style={{ color: document.color || undefined }}>
+        {title}
+      </h1>
       <p className="mt-2 text-[13px] text-[var(--muted)]">
         Versión {published.version} · vigente desde el {updated}
       </p>
-      <div className="mt-8 space-y-4 text-[15px] leading-relaxed text-[var(--foreground-soft)]">
+      <div
+        className="mt-8 space-y-4 text-[15px] leading-relaxed"
+        style={{ color: document.color || "var(--foreground-soft)" }}
+      >
         {blocks.map((block, index) => {
-          if (block.startsWith("# ")) {
+          const lines = block.split("\n");
+          if (lines[0]?.startsWith("# ")) {
+            const rest = lines.slice(1).join("\n").trim();
             return (
-              <h2 key={index} className="pt-3 text-[17px] font-semibold text-[var(--foreground)]">
-                {block.slice(2)}
-              </h2>
+              <div key={index}>
+                <h2 className="pt-3 text-[17px] font-semibold" style={{ color: document.color || "var(--foreground)" }}>
+                  <LegalInline text={lines[0].slice(2)} />
+                </h2>
+                {rest ? (
+                  <p className="mt-2 whitespace-pre-wrap">
+                    <LegalInline text={rest} />
+                  </p>
+                ) : null}
+              </div>
             );
           }
-          return <p key={index}>{block}</p>;
+          if (lines.every((line) => line.startsWith("- "))) {
+            return (
+              <ul key={index} className="list-disc space-y-1 pl-5">
+                {lines.map((line, lineIndex) => (
+                  <li key={lineIndex}>
+                    <LegalInline text={line.slice(2)} />
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          if (lines.every((line) => /^\d+\.\s/.test(line))) {
+            return (
+              <ol key={index} className="list-decimal space-y-1 pl-5">
+                {lines.map((line, lineIndex) => (
+                  <li key={lineIndex}>
+                    <LegalInline text={line.replace(/^\d+\.\s/, "")} />
+                  </li>
+                ))}
+              </ol>
+            );
+          }
+          return (
+            <p key={index} className="whitespace-pre-wrap">
+              <LegalInline text={block} />
+            </p>
+          );
         })}
       </div>
       <nav className="mt-12 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--border)] pt-5 text-[13px]">

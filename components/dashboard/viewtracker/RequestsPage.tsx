@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import {
   displayNameFromMeta,
   parseProfileUrl,
@@ -72,7 +78,7 @@ export function extractHashtags(text: string): string[] {
 
 export function fillTemplate(
   text: string,
-  values: Record<string, string>
+  values: Record<string, string>,
 ): string {
   return text.replace(/#([A-Za-zÀ-ÿ_][\wÀ-ÿ]*)/g, (full, tag: string) => {
     const v = values[tag.toLowerCase()];
@@ -88,18 +94,24 @@ function FieldCard({
   label,
   hint,
   children,
+  className = "",
 }: {
   label: string;
   hint?: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[0_1px_2px_rgba(17,24,39,0.03)]">
+    <div
+      className={`rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[0_1px_2px_rgba(17,24,39,0.03)] ${className}`}
+    >
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-soft)]">
           {label}
         </p>
-        {hint ? <p className="text-[11px] text-[var(--muted-soft)]">{hint}</p> : null}
+        {hint ? (
+          <p className="text-[11px] text-[var(--muted-soft)]">{hint}</p>
+        ) : null}
       </div>
       {children}
     </div>
@@ -173,7 +185,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/projects/${projectId}/viewtracker/requests`
+          `/api/projects/${projectId}/viewtracker/requests`,
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to load template");
@@ -206,7 +218,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
                     subject: legacy.subject,
                     body: legacy.template,
                   }),
-                }
+                },
               );
               if (put.ok) clearLegacyLocal(projectId);
             } else {
@@ -219,7 +231,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error ? err.message : "Failed to load template"
+            err instanceof Error ? err.message : "Failed to load template",
           );
         }
       } finally {
@@ -241,7 +253,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
         setAccounts(
           Array.isArray(list)
             ? list.map((a) => ({ id: a.id, email: a.email }))
-            : []
+            : [],
         );
       } catch {
         /* ignore */
@@ -271,7 +283,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
             subject: settings.subject,
             body: settings.template,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save");
@@ -287,16 +299,16 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
 
   const tags = useMemo(
     () => extractHashtags(`${subject}\n${template}`),
-    [subject, template]
+    [subject, template],
   );
 
   const filledSubject = useMemo(
     () => fillTemplate(subject, tagValues),
-    [subject, tagValues]
+    [subject, tagValues],
   );
   const filledBody = useMemo(
     () => fillTemplate(template, tagValues),
-    [template, tagValues]
+    [template, tagValues],
   );
 
   const fromAccount = useMemo(() => {
@@ -307,7 +319,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
 
   const profileMeta = useMemo(
     () => (profileUrl.trim() ? parseProfileUrl(profileUrl) : null),
-    [profileUrl]
+    [profileUrl],
   );
 
   async function logOutreach(input: {
@@ -327,7 +339,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
         profileUrl: input.profileUrl,
         recipientName: displayNameFromMeta(
           input.profileUrl ? parseProfileUrl(input.profileUrl) : null,
-          nameTag
+          nameTag,
         ),
         subject: filledSubject,
         body: filledBody,
@@ -360,7 +372,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       }
       if (!fromAccount) {
         setError(
-          `Connect “${fromEmail}” in Emails first — sends use that mailbox.`
+          `Connect “${fromEmail}” in Emails first — sends use that mailbox.`,
         );
         return;
       }
@@ -377,7 +389,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
               subject: filledSubject,
               text: filledBody,
             }),
-          }
+          },
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send");
@@ -422,7 +434,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
 
       window.open(profileMeta.normalizedUrl, "_blank", "noopener,noreferrer");
       setOk(
-        "Request logged. Profile opened — paste the message and send the DM. Track it in Responses."
+        "Request logged. Profile opened — paste the message and send the DM. Track it in Responses.",
       );
       setTagValues({});
     } catch (err) {
@@ -444,7 +456,9 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div
+      className={`mx-auto space-y-4 ${mode === "preview" ? "max-w-6xl" : "max-w-3xl"}`}
+    >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
@@ -466,7 +480,24 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
               Saving…
             </span>
           ) : null}
-          <div className="inline-flex rounded-xl border border-[var(--border)] bg-white p-0.5">
+          {mode === "template" ? (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={async () => {
+                await persist({ fromEmail, subject, template });
+                setMode("preview");
+                setError("");
+                setOk("");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-60"
+            >
+              Aceptar
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+                <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => {
@@ -474,30 +505,20 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
                 setError("");
                 setOk("");
               }}
-              className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
-                mode === "template"
-                  ? "bg-[var(--accent)] text-white"
-                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white px-3.5 py-2 text-[12px] font-semibold text-[var(--foreground)] transition hover:bg-[var(--surface-alt)]"
             >
-              Template
+              Editar
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+                <path
+                  d="M4.5 19.5h3.75L18.6 9.15a2.12 2.12 0 0 0-3-3L5.25 16.5zM13.5 8.25l3 3"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("preview");
-                setError("");
-                setOk("");
-              }}
-              className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
-                mode === "preview"
-                  ? "bg-[var(--accent)] text-white"
-                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              Preview
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -583,120 +604,127 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
             />
           </FieldCard>
 
-          <button
-            type="button"
-            onClick={() => setMode("preview")}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-[var(--accent-hover)]"
-          >
-            Go to Preview
-          </button>
         </div>
       ) : (
-        <form onSubmit={handleSend} className="space-y-3">
-          <FieldCard label="Send via" hint="Email or profile DM">
-            <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--background)] p-0.5">
-              <button
-                type="button"
-                onClick={() => setChannel("email")}
-                className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
-                  channel === "email"
-                    ? "bg-[var(--accent)] text-white"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                Email
-              </button>
-              <button
-                type="button"
-                onClick={() => setChannel("profile")}
-                className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
-                  channel === "profile"
-                    ? "bg-[var(--accent)] text-white"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                Profile
-              </button>
-            </div>
-            <p className="mt-2 text-[12px] text-[var(--muted-soft)]">
-              {channel === "email"
-                ? "Sends with your connected mailbox and logs the request."
-                : "Opens the profile so you can DM manually. Message is copied and the request is logged."}
-            </p>
-          </FieldCard>
+        <form onSubmit={handleSend} className="grid gap-3 lg:grid-cols-2">
+          <div className="space-y-3">
+            <FieldCard label="Send via" hint="Email or profile DM">
+              <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--background)] p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setChannel("email")}
+                  className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
+                    channel === "email"
+                      ? "bg-[var(--accent)] text-white"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannel("profile")}
+                  className={`rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition ${
+                    channel === "profile"
+                      ? "bg-[var(--accent)] text-white"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  Profile
+                </button>
+              </div>
+              <p className="mt-2 text-[12px] text-[var(--muted-soft)]">
+                {channel === "email"
+                  ? "Sends with your connected mailbox and logs the request."
+                  : "Opens the profile so you can DM manually. Message is copied and the request is logged."}
+              </p>
+            </FieldCard>
 
-          {tags.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {tags.map((tag) => (
-                <FieldCard key={tag} label={`#${tag}`} hint={labelForTag(tag)}>
-                  <input
-                    type="text"
-                    value={tagValues[tag.toLowerCase()] ?? ""}
-                    onChange={(e) =>
-                      setTagValues((prev) => ({
-                        ...prev,
-                        [tag.toLowerCase()]: e.target.value,
-                      }))
-                    }
-                    placeholder={`Value for #${tag}`}
-                    className={inputClass}
-                  />
-                </FieldCard>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-[13px] text-[var(--muted-soft)]">
-              No #tags in the template — add e.g. #name in Template.
-            </div>
-          )}
+            {tags.length > 0 ? (
+              <div className={`grid gap-3 ${tags.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                {tags.map((tag) => (
+                  <FieldCard
+                    key={tag}
+                    label={`#${tag}`}
+                    hint={labelForTag(tag)}
+                  >
+                    <input
+                      type="text"
+                      value={tagValues[tag.toLowerCase()] ?? ""}
+                      onChange={(e) =>
+                        setTagValues((prev) => ({
+                          ...prev,
+                          [tag.toLowerCase()]: e.target.value,
+                        }))
+                      }
+                      placeholder={`Value for #${tag}`}
+                      className={inputClass}
+                    />
+                  </FieldCard>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-[13px] text-[var(--muted-soft)]">
+                No #tags in the template — add e.g. #name in Template.
+              </div>
+            )}
 
-          {channel === "email" ? (
-            <FieldCard label="To" hint="Recipient email">
+            {channel === "email" ? (
+              <FieldCard label="To" hint="Recipient email">
+                <input
+                  type="email"
+                  required
+                  value={toEmail}
+                  onChange={(e) => setToEmail(e.target.value)}
+                  placeholder="creator@email.com"
+                  className={inputClass}
+                />
+              </FieldCard>
+            ) : null}
+
+            <FieldCard
+              label="Profile link"
+              hint={
+                channel === "profile" ? "Required" : "Optional — for tracking"
+              }
+            >
               <input
-                type="email"
-                required
-                value={toEmail}
-                onChange={(e) => setToEmail(e.target.value)}
-                placeholder="creator@email.com"
+                type="url"
+                required={channel === "profile"}
+                value={profileUrl}
+                onChange={(e) => setProfileUrl(e.target.value)}
+                placeholder="https://instagram.com/username"
                 className={inputClass}
               />
+              {profileUrl.trim() ? <ProfilePreview url={profileUrl} /> : null}
             </FieldCard>
-          ) : null}
+          </div>
 
-          <FieldCard
-            label="Profile link"
-            hint={
-              channel === "profile" ? "Required" : "Optional — for tracking"
-            }
-          >
-            <input
-              type="url"
-              required={channel === "profile"}
-              value={profileUrl}
-              onChange={(e) => setProfileUrl(e.target.value)}
-              placeholder="https://instagram.com/username"
-              className={inputClass}
-            />
-            {profileUrl.trim() ? <ProfilePreview url={profileUrl} /> : null}
-          </FieldCard>
-
-          <FieldCard label="Preview">
+          <FieldCard label="Preview" className="lg:col-start-2 lg:row-start-1">
             <p className="text-[12px] text-[var(--muted)]">
-              <span className="font-medium text-[var(--foreground-soft)]">Via</span>{" "}
+              <span className="font-medium text-[var(--foreground-soft)]">
+                Via
+              </span>{" "}
               {channel === "email" ? "Email" : "Profile"}
               {channel === "email" ? (
                 <>
                   <span className="mx-2 text-[#d1d5db]">·</span>
-                  <span className="font-medium text-[var(--foreground-soft)]">From</span>{" "}
+                  <span className="font-medium text-[var(--foreground-soft)]">
+                    From
+                  </span>{" "}
                   {fromEmail || "—"}
                   <span className="mx-2 text-[#d1d5db]">·</span>
-                  <span className="font-medium text-[var(--foreground-soft)]">To</span>{" "}
+                  <span className="font-medium text-[var(--foreground-soft)]">
+                    To
+                  </span>{" "}
                   {toEmail || "—"}
                 </>
               ) : (
                 <>
                   <span className="mx-2 text-[#d1d5db]">·</span>
-                  <span className="font-medium text-[var(--foreground-soft)]">Profile</span>{" "}
+                  <span className="font-medium text-[var(--foreground-soft)]">
+                    Profile
+                  </span>{" "}
                   {profileMeta?.username
                     ? `@${profileMeta.username}`
                     : profileUrl || "—"}
@@ -711,7 +739,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
             </pre>
           </FieldCard>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 lg:col-span-2">
             <button
               type="submit"
               disabled={sending}

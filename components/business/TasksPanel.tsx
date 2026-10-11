@@ -129,11 +129,11 @@ export function TasksPanel({ tasks, onChange }: TasksPanelProps) {
           onAction={() => setOpen(true)}
         />
       ) : (
-        <ul className="mt-5 space-y-2">
+        <ul className="ui-card mt-6 divide-y divide-[var(--border)] overflow-hidden">
           {tasks.map((task) => (
             <li
               key={task.id}
-              className="flex items-center gap-3 rounded-[18px] bg-white px-4 py-3"
+              className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-[var(--background)]"
             >
               <div className="min-w-0 flex-1">
                 <p

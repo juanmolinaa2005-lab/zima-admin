@@ -77,6 +77,8 @@ export async function GET(_request: Request, { params }: Params) {
         username: row.username,
         avatarUrl: row.avatar_url,
         tokensCipher: row.tokens_ciphertext,
+        projectId,
+        supabase,
         save: async (next) => {
           await supabase
             .from("project_social_accounts")

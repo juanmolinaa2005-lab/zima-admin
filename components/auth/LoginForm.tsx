@@ -71,14 +71,14 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full border border-[var(--border)] shadow-[var(--shadow-lg)]">
+    <Card className="w-full border border-[var(--border)] shadow-[var(--shadow-lg)] lg:border-0 lg:bg-transparent lg:shadow-none">
       <Card.Header>
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-bold text-[var(--accent-foreground)] shadow-[0_4px_12px_rgba(99,91,255,0.35)]">
+        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[image:var(--accent-metal)] text-sm font-bold text-white shadow-[0_8px_20px_-6px_rgba(17,17,20,0.5)] lg:hidden">
           Z
         </div>
-        <Card.Title className="text-[22px] font-semibold tracking-tight">Entrar a Zima</Card.Title>
+        <Card.Title className="text-[28px] font-semibold tracking-[-0.035em]">Bienvenido de nuevo</Card.Title>
         <Card.Description className="text-[14px] text-[var(--muted)]">
-          Accede a tu panel de administración.
+          Inicia sesión para acceder a tu panel.
         </Card.Description>
       </Card.Header>
       <Card.Content>
@@ -118,9 +118,16 @@ export function LoginForm() {
             variant="primary"
             fullWidth
             isDisabled={loading}
-            className="mt-1 h-10 rounded-lg font-semibold shadow-[0_2px_6px_rgba(99,91,255,0.3)]"
+            className="ui-press mt-2 h-11 rounded-[12px] bg-[image:var(--accent-metal)] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_8px_20px_-8px_rgba(17,17,20,0.6)] transition hover:brightness-125"
           >
-            {loading ? "Entrando…" : "Entrar"}
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Entrando…
+              </span>
+            ) : (
+              "Entrar"
+            )}
           </Button>
         </form>
       </Card.Content>

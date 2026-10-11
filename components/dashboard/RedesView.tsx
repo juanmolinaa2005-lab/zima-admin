@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { AllAccountsView } from "./AllAccountsView";
 import { AccountAvatar } from "./AccountAvatar";
 import { ApiMissingBanner } from "./ApiMissingBanner";
 import { InspirationView } from "./InspirationView";
@@ -73,31 +72,46 @@ function nativeLabel(a: NativeAccount) {
 function NetworkIcon({ id }: { id: NetworkId }) {
   if (id === "tiktok") {
     return (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M16.5 3c.4 2.2 1.8 3.8 4 4.3v2.4c-1.4-.1-2.7-.6-3.8-1.4v6.6c0 3.4-2.7 6.1-6.1 6.1S4.5 18.3 4.5 14.9 7.2 8.8 10.6 8.8c.3 0 .7 0 1 .1v2.5c-.3-.1-.6-.1-1-.1-2 0-3.6 1.6-3.6 3.6s1.6 3.6 3.6 3.6 3.6-1.6 3.6-3.6V3h2.3Z" />
+      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" aria-hidden>
+        <path
+          fill="#25F4EE"
+          d="M14.1 3.1c.4 2.5 1.8 4.4 4.2 5v2.4a7.1 7.1 0 0 1-4.1-1.3v6.7a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v2.6a3 3 0 1 0 2.1 2.9V3.1h2.5Z"
+          transform="translate(-0.7 .35)"
+        />
+        <path
+          fill="#FE2C55"
+          d="M14.1 3.1c.4 2.5 1.8 4.4 4.2 5v2.4a7.1 7.1 0 0 1-4.1-1.3v6.7a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v2.6a3 3 0 1 0 2.1 2.9V3.1h2.5Z"
+          transform="translate(.7 -.25)"
+        />
+        <path
+          fill="#111"
+          d="M14.1 3.1c.4 2.5 1.8 4.4 4.2 5v2.4a7.1 7.1 0 0 1-4.1-1.3v6.7a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v2.6a3 3 0 1 0 2.1 2.9V3.1h2.5Z"
+        />
       </svg>
     );
   }
   if (id === "instagram") {
     return (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <rect
-          x="3.5"
-          y="3.5"
-          width="17"
-          height="17"
-          rx="5"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
-        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
+      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" aria-hidden>
+        <defs>
+          <radialGradient id="ig-mark" cx="30%" cy="107%" r="120%">
+            <stop offset="0%" stopColor="#feda75" />
+            <stop offset="28%" stopColor="#fa7e1e" />
+            <stop offset="52%" stopColor="#d62976" />
+            <stop offset="76%" stopColor="#962fbf" />
+            <stop offset="100%" stopColor="#4f5bd5" />
+          </radialGradient>
+        </defs>
+        <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#ig-mark)" />
+        <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="4.8" fill="none" stroke="#fff" strokeWidth="1.6" />
+        <circle cx="16.7" cy="7.2" r="1.05" fill="#fff" />
       </svg>
     );
   }
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M22 7.5s-.2-1.6-.8-2.3c-.8-.8-1.7-.8-2.1-.9C16.4 4 12 4 12 4h0s-4.4 0-7.1.3c-.4.1-1.3.1-2.1.9C2.2 5.9 2 7.5 2 7.5S1.8 9.4 1.8 11.2v1.6c0 1.9.2 3.7.2 3.7s.2 1.6.8 2.3c.8.8 1.9.8 2.4.9 1.7.2 7 .3 7 .3s4.4 0 7.1-.3c.4-.1 1.3-.1 2.1-.9.6-.7.8-2.3.8-2.3s.2-1.9.2-3.7v-1.6c0-1.8-.2-3.7-.2-3.7ZM9.8 14.8V8.9l5.9 3-5.9 2.9Z" />
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" aria-hidden>
+      <rect x="1.2" y="5" width="21.6" height="14" rx="4" fill="#FF0033" />
+      <path d="M10 9.1v5.8l5.2-2.9L10 9.1Z" fill="#fff" />
     </svg>
   );
 }
@@ -124,7 +138,7 @@ export function RedesView({
   const [ok, setOk] = useState("");
   const [network, setNetwork] = useState<NetworkId>("tiktok");
   const [accountId, setAccountId] = useState("");
-  const [hoverNet, setHoverNet] = useState<NetworkId | null>(null);
+  const [openNet, setOpenNet] = useState<NetworkId | null>("tiktok");
   const [videoUrl, setVideoUrl] = useState("");
   const [caption, setCaption] = useState("");
   const [privacy, setPrivacy] = useState<Privacy>("PUBLIC_TO_EVERYONE");
@@ -134,14 +148,13 @@ export function RedesView({
   /** Dedicated Meta connect page (opened from Instagram hover → Connect). */
   const [igSetupOpen, setIgSetupOpen] = useState(false);
   const [ytSetupOpen, setYtSetupOpen] = useState(false);
-  const [allAccountsOpen, setAllAccountsOpen] = useState(false);
   const [inspirationOpen, setInspirationOpen] = useState(false);
 
   const isInstagram = network === "instagram";
   const isYouTube = network === "youtube";
   const isNative = isInstagram || isYouTube;
-  const showIgSetup = isInstagram && igSetupOpen && !allAccountsOpen && !inspirationOpen;
-  const showYtSetup = isYouTube && ytSetupOpen && !allAccountsOpen && !inspirationOpen;
+  const showIgSetup = isInstagram && igSetupOpen && !inspirationOpen;
+  const showYtSetup = isYouTube && ytSetupOpen && !inspirationOpen;
   const showNativeSetup = showIgSetup || showYtSetup;
 
   const loadBlotato = useCallback(async () => {
@@ -431,7 +444,8 @@ export function RedesView({
     !loading && showYtSetup && !ytAppConfigured;
 
   return (
-    <div className="relative h-full overflow-y-auto bg-[var(--background)]">
+    <div className="flex h-full min-h-0 bg-[var(--background)]">
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-y-auto">
       {showBlotatoBanner ? (
         <ApiMissingBanner
           projectId={projectId}
@@ -454,7 +468,6 @@ export function RedesView({
         />
       ) : null}
 
-      {/* Top-left network switcher */}
       <div className="sticky top-0 z-20 border-b border-[var(--border)] bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
           {onOpenGallery ? (
@@ -491,180 +504,14 @@ export function RedesView({
               Galería
             </button>
           ) : null}
-          {NETWORKS.map((n) => {
-            const list = byNetwork[n.id];
-            const active =
-              network === n.id &&
-              !showNativeSetup &&
-              !allAccountsOpen &&
-              !inspirationOpen;
-            const open = hoverNet === n.id;
-            return (
-              <div
-                key={n.id}
-                className="relative"
-                onMouseEnter={() => setHoverNet(n.id)}
-                onMouseLeave={() => setHoverNet(null)}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNetwork(n.id);
-                    setAllAccountsOpen(false);
-                    setInspirationOpen(false);
-                    if (n.id === "instagram") setIgSetupOpen(false);
-                    if (n.id === "youtube") setYtSetupOpen(false);
-                  }}
-                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[12px] font-semibold transition ${
-                    active
-                      ? "border-transparent text-white shadow-sm"
-                      : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
-                  }`}
-                  style={active ? { background: n.color } : undefined}
-                >
-                  <NetworkIcon id={n.id} />
-                  {n.label}
-                  <span
-                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
-                      active
-                        ? "bg-white/20 text-white"
-                        : "bg-[var(--surface-alt)] text-[var(--muted)]"
-                    }`}
-                  >
-                    {list.length}
-                  </span>
-                </button>
 
-                {open ? (
-                  <div className="absolute left-0 top-full z-30 min-w-[220px] pt-1.5">
-                    <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white py-1 shadow-[0_12px_32px_rgba(17,24,39,0.14)]">
-                      <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-soft)]">
-                        {n.label} accounts
-                      </p>
-                      {list.length === 0 ? (
-                        <p className="px-3 py-2.5 text-[12px] text-[var(--muted-soft)]">
-                          {n.provider === "meta"
-                            ? "No accounts yet. Connect below."
-                            : n.provider === "youtube"
-                              ? "No channels yet. Connect below."
-                              : "No accounts. Link one in Blotato."}
-                        </p>
-                      ) : (
-                        list.map((a) => {
-                          const selectedHere =
-                            accountId === a.id &&
-                            network === n.id &&
-                            !showNativeSetup;
-                          return (
-                            <button
-                              key={a.id}
-                              type="button"
-                              onClick={() => {
-                                setNetwork(n.id);
-                                setAccountId(a.id);
-                                setIgSetupOpen(false);
-                                setYtSetupOpen(false);
-                                setHoverNet(null);
-                              }}
-                              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] transition ${
-                                selectedHere
-                                  ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                                  : "text-[var(--foreground)] hover:bg-[var(--background)]"
-                              }`}
-                            >
-                              <AccountAvatar
-                                src={a.avatarUrl}
-                                label={a.username || a.label}
-                                color={n.color}
-                                size={28}
-                              />
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate font-semibold">
-                                  {a.label}
-                                </span>
-                                {a.username ? (
-                                  <span className="block truncate text-[10px] text-[var(--muted-soft)]">
-                                    @{a.username}
-                                  </span>
-                                ) : null}
-                              </span>
-                              {selectedHere ? (
-                                <span className="text-[10px] font-bold">✓</span>
-                              ) : null}
-                            </button>
-                          );
-                        })
-                      )}
-                      {n.provider === "blotato" ? (
-                        <a
-                          href="https://my.blotato.com/settings"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block border-t border-[var(--border)] px-3 py-2 text-[11px] font-semibold text-[var(--accent)] hover:bg-[var(--background)]"
-                        >
-                          Manage in Blotato →
-                        </a>
-                      ) : n.provider === "youtube" ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setNetwork("youtube");
-                              setYtSetupOpen(true);
-                              setHoverNet(null);
-                            }}
-                            className="block w-full border-t border-[var(--border)] px-3 py-2 text-left text-[11px] font-semibold text-[var(--accent)] hover:bg-[var(--background)]"
-                          >
-                            Connect YouTube →
-                          </button>
-                          <a
-                            href={GOOGLE_TESTERS_URL}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block border-t border-[var(--border)] px-3 py-2 text-[11px] font-medium text-[var(--muted)] hover:bg-[var(--background)] hover:text-[var(--foreground)]"
-                          >
-                            Agregar usuario de prueba →
-                          </a>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setNetwork("instagram");
-                              setIgSetupOpen(true);
-                              setHoverNet(null);
-                            }}
-                            className="block w-full border-t border-[var(--border)] px-3 py-2 text-left text-[11px] font-semibold text-[var(--accent)] hover:bg-[var(--background)]"
-                          >
-                            Connect Instagram →
-                          </button>
-                          <a
-                            href={META_APP_ROLES_URL}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block border-t border-[var(--border)] px-3 py-2 text-[11px] font-medium text-[var(--muted)] hover:bg-[var(--background)] hover:text-[var(--foreground)]"
-                          >
-                            Agregar usuario de prueba →
-                          </a>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => {
                 setInspirationOpen(true);
-                setAllAccountsOpen(false);
                 setIgSetupOpen(false);
                 setYtSetupOpen(false);
-                setHoverNet(null);
               }}
               className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[12px] font-semibold transition ${
                 inspirationOpen
@@ -672,26 +519,9 @@ export function RedesView({
                   : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
               }`}
             >
-              Inspiration
+              Saved inspiration
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAllAccountsOpen(true);
-                setInspirationOpen(false);
-                setIgSetupOpen(false);
-                setYtSetupOpen(false);
-                setHoverNet(null);
-              }}
-              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[12px] font-semibold transition ${
-                allAccountsOpen
-                  ? "border-transparent bg-[var(--accent)] text-white shadow-sm"
-                  : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
-              }`}
-            >
-              All accounts
-            </button>
-            {selected && !showNativeSetup && !allAccountsOpen && !inspirationOpen ? (
+            {selected && !showNativeSetup && !inspirationOpen ? (
               <span className="hidden items-center gap-2 text-[12px] text-[var(--muted)] sm:inline-flex">
                 <AccountAvatar
                   src={selected.avatarUrl}
@@ -712,6 +542,7 @@ export function RedesView({
             >
               Refresh
             </button>
+
           </div>
         </div>
       </div>
@@ -720,11 +551,6 @@ export function RedesView({
         <InspirationView
           projectId={projectId}
           onBack={() => setInspirationOpen(false)}
-        />
-      ) : allAccountsOpen ? (
-        <AllAccountsView
-          projectId={projectId}
-          onBack={() => setAllAccountsOpen(false)}
         />
       ) : (
       <div className="mx-auto max-w-3xl space-y-4 px-5 py-6 sm:px-7 sm:py-8">
@@ -941,10 +767,10 @@ export function RedesView({
               </h1>
               <p className="mt-1 text-[13px] text-[var(--muted)]">
                 {isInstagram
-                  ? "Publica Reels en Instagram. Hover Instagram arriba para elegir cuenta o conectar."
+                  ? "Publica Reels en Instagram. Elige la cuenta a la derecha."
                   : isYouTube
-                    ? "Sube videos a YouTube con la API v3. Hover YouTube arriba para elegir canal o conectar."
-                    : "TikTok via Blotato. Hover a network to pick an account."}
+                    ? "Sube videos a YouTube. Elige el canal a la derecha."
+                    : "TikTok vía Blotato. Elige la cuenta a la derecha."}
               </p>
             </div>
 
@@ -1038,10 +864,10 @@ export function RedesView({
                 </p>
                 <p className="mx-auto mt-1 max-w-md text-[13px] text-[var(--muted)]">
                   {isInstagram
-                    ? "Hover Instagram above and choose Connect Instagram, then pick the account."
+                    ? "Abre Instagram a la derecha y elige Conectar."
                     : isYouTube
-                      ? "Hover YouTube above and choose Connect YouTube, then pick the channel."
-                      : `Hover ${netMeta.label} above and choose an account, or connect one in Blotato.`}
+                      ? "Abre YouTube a la derecha y elige Conectar."
+                      : `Abre ${netMeta.label} a la derecha y elige una cuenta.`}
                 </p>
                 {isInstagram ? (
                   <button
@@ -1084,6 +910,140 @@ export function RedesView({
         )}
       </div>
       )}
+      </div>
+      <aside className="flex w-[15.5rem] shrink-0 flex-col border-l border-[var(--border)] bg-[var(--background)]">
+        <p className="px-4 pb-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted-soft)]">
+          Cuentas
+        </p>
+        <div className="flex flex-col gap-1 px-2 pb-4">
+          {NETWORKS.map((n) => {
+            const list = byNetwork[n.id];
+            const active =
+              network === n.id &&
+              !showNativeSetup &&
+              !inspirationOpen;
+            const open = openNet === n.id;
+            return (
+              <div key={n.id}>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => {
+                    setNetwork(n.id);
+                    setInspirationOpen(false);
+                    if (n.id === "instagram") setIgSetupOpen(false);
+                    if (n.id === "youtube") setYtSetupOpen(false);
+                    setOpenNet((cur) => (cur === n.id ? null : n.id));
+                  }}
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition ${
+                    active ? "bg-white shadow-[0_1px_2px_rgba(17,24,39,0.06)]" : "hover:bg-white"
+                  }`}
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white shadow-[inset_0_0_0_1px_rgba(17,24,39,0.08)]">
+                    <NetworkIcon id={n.id} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold text-[var(--foreground)]">
+                      {n.label}
+                    </span>
+                    <span className="block text-[11px] text-[var(--muted)]">
+                      {list.length === 1 ? "1 cuenta" : `${list.length} cuentas`}
+                    </span>
+                  </span>
+                  <svg
+                    className={`h-4 w-4 shrink-0 text-[var(--muted-soft)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <div className={`grid transition-[grid-template-rows] duration-200 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                  <div className="overflow-hidden">
+                    <div className="ml-4 space-y-0.5 border-l border-[var(--border)] py-1 pl-2">
+                      {list.length === 0 ? (
+                        <p className="px-2 py-1.5 text-[12px] text-[var(--muted-soft)]">
+                          Sin cuentas
+                        </p>
+                      ) : (
+                        list.map((a) => {
+                          const selectedHere =
+                            accountId === a.id &&
+                            network === n.id &&
+                            !showNativeSetup;
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => {
+                                setNetwork(n.id);
+                                setAccountId(a.id);
+                                setIgSetupOpen(false);
+                                setYtSetupOpen(false);
+                                setOpenNet(n.id);
+                              }}
+                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
+                                selectedHere ? "bg-white" : "hover:bg-white"
+                              }`}
+                            >
+                              <AccountAvatar
+                                src={a.avatarUrl}
+                                label={a.username || a.label}
+                                color={n.color}
+                                size={22}
+                              />
+                              <span className="min-w-0 flex-1">
+                                <span className={`block truncate text-[12px] ${selectedHere ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground-soft)]"}`}>
+                                  {a.username ? `@${a.username.replace(/^@/, "")}` : a.label}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })
+                      )}
+                      {n.provider === "blotato" ? (
+                        <a
+                          href="https://my.blotato.com/settings"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block rounded-lg px-2 py-1.5 text-[11px] font-medium text-[var(--muted)] hover:bg-white hover:text-[var(--foreground)]"
+                        >
+                          Gestionar
+                        </a>
+                      ) : n.provider === "youtube" ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNetwork("youtube");
+                            setYtSetupOpen(true);
+                            setOpenNet("youtube");
+                          }}
+                          className="block w-full rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-[var(--muted)] hover:bg-white hover:text-[var(--foreground)]"
+                        >
+                          Conectar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNetwork("instagram");
+                            setIgSetupOpen(true);
+                            setOpenNet("instagram");
+                          }}
+                          className="block w-full rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-[var(--muted)] hover:bg-white hover:text-[var(--foreground)]"
+                        >
+                          Conectar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </aside>
     </div>
   );
 }

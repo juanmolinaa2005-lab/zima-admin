@@ -244,15 +244,71 @@ export const UseIcon = AnalyticsIcon;
 /** @deprecated alias — prefer AnalyticsIcon */
 export const ClaudeIcon = AnalyticsIcon;
 
+export function MarketIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 19.5h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="5.5" y="12" width="3" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="10.5" y="8.5" width="3" height="9" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="15.5" y="4.5" width="3" height="13" rx="1" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+export function LaunchIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M14.5 4.5c2.6-.9 4.6-.8 5-.4.4.4.5 2.4-.4 5-.8 2.3-2.6 4.6-5.1 6.4l-1.5 1.1-4.6-4.6 1.1-1.5c1.8-2.5 4.1-4.3 5.5-6Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="15.25" cy="8.75" r="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M8.9 10.6 6 10.2l-2 2 3.6 1M13.4 15.1l.4 2.9-2 2-1-3.6M6.2 17.8c-.6.6-1.7.9-2.5.9 0-.8.3-1.9.9-2.5.5-.5 1.2-.5 1.6 0 .4.4.4 1.1 0 1.6Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function MonetizationIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M14.6 9.4c-.4-.9-1.4-1.4-2.6-1.4-1.5 0-2.6.8-2.6 1.9 0 2.6 5.3 1.4 5.3 4.1 0 1.1-1.1 2-2.7 2-1.3 0-2.3-.6-2.7-1.5M12 6.5v1.5m0 8v1.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function ViewTrackerIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="7.25" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M12 5v1.5M12 17.5V19M5 12h1.5M17.5 12H19"
+        d="M4.5 10.2h2.8L16.2 6.2v11.6l-8.9-4H4.5a1 1 0 0 1-1-1v-1.6a1 1 0 0 1 1-1Z"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.2 13.8 8 18"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.2 9.2a3.2 3.2 0 0 1 0 5.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
     </svg>
@@ -507,6 +563,59 @@ export function SettingsIcon({ className }: IconProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
+      <path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SelectorIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="m8 9 4-4 4 4M8 15l4 4 4-4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function BookIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v14H6.5A1.5 1.5 0 0 0 5 19.5v-14Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

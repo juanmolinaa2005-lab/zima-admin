@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireProjectOwner } from "@/lib/mail/access";
-import { discoverAccountVideos } from "@/lib/viewtracker/account-feed";
+import { discoverAccountVideos, type DiscoveredVideo } from "@/lib/viewtracker/account-feed";
 import { ingestDiscoveredVideos } from "@/lib/viewtracker/ingest";
 import { parseProfileUrl } from "@/lib/viewtracker/profile";
+import { isHostedAvatar, persistProfileAvatar } from "@/lib/viewtracker/avatar-cache";
 import { fetchPublicAccountStats } from "@/lib/viewtracker/stats";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -42,6 +43,37 @@ function serialize(row: AccountRow) {
   };
 }
 
+async function dropEmptyStubs(
+  // Supabase's query builder is a thenable, not a plain Promise. `any` keeps this helper from unfolding that type.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  projectId: string,
+  userId: string,
+  accountId: string,
+  found: DiscoveredVideo[]
+) {
+  if (found.length === 0) return;
+  const keep = new Set(found.map((item) => item.url));
+  const { data } = await supabase
+    .from("project_tracked_videos")
+    .select("id,url,title,views")
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .eq("account_id", accountId);
+  const rows = (data ?? []) as { id: string; url: string; title: string | null; views: number | string | null }[];
+  const stale = rows.filter((row) => !keep.has(row.url) && !row.title && Number(row.views ?? 0) === 0);
+  if (stale.length === 0) return;
+  await supabase
+    .from("project_tracked_videos")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .in(
+      "id",
+      stale.map((row) => row.id)
+    );
+}
+
 function splitUrls(raw: string): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -74,7 +106,41 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ items: (data as AccountRow[] | null)?.map(serialize) ?? [] });
+  const rows = (data as AccountRow[] | null) ?? [];
+  const items = await Promise.all(rows.map((row) => stabilizeAvatar(supabase, projectId, row)));
+
+  return NextResponse.json(
+    { items: items.map(serialize) },
+    { headers: { "Cache-Control": "no-store" } }
+  );
+}
+
+async function stabilizeAvatar(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  projectId: string,
+  row: AccountRow
+): Promise<AccountRow> {
+  if (isHostedAvatar(row.avatar_url)) return row;
+  try {
+    const stats = await fetchPublicAccountStats(row.url, row.platform);
+    const hosted = await persistProfileAvatar(supabase, {
+      projectId,
+      platform: row.platform,
+      username: row.username,
+      sourceUrl: stats.thumbnailUrl,
+      reuse: true,
+    });
+    if (!hosted) return { ...row, avatar_url: null };
+    await supabase
+      .from("project_tracked_accounts")
+      .update({ avatar_url: hosted })
+      .eq("id", row.id)
+      .eq("project_id", projectId);
+    return { ...row, avatar_url: hosted };
+  } catch {
+    return { ...row, avatar_url: null };
+  }
 }
 
 export async function POST(request: Request, { params }: Params) {
@@ -115,6 +181,7 @@ export async function POST(request: Request, { params }: Params) {
       items: found,
     });
     videosIngested += result.total;
+    await dropEmptyStubs(supabase, projectId, user.id, row.id, found);
     return result.total;
   }
 
@@ -125,6 +192,13 @@ export async function POST(request: Request, { params }: Params) {
       continue;
     }
     const stats = await fetchPublicAccountStats(meta.normalizedUrl, meta.platform);
+    const hostedAvatar = await persistProfileAvatar(supabase, {
+      projectId,
+      platform: meta.platform,
+      username: meta.username,
+      sourceUrl: stats.thumbnailUrl,
+      reuse: false,
+    });
     const { data, error } = await supabase
       .from("project_tracked_accounts")
       .insert({
@@ -133,7 +207,7 @@ export async function POST(request: Request, { params }: Params) {
         url: meta.normalizedUrl,
         platform: meta.platform,
         username: meta.username,
-        avatar_url: stats.thumbnailUrl || meta.avatarUrl,
+        avatar_url: hostedAvatar,
         display_name: stats.displayName,
         followers: stats.followers ?? 0,
         last_refreshed_at: new Date().toISOString(),
@@ -194,12 +268,19 @@ export async function PATCH(request: Request, { params }: Params) {
 
   async function refreshRow(row: AccountRow) {
     const stats = await fetchPublicAccountStats(row.url, row.platform);
-    const { data } = await supabase
+    const hostedAvatar = await persistProfileAvatar(supabase, {
+      projectId,
+      platform: row.platform,
+      username: row.username,
+      sourceUrl: stats.thumbnailUrl,
+      reuse: false,
+    });
+    const { data, error } = await supabase
       .from("project_tracked_accounts")
       .update({
         display_name: stats.displayName || row.display_name,
         followers: stats.followers ?? row.followers ?? 0,
-        avatar_url: stats.thumbnailUrl || row.avatar_url,
+        avatar_url: hostedAvatar || (isHostedAvatar(row.avatar_url) ? row.avatar_url : null),
         last_refreshed_at: new Date().toISOString(),
       })
       .eq("id", row.id)
@@ -207,6 +288,7 @@ export async function PATCH(request: Request, { params }: Params) {
       .eq("user_id", user.id)
       .select("*")
       .single();
+    if (error) throw new Error(error.message);
     try {
       const found = await discoverAccountVideos({
         url: row.url,
@@ -219,6 +301,7 @@ export async function PATCH(request: Request, { params }: Params) {
         accountId: row.id,
         items: found,
       });
+      await dropEmptyStubs(supabase, projectId, user.id, row.id, found);
     } catch {
       /* keep account refresh even if video ingest fails */
     }

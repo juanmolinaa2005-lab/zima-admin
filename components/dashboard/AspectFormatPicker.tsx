@@ -28,7 +28,7 @@ function AspectShape({
     <span
       className={`inline-block rounded-[5px] border-2 transition ${
         active
-          ? "border-[#5046e5] bg-[var(--surface-alt)]"
+          ? "border-[var(--accent)] bg-[var(--surface-alt)]"
           : "border-[#d6d3d1] bg-[#f5f5f4]"
       }`}
       style={{ width: w, height: h }}

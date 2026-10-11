@@ -217,8 +217,8 @@ export function PasswordSettings({
       projectId={projectId}
       projectName={projectName}
       userEmail={userEmail}
-      title="Password"
-      subtitle="Change your account password with an email code."
+      title="Contraseña"
+      subtitle="Cambia la contraseña de tu cuenta con un código por email."
       backHref={`/projects/${projectId}/settings`}
       backLabel="← Settings"
       footer={false}

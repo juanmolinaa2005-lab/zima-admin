@@ -1,15 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type ReactNode,
+  type SVGProps,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RequestsPage } from "./viewtracker/RequestsPage";
 import { ResponsesPage } from "./viewtracker/ResponsesPage";
-import { VideosPage, formatCompact, type TrackedVideo } from "./viewtracker/VideosPage";
+import {
+  VideosPage,
+  formatCompact,
+  type TrackedVideo,
+} from "./viewtracker/VideosPage";
 import { AccountsPage } from "./viewtracker/AccountsPage";
 import { CreatorsPage } from "./viewtracker/CreatorsPage";
 import { OverviewPage } from "./viewtracker/OverviewPage";
 import { MobileFabMenu, type MobileNavSection } from "./MobileFabMenu";
 import { ViewTrackerIcon } from "./icons";
+import { UploadPage } from "./viewtracker/UploadPage";
 
 type PageId =
   | "overview"
@@ -18,6 +30,7 @@ type PageId =
   | "videos"
   | "requests"
   | "responses"
+  | "upload"
   | "team"
   | "viral"
   | "api-keys"
@@ -31,6 +44,7 @@ const VT_PAGES = new Set<PageId>([
   "videos",
   "requests",
   "responses",
+  "upload",
   "team",
   "viral",
   "api-keys",
@@ -44,6 +58,26 @@ function pageFromParam(raw: string | null): PageId {
 }
 
 type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
+
+function IconUpload({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 15.5V4.5m0 0L7.75 8.75M12 4.5l4.25 4.25"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.5 14.5v3.25A1.75 1.75 0 0 0 6.25 19.5h11.5a1.75 1.75 0 0 0 1.75-1.75V14.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 function IconOverview({ className }: { className?: string }) {
   return (
@@ -115,24 +149,6 @@ function IconVideos({ className }: { className?: string }) {
   );
 }
 
-function IconTeam({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M3.5 18.5c.9-2.8 3-4.3 5.5-4.3s4.6 1.5 5.5 4.3M14.5 18.5c.4-1.5 1.4-2.6 3-3.1"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function IconRequests({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -150,19 +166,6 @@ function IconRequests({ className }: { className?: string }) {
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconViral({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M13 3 5.5 13.5H12l-1 7.5L19.5 10H13L13 3Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
         strokeLinejoin="round"
       />
     </svg>
@@ -271,6 +274,65 @@ function NavItem({
   );
 }
 
+function NavGroup({
+  label,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  children?: ReactNode;
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] font-semibold text-[var(--foreground)] transition hover:bg-[var(--surface-alt)]"
+      >
+        <span className="flex-1">{label}</span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden
+          className={`h-4 w-4 text-[var(--muted)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`}
+        >
+          <path
+            d="m6 9 6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      <div
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+        inert={!open}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div
+            className={`ml-3 border-l border-[var(--border)] pb-1 pl-2 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              open ? "translate-y-0" : "-translate-y-2"
+            }`}
+          >
+            {children ?? (
+              <p className="px-2.5 py-2 text-[12px] text-[var(--muted-soft)]">
+                Próximamente
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionLabel({ children }: { children: string }) {
   return (
     <p className="mb-1 mt-4 px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-soft)]">
@@ -280,7 +342,9 @@ function SectionLabel({ children }: { children: string }) {
 }
 
 function ViralPage({ projectId }: { projectId: string }) {
-  const [platform, setPlatform] = useState<"all" | "tiktok" | "instagram" | "youtube">("all");
+  const [platform, setPlatform] = useState<
+    "all" | "tiktok" | "instagram" | "youtube"
+  >("all");
   const [search, setSearch] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [items, setItems] = useState<TrackedVideo[]>([]);
@@ -312,7 +376,7 @@ function ViralPage({ projectId }: { projectId: string }) {
         !q
           ? true
           : (v.title || "").toLowerCase().includes(q) ||
-            (v.author || "").toLowerCase().includes(q)
+            (v.author || "").toLowerCase().includes(q),
       )
       .sort((a, b) => b.views - a.views);
   }, [items, platform, favoritesOnly, search]);
@@ -393,7 +457,12 @@ function ViralPage({ projectId }: { projectId: string }) {
               key={item.id}
               className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)]"
             >
-              <a href={item.url} target="_blank" rel="noreferrer" className="block">
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block"
+              >
                 <div className="relative aspect-[9/14] bg-gradient-to-b from-[#1f2937] to-[#111827]">
                   {item.thumbnailUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -442,13 +511,7 @@ function ViralPage({ projectId }: { projectId: string }) {
   );
 }
 
-function SimplePage({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function SimplePage({ title, body }: { title: string; body: string }) {
   return (
     <div>
       <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
@@ -474,6 +537,8 @@ export function ViewTrackerView({
   const searchParams = useSearchParams();
   const page = pageFromParam(searchParams.get("vt"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [organicOpen, setOrganicOpen] = useState(true);
+  const [paidOpen, setPaidOpen] = useState(false);
   const [accountCount, setAccountCount] = useState(0);
 
   useEffect(() => {
@@ -504,6 +569,7 @@ export function ViewTrackerView({
 
   const mobileSections: MobileNavSection[] = [
     {
+      label: "Organic",
       items: [
         {
           id: "overview",
@@ -519,11 +585,6 @@ export function ViewTrackerView({
           active: page === "creators",
           onClick: () => go("creators"),
         },
-      ],
-    },
-    {
-      label: "Tracking",
-      items: [
         {
           id: "accounts",
           label: "Accounts",
@@ -538,11 +599,6 @@ export function ViewTrackerView({
           active: page === "videos",
           onClick: () => go("videos"),
         },
-      ],
-    },
-    {
-      label: "Manage",
-      items: [
         {
           id: "requests",
           label: "Requests",
@@ -558,49 +614,11 @@ export function ViewTrackerView({
           onClick: () => go("responses"),
         },
         {
-          id: "team",
-          label: "Team Members",
-          icon: IconTeam,
-          active: page === "team",
-          onClick: () => go("team"),
-        },
-      ],
-    },
-    {
-      label: "Discover",
-      items: [
-        {
-          id: "viral",
-          label: "Viral",
-          icon: IconViral,
-          active: page === "viral",
-          onClick: () => go("viral"),
-        },
-        {
-          id: "api-keys",
-          label: "API Keys",
-          icon: IconViral,
-          active: page === "api-keys",
-          onClick: () => go("api-keys"),
-        },
-      ],
-    },
-    {
-      label: "More",
-      items: [
-        {
-          id: "settings",
-          label: "Settings",
-          icon: IconAccounts,
-          active: page === "settings",
-          onClick: () => go("settings"),
-        },
-        {
-          id: "support",
-          label: "Support",
-          icon: IconChat,
-          active: page === "support",
-          onClick: () => go("support"),
+          id: "upload",
+          label: "Upload",
+          icon: IconUpload,
+          active: page === "upload",
+          onClick: () => go("upload"),
         },
       ],
     },
@@ -609,107 +627,67 @@ export function ViewTrackerView({
   return (
     <div className="relative flex h-full overflow-hidden bg-[var(--background)]">
       <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[var(--border)] bg-white md:flex">
-        <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-3.5 py-3.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white">
-            V
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">
-              ViewTracker
-            </p>
-            <p className="truncate text-[11px] text-[var(--muted-soft)]">
-              {projectName || "Workspace"}
-            </p>
-          </div>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
-          <button
-            type="button"
-            className="mb-2 flex w-full items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-[12px] font-medium text-[var(--foreground-soft)]"
+        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 py-2">
+          <NavGroup
+            label="Organic"
+            open={organicOpen}
+            onToggle={() => setOrganicOpen((v) => !v)}
           >
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-              Default
-            </span>
-            <span className="text-[var(--muted-soft)]">↕</span>
-          </button>
+            <NavItem
+              label="Overview"
+              active={page === "overview"}
+              icon={IconOverview}
+              onClick={() => go("overview")}
+            />
 
-          <NavItem
-            label="Overview"
-            active={page === "overview"}
-            icon={IconOverview}
-            onClick={() => go("overview")}
-          />
-          <NavItem
-            label="Creators"
-            active={page === "creators"}
-            icon={IconCreators}
-            onClick={() => go("creators")}
-          />
+            <SectionLabel>Tracking</SectionLabel>
+            <NavItem
+              label="Creators"
+              active={page === "creators"}
+              icon={IconCreators}
+              onClick={() => go("creators")}
+            />
+            <NavItem
+              label="Accounts"
+              active={page === "accounts"}
+              icon={IconAccounts}
+              onClick={() => go("accounts")}
+            />
+            <NavItem
+              label="Videos"
+              active={page === "videos"}
+              icon={IconVideos}
+              onClick={() => go("videos")}
+            />
 
-          <SectionLabel>Tracking</SectionLabel>
-          <NavItem
-            label="Accounts"
-            active={page === "accounts"}
-            icon={IconAccounts}
-            onClick={() => go("accounts")}
-          />
-          <NavItem
-            label="Videos"
-            active={page === "videos"}
-            icon={IconVideos}
-            onClick={() => go("videos")}
-          />
-
-          <SectionLabel>Manage</SectionLabel>
-          <NavItem
-            label="Requests"
-            active={page === "requests"}
-            icon={IconRequests}
-            onClick={() => go("requests")}
-          />
-          <NavItem
-            label="Responses"
-            active={page === "responses"}
-            icon={IconChat}
-            onClick={() => go("responses")}
-          />
-          <NavItem
-            label="Team Members"
-            active={page === "team"}
-            icon={IconTeam}
-            onClick={() => go("team")}
-          />
-
-          <SectionLabel>Discover</SectionLabel>
-          <NavItem
-            label="Viral"
-            active={page === "viral"}
-            icon={IconViral}
-            onClick={() => go("viral")}
-          />
-          <NavItem
-            label="API Keys"
-            active={page === "api-keys"}
-            icon={IconViral}
-            onClick={() => go("api-keys")}
+            <SectionLabel>Manage</SectionLabel>
+            <NavItem
+              label="Requests"
+              active={page === "requests"}
+              icon={IconRequests}
+              onClick={() => go("requests")}
+            />
+            <NavItem
+              label="Responses"
+              active={page === "responses"}
+              icon={IconChat}
+              onClick={() => go("responses")}
+            />
+            <NavItem
+              label="Upload"
+              active={page === "upload"}
+              icon={IconUpload}
+              onClick={() => go("upload")}
+            />
+          </NavGroup>
+          <NavGroup
+            label="Paid"
+            open={paidOpen}
+            onToggle={() => setPaidOpen((v) => !v)}
           />
         </div>
 
-        <div className="shrink-0 space-y-1 border-t border-[var(--border)] px-2 py-2">
-          <NavItem
-            label="Settings"
-            active={page === "settings"}
-            icon={IconAccounts}
-            onClick={() => go("settings")}
-          />
-          <NavItem
-            label="Support"
-            active={page === "support"}
-            icon={IconChat}
-            onClick={() => go("support")}
-          />
+        <div className="shrink-0 border-t border-[var(--border)] px-2 py-2">
           <p className="px-2.5 py-1 text-[11px] text-[var(--muted-soft)]">
             {accountCount === 0
               ? "No accounts tracked yet"
@@ -718,16 +696,21 @@ export function ViewTrackerView({
         </div>
       </aside>
 
-      <div className="min-w-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-6 md:pb-6">
+      <div
+        className={
+          page === "accounts" || page === "videos" || page === "upload"
+            ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+            : "min-w-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-6 md:pb-6"
+        }
+      >
         {page === "overview" ? <OverviewPage projectId={projectId} /> : null}
         {page === "creators" ? <CreatorsPage projectId={projectId} /> : null}
         {page === "accounts" ? <AccountsPage projectId={projectId} /> : null}
         {page === "videos" ? <VideosPage projectId={projectId} /> : null}
         {page === "viral" ? <ViralPage projectId={projectId} /> : null}
         {page === "requests" ? <RequestsPage projectId={projectId} /> : null}
-        {page === "responses" ? (
-          <ResponsesPage projectId={projectId} />
-        ) : null}
+        {page === "upload" ? <UploadPage projectId={projectId} /> : null}
+        {page === "responses" ? <ResponsesPage projectId={projectId} /> : null}
         {page === "team" ? (
           <SimplePage
             title="Team Members"

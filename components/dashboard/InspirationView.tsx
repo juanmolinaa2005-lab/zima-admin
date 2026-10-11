@@ -119,7 +119,7 @@ export function InspirationView({
       </div>
       <div>
         <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
-          Inspiration
+          Saved inspiration
         </h1>
         <p className="mt-1 text-[13px] text-[var(--muted)]">
           Save links to videos you found interesting.

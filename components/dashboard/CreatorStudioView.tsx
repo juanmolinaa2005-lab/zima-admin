@@ -409,7 +409,7 @@ export function CreatorStudioView({ projectId }: { projectId: string }) {
                     {f.steps.map((step, i) => (
                       <span key={step} className="flex items-center gap-1.5">
                         {i > 0 ? (
-                          <span className="h-px w-3 bg-[#c9c6ff]" />
+                          <span className="h-px w-3 bg-[var(--accent-border)]" />
                         ) : null}
                         <span className="h-2 w-2 rounded-full bg-[#8b85ff]" />
                       </span>

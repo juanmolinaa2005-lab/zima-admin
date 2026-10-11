@@ -58,12 +58,14 @@ const ITEMS = [
   {
     id: "api",
     name: "API",
+    description: "Claves de OpenAI, fal, Meta, YouTube y demás proveedores.",
     href: "api",
     Icon: ApiIcon,
   },
   {
     id: "password",
-    name: "Password",
+    name: "Contraseña",
+    description: "Cambia la contraseña de tu cuenta con un código por email.",
     href: "password",
     Icon: LockIcon,
   },
@@ -79,27 +81,34 @@ export function SettingsHome({
       projectId={projectId}
       projectName={projectName}
       userEmail={userEmail}
-      title="Settings"
-      subtitle="Ajustes del proyecto."
+      title="Ajustes"
+      subtitle="Configuración del proyecto y de tu cuenta."
       backHref={`/projects/${projectId}`}
       backLabel="← Proyecto"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {ITEMS.map(({ id, name, href, Icon }) => (
-          <Link
-            key={id}
-            href={`/projects/${projectId}/settings/${href}`}
-            className="ui-card flex flex-col items-center gap-3 p-5 text-center transition hover:bg-[var(--accent-soft)]"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
-              <Icon className="h-5 w-5" />
-            </span>
-            <span className="text-[14px] font-semibold tracking-tight">
-              {name}
-            </span>
-          </Link>
+      <ul className="ui-card divide-y divide-[var(--border)] overflow-hidden">
+        {ITEMS.map(({ id, name, description, href, Icon }) => (
+          <li key={id}>
+            <Link
+              href={`/projects/${projectId}/settings/${href}`}
+              className="group flex items-center gap-4 px-5 py-4 transition hover:bg-[var(--background)]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-semibold text-[var(--foreground)]">
+                  {name}
+                </span>
+                <span className="block text-[13px] text-[var(--muted)]">{description}</span>
+              </span>
+              <span className="text-[var(--muted-soft)] transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]">
+                →
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </SettingsShell>
   );
 }

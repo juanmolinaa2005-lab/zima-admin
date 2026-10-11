@@ -17,8 +17,6 @@ export type DiscoveredVideo = {
   postedAt: string | null;
 };
 
-const MAX = 80;
-
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -91,46 +89,128 @@ function jsonScripts(html: string): unknown[] {
   return out;
 }
 
-function add(
-  map: Map<string, DiscoveredVideo>,
-  item: DiscoveredVideo
+function add(map: Map<string, DiscoveredVideo>, item: DiscoveredVideo) {
+  if (!item.videoId) return;
+  const prev = map.get(item.videoId);
+  if (!prev) {
+    map.set(item.videoId, item);
+    return;
+  }
+  map.set(item.videoId, {
+    ...prev,
+    title: prev.title || item.title,
+    author: prev.author || item.author,
+    thumbnailUrl: prev.thumbnailUrl || item.thumbnailUrl,
+    views: prev.views || item.views,
+    likes: prev.likes || item.likes,
+    comments: prev.comments || item.comments,
+    shares: prev.shares || item.shares,
+    saves: prev.saves || item.saves,
+    durationSeconds: prev.durationSeconds ?? item.durationSeconds,
+    postedAt: prev.postedAt || item.postedAt,
+  });
+}
+
+function coverFrom(value: unknown): string | null {
+  if (typeof value === "string" && value.startsWith("http")) return value;
+  const rec = asRecord(value);
+  if (!rec) return null;
+  if (typeof rec.url === "string" && rec.url.startsWith("http")) return rec.url;
+  const list = rec.url_list ?? rec.urlList;
+  if (Array.isArray(list)) {
+    const first = list.find((item) => typeof item === "string" && item.startsWith("http"));
+    if (typeof first === "string") return first;
+  }
+  return null;
+}
+
+function tiktokItem(obj: Record<string, unknown>, username: string): DiscoveredVideo | null {
+  const id = String(obj.id || obj.aweme_id || obj.itemId || "");
+  if (!/^\d{15,25}$/.test(id)) return null;
+  const stats = asRecord(obj.stats);
+  const video = asRecord(obj.video);
+  const isPost =
+    typeof obj.desc === "string" ||
+    Boolean(video) ||
+    Boolean(stats && ("playCount" in stats || "play_count" in stats));
+  if (!isPost) return null;
+  const counts = stats || obj;
+  const duration = num(video?.duration || obj.duration);
+  const createTime = num(obj.createTime || obj.create_time);
+  return {
+    url: `https://www.tiktok.com/@${username}/video/${id}`,
+    videoId: id,
+    platform: "tiktok",
+    title: typeof obj.desc === "string" ? obj.desc : null,
+    author: `@${username}`,
+    thumbnailUrl:
+      coverFrom(obj.cover) ||
+      coverFrom(video?.cover) ||
+      coverFrom(video?.originCover) ||
+      coverFrom(video?.dynamicCover),
+    views: num(counts.playCount || counts.play_count),
+    likes: num(counts.diggCount || counts.digg_count),
+    comments: num(counts.commentCount || counts.comment_count),
+    shares: num(counts.shareCount || counts.share_count),
+    saves: num(counts.collectCount || counts.collect_count),
+    durationSeconds: duration > 0 ? Math.round(duration > 1000 ? duration / 1000 : duration) : null,
+    postedAt: createTime > 1_000_000_000 ? new Date(createTime * 1000).toISOString() : null,
+  };
+}
+
+async function tiktokRest(
+  secUid: string,
+  username: string,
+  map: Map<string, DiscoveredVideo>
 ) {
-  if (!item.videoId || map.has(item.videoId)) return;
-  if (map.size >= MAX) return;
-  map.set(item.videoId, item);
+  let cursor = "0";
+  const seen = new Set<string>();
+  while (!seen.has(cursor)) {
+    seen.add(cursor);
+    let data: Record<string, unknown> | null = null;
+    try {
+      const res = await fetch(
+        `https://www.tiktok.com/api/creator/item_list/?aid=1988&count=15&type=1&cursor=${encodeURIComponent(cursor)}&secUid=${encodeURIComponent(secUid)}`,
+        {
+          headers: {
+            Accept: "application/json",
+            Referer: `https://www.tiktok.com/@${username}`,
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          },
+          signal: AbortSignal.timeout(12_000),
+        }
+      );
+      if (!res.ok) break;
+      data = asRecord(await res.json());
+    } catch {
+      break;
+    }
+    if (!data) break;
+    const list = Array.isArray(data.itemList) ? data.itemList : [];
+    if (list.length === 0) break;
+    const before = map.size;
+    for (const raw of list) {
+      const obj = asRecord(raw);
+      if (!obj) continue;
+      const item = tiktokItem(obj, username);
+      if (item) add(map, item);
+    }
+    if (data.hasMorePrevious === false) break;
+    const last = asRecord(list.at(-1));
+    const createTime = num(last?.createTime || last?.create_time);
+    const next = createTime > 0 ? String(createTime * 1000) : "";
+    if (!next || next === cursor || map.size === before) break;
+    cursor = next;
+  }
 }
 
 function tiktokFromHtml(html: string, username: string) {
   const map = new Map<string, DiscoveredVideo>();
-  const author = `@${username}`;
   for (const block of jsonScripts(html)) {
     walk(block, (obj) => {
-      const id = String(obj.id || obj.aweme_id || obj.itemId || "");
-      if (!/^\d{15,25}$/.test(id)) return;
-      const stats = asRecord(obj.stats) || obj;
-      const video = asRecord(obj.video);
-      const cover =
-        (typeof obj.cover === "string" && obj.cover) ||
-        (typeof video?.cover === "string" && video.cover) ||
-        (typeof video?.originCover === "string" && video.originCover) ||
-        null;
-      const duration = num(video?.duration || obj.duration);
-      const createTime = num(obj.createTime || obj.create_time);
-      add(map, {
-        url: `https://www.tiktok.com/@${username}/video/${id}`,
-        videoId: id,
-        platform: "tiktok",
-        title: typeof obj.desc === "string" ? obj.desc : null,
-        author,
-        thumbnailUrl: cover && cover.startsWith("http") ? cover : null,
-        views: num(stats.playCount || stats.play_count),
-        likes: num(stats.diggCount || stats.digg_count),
-        comments: num(stats.commentCount || stats.comment_count),
-        shares: num(stats.shareCount || stats.share_count),
-        saves: num(stats.collectCount || stats.collect_count),
-        durationSeconds: duration > 0 ? Math.round(duration > 1000 ? duration / 1000 : duration) : null,
-        postedAt: createTime > 1_000_000_000 ? new Date(createTime * 1000).toISOString() : null,
-      });
+      const item = tiktokItem(obj, username);
+      if (item) add(map, item);
     });
   }
   for (const m of html.matchAll(/\/@([^/]+)\/video\/(\d{15,25})/g)) {
@@ -153,11 +233,10 @@ function tiktokFromHtml(html: string, username: string) {
   return [...map.values()];
 }
 
-function youtubeFromHtml(html: string, username: string | null) {
+function youtubeFromValue(value: unknown, username: string | null) {
   const map = new Map<string, DiscoveredVideo>();
   const author = username ? `@${username}` : null;
-  for (const block of jsonScripts(html)) {
-    walk(block, (obj) => {
+  walk(value, (obj) => {
       const id = String(obj.videoId || "");
       if (!/^[\w-]{11}$/.test(id)) return;
       const titleObj = asRecord(obj.title);
@@ -198,8 +277,16 @@ function youtubeFromHtml(html: string, username: string | null) {
         durationSeconds: null,
         postedAt: null,
       });
-    });
+  });
+  return [...map.values()];
+}
+
+function youtubeFromHtml(html: string, username: string | null) {
+  const map = new Map<string, DiscoveredVideo>();
+  for (const block of jsonScripts(html)) {
+    for (const item of youtubeFromValue(block, username)) add(map, item);
   }
+  const author = username ? `@${username}` : null;
   for (const m of html.matchAll(/"videoId":"([\w-]{11})"/g)) {
     add(map, {
       url: `https://www.youtube.com/watch?v=${m[1]}`,
@@ -218,6 +305,65 @@ function youtubeFromHtml(html: string, username: string | null) {
     });
   }
   return [...map.values()];
+}
+
+function continuationTokens(value: unknown) {
+  const tokens: string[] = [];
+  walk(value, (obj) => {
+    const cmd = asRecord(obj.continuationCommand);
+    if (typeof cmd?.token === "string" && cmd.token.length > 30) tokens.push(cmd.token);
+  });
+  return tokens;
+}
+
+async function youtubeBrowse(token: string) {
+  const res = await fetch("https://www.youtube.com/youtubei/v1/browse?prettyPrint=false", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    },
+    body: JSON.stringify({
+      context: {
+        client: {
+          clientName: "WEB",
+          clientVersion: "2.20250925.01.00",
+          hl: "en",
+          gl: "US",
+        },
+      },
+      continuation: token,
+    }),
+    signal: AbortSignal.timeout(12_000),
+  });
+  if (!res.ok) return null;
+  return asRecord(await res.json());
+}
+
+async function youtubeRest(
+  html: string,
+  username: string | null,
+  map: Map<string, DiscoveredVideo>
+) {
+  const seen = new Set<string>();
+  const fromHtml = jsonScripts(html).flatMap((block) => continuationTokens(block));
+  const fromText = [...html.matchAll(/"token":"(4qmF[^"]+)"/g)].map((match) => match[1]);
+  let token = fromHtml.at(-1) || fromText.at(-1) || null;
+  while (token && !seen.has(token)) {
+    seen.add(token);
+    let data: Record<string, unknown> | null = null;
+    try {
+      data = await youtubeBrowse(token);
+    } catch {
+      break;
+    }
+    if (!data) break;
+    const before = map.size;
+    for (const item of youtubeFromValue(data, username)) add(map, item);
+    token = continuationTokens(data).find((next) => !seen.has(next)) ?? null;
+    if (map.size === before) break;
+  }
 }
 
 async function youtubeFromRss(channelId: string, username: string | null) {
@@ -343,9 +489,27 @@ export async function discoverAccountVideos(opts: {
         /* rss optional */
       }
     }
+    try {
+      await youtubeRest(profileHtml + videosHtml, username, map);
+    } catch {
+      /* first page still stands */
+    }
   } else if (platform === "tiktok" && username) {
-    const html = await fetchHtml(`https://www.tiktok.com/@${username}`);
+    const html = await fetchHtml(`https://www.tiktok.com/@${username}`, 2_500_000);
     for (const item of tiktokFromHtml(html, username)) add(map, item);
+    const secUid = html.match(/"secUid":"([^"]+)"/)?.[1];
+    if (secUid) {
+      try {
+        await tiktokRest(secUid, username, map);
+      } catch {
+        /* first page still stands */
+      }
+    }
+    const safeUser = username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const profileId = html.match(
+      new RegExp(`"id":"(\\d{15,25})"\\s*,\\s*"shortId":"[^"]*"\\s*,\\s*"uniqueId":"${safeUser}"`)
+    )?.[1];
+    if (profileId) map.delete(profileId);
   } else if (platform === "instagram" && username) {
     const html =
       (await fetchHtml(`https://www.instagram.com/${username}/reels/`)) ||
@@ -361,5 +525,5 @@ export async function discoverAccountVideos(opts: {
     for (const item of instagramFromHtml(html, username)) add(map, item);
   }
 
-  return [...map.values()].slice(0, MAX);
+  return [...map.values()];
 }

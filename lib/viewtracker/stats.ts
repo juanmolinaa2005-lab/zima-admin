@@ -23,7 +23,7 @@ export type PublicAccountStats = {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-export async function fetchHtml(url: string) {
+export async function fetchHtml(url: string, maxBytes = 700_000) {
   const res = await fetch(url, {
     headers: {
       Accept: "text/html,application/xhtml+xml",
@@ -31,11 +31,11 @@ export async function fetchHtml(url: string) {
       "User-Agent": UA,
     },
     redirect: "follow",
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(12_000),
   });
   if (!res.ok) return "";
   const buf = await res.arrayBuffer();
-  const slice = buf.byteLength > 700_000 ? buf.slice(0, 700_000) : buf;
+  const slice = buf.byteLength > maxBytes ? buf.slice(0, maxBytes) : buf;
   return new TextDecoder("utf-8", { fatal: false }).decode(slice);
 }
 
@@ -103,6 +103,28 @@ function numKey(html: string, keys: string[]) {
     }
   }
   return null;
+}
+
+function profileImageUrl(html: string): string | null {
+  const keys = [
+    "avatarLarger",
+    "avatarMedium",
+    "avatarThumb",
+    "profile_pic_url_hd",
+    "profile_pic_url",
+  ];
+  for (const key of keys) {
+    const m = html.match(new RegExp(`"${key}"\\s*:\\s*"([^"]{20,4000})"`));
+    if (!m?.[1]) continue;
+    let url = m[1];
+    try {
+      url = JSON.parse(`"${url}"`) as string;
+    } catch {
+      url = url.replace(/\\u002F/gi, "/").replace(/\\u0026/gi, "&").replace(/\\\//g, "/");
+    }
+    if (url.startsWith("http")) return url;
+  }
+  return meta(html, "og:image") || meta(html, "twitter:image");
 }
 
 function strKey(html: string, keys: string[]) {
@@ -215,7 +237,7 @@ export async function fetchPublicAccountStats(
   platform: string | null
 ): Promise<PublicAccountStats> {
   try {
-    const html = await fetchHtml(url);
+    const html = await fetchHtml(url, 1_500_000);
     if (!html) return { displayName: null, followers: null, thumbnailUrl: null };
     const displayName =
       strKey(html, ["nickname", "full_name", "name"]) ||
@@ -224,7 +246,7 @@ export async function fetchPublicAccountStats(
       platform === "tiktok"
         ? numKey(html, ["followerCount", "follower_count"])
         : numKey(html, ["followerCount", "edge_followed_by", "subscriberCount"]);
-    const thumbnailUrl = meta(html, "og:image");
+    const thumbnailUrl = profileImageUrl(html);
     return { displayName, followers, thumbnailUrl };
   } catch {
     return { displayName: null, followers: null, thumbnailUrl: null };

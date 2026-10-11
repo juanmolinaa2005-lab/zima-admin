@@ -158,7 +158,20 @@ export async function POST(request: Request, { params }: Params) {
     }
     const version = (current.version || 0) + 1;
     const publishedAt = new Date().toISOString();
-    const history = [{ version, publishedAt }, ...current.history].slice(0, 12);
+    const history = [
+      { version, publishedAt, profile: draft.profile, docs: draft.docs, extras: draft.extras },
+      ...current.history.map((item) =>
+        item.snapshot
+          ? {
+              version: item.version,
+              publishedAt: item.publishedAt,
+              profile: item.snapshot.profile,
+              docs: item.snapshot.docs,
+              extras: item.snapshot.extras,
+            }
+          : { version: item.version, publishedAt: item.publishedAt }
+      ),
+    ].slice(0, 12);
     const { error } = await gate.supabase.from("project_app_legal").upsert(
       {
         project_id: projectId,
