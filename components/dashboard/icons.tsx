@@ -633,3 +633,26 @@ export function PageIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function PublishIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 15.5V4.5m0 0L7.75 8.75M12 4.5l4.25 4.25" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4.5 14.5v3.25A1.75 1.75 0 0 0 6.25 19.5h11.5a1.75 1.75 0 0 0 1.75-1.75V14.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IdeasIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9.25 17.25h5.5M10 20.25h4M12 3.75a5.75 5.75 0 0 0-3.4 10.38c.5.37.9.94.9 1.57v.55h5v-.55c0-.63.4-1.2.9-1.57A5.75 5.75 0 0 0 12 3.75Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

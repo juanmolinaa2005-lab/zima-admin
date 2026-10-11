@@ -100,14 +100,13 @@ export async function PATCH(request: Request, { params }: Params) {
   if (body.profile) {
     const input = body.profile;
     const goal = Number(input.goal_mrr);
-    const row = {
-      project_id: projectId,
-      product_type: input.product_type && PRODUCT_TYPES.has(input.product_type) ? input.product_type : null,
-      launch_date: dateOrNull(input.launch_date),
-      goal_mrr: input.goal_mrr != null && Number.isFinite(goal) && goal >= 0 ? goal : null,
-      pitch: textOrNull(input.pitch, 280),
-      updated_at: new Date().toISOString(),
-    };
+    const row: Record<string, unknown> = { project_id: projectId, updated_at: new Date().toISOString() };
+    if ("product_type" in input) {
+      row.product_type = input.product_type && PRODUCT_TYPES.has(input.product_type) ? input.product_type : null;
+    }
+    if ("launch_date" in input) row.launch_date = dateOrNull(input.launch_date);
+    if ("goal_mrr" in input) row.goal_mrr = input.goal_mrr != null && Number.isFinite(goal) && goal >= 0 ? goal : null;
+    if ("pitch" in input) row.pitch = textOrNull(input.pitch, 280);
     const { error } = await db.from("launch_profiles").upsert(row, { onConflict: "project_id" });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (row.launch_date) {

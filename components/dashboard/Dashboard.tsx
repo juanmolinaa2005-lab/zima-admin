@@ -6,14 +6,16 @@ import type { Project } from "@/lib/types";
 import type { EstudioSectionId } from "@/lib/creator/estudio-v1";
 import { ViewTrackerView } from "./ViewTrackerView";
 import { MarketView } from "./MarketView";
-import { LaunchView, type OpenTarget } from "./LaunchView";
-import { EmailsView } from "./EmailsView";
+import { TodayView } from "./TodayView";
+import { CreatorsView } from "./CreatorsView";
+import { UploadPage } from "./viewtracker/UploadPage";
 import { PageView } from "./PageView";
 import { CreatorEstudioV1View } from "./CreatorEstudioV1View";
 import { LaAppHome, appSectionFrom, type AppSection } from "./estudio/LaAppHome";
 import { GalleryView } from "./GalleryView";
 import { Sidebar } from "./Sidebar";
-import { VIEW_META, viewFrom, type ViewId } from "./nav";
+import { viewFrom, type ViewId } from "./nav";
+import type { TaskLink } from "@/lib/launch/playbook";
 
 type DashboardProps = {
   project: Project;
@@ -26,7 +28,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const searchParams = useSearchParams();
 
   const rawView = searchParams.get("view");
-  const view = viewFrom(rawView);
+  const view = rawView === "viewtracker" && searchParams.get("vt") === "upload" ? "publish" : viewFrom(rawView);
   const appSection = appSectionFrom(searchParams.get("app"));
 
   const [studioSection, setStudioSection] = useState<EstudioSectionId | undefined>(
@@ -44,29 +46,20 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
 
   function select(next: ViewId, extra?: Record<string, string>) {
     const params = new URLSearchParams();
-    if (next !== "launch") params.set("view", next);
+    if (next !== "today") params.set("view", next);
     for (const [key, value] of Object.entries(extra ?? {})) params.set(key, value);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
-  function openTarget({ kind, section }: OpenTarget) {
-    if (kind === "miapp") {
-      select("miapp", section ? { app: section } : undefined);
-      return;
-    }
-    if (kind === "redes" || kind === "estudio") {
-      if (kind === "redes") setStudioSection("redes");
-      select("marketing");
-      return;
-    }
-    if (kind in VIEW_META) select(kind as ViewId);
+  function openLink({ view: next, params }: Pick<TaskLink, "view" | "params">) {
+    select(next, params);
   }
 
   function renderView(id: ViewId): ReactNode {
     switch (id) {
-      case "launch":
-        return <LaunchView projectId={project.id} onOpen={openTarget} />;
+      case "today":
+        return <TodayView projectId={project.id} projectName={project.name} onOpen={openLink} />;
       case "page":
         return <PageView projectId={project.id} />;
       case "miapp":
@@ -77,9 +70,9 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
             onSection={(section: AppSection) => select("miapp", { app: section })}
           />
         );
-      case "market":
+      case "ideas":
         return <MarketView projectId={project.id} projectName={project.name} />;
-      case "marketing":
+      case "create":
         return (
           <CreatorEstudioV1View
             projectId={project.id}
@@ -88,10 +81,16 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
             onOpenGallery={() => select("gallery")}
           />
         );
-      case "viewtracker":
-        return <ViewTrackerView projectId={project.id} projectName={project.name} />;
-      case "emails":
-        return <EmailsView projectId={project.id} />;
+      case "publish":
+        return (
+          <div className="flex h-full min-h-0 flex-col overflow-hidden">
+            <UploadPage projectId={project.id} />
+          </div>
+        );
+      case "creators":
+        return <CreatorsView projectId={project.id} />;
+      case "results":
+        return <ViewTrackerView projectId={project.id} />;
       case "gallery":
         return <GalleryView projectId={project.id} />;
     }
@@ -100,7 +99,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <Sidebar
-        active={view === "gallery" ? "marketing" : view}
+        active={view === "gallery" ? "create" : view}
         userEmail={userEmail}
         projectName={project.name}
         projectId={project.id}

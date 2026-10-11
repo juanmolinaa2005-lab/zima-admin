@@ -1,18 +1,19 @@
 import type { ComponentType, SVGProps } from "react";
 import {
+  AnalyticsIcon,
+  EstudioIcon,
   GalleryIcon,
-  LaunchIcon,
-  MailIcon,
-  MarketIcon,
-  MarketingIcon,
+  HomeIcon,
+  IdeasIcon,
   MiAppIcon,
   PageIcon,
-  ViewTrackerIcon,
+  PublishIcon,
+  UsersIcon,
 } from "./icons";
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type ViewId = "launch" | "page" | "miapp" | "market" | "marketing" | "viewtracker" | "emails" | "gallery";
+export type ViewId = "today" | "create" | "publish" | "creators" | "results" | "ideas" | "miapp" | "page" | "gallery";
 
 export type ViewMeta = {
   label: string;
@@ -20,26 +21,32 @@ export type ViewMeta = {
 };
 
 export const VIEW_META: Record<ViewId, ViewMeta> = {
-  launch: { label: "Lanzamiento", icon: LaunchIcon },
+  today: { label: "Hoy", icon: HomeIcon },
+  create: { label: "Crear", icon: EstudioIcon },
+  publish: { label: "Publicar", icon: PublishIcon },
+  creators: { label: "Creadores", icon: UsersIcon },
+  results: { label: "Resultados", icon: AnalyticsIcon },
+  ideas: { label: "Ideas", icon: IdeasIcon },
+  miapp: { label: "App", icon: MiAppIcon },
   page: { label: "Página", icon: PageIcon },
-  miapp: { label: "Mi app", icon: MiAppIcon },
-  market: { label: "Market", icon: MarketIcon },
-  marketing: { label: "Studio", icon: MarketingIcon },
-  viewtracker: { label: "Marketing", icon: ViewTrackerIcon },
-  emails: { label: "Emails", icon: MailIcon },
   gallery: { label: "Galería", icon: GalleryIcon },
 };
 
-/** Sidebar order. Gallery opens from inside Studio. */
-export const NAV: ViewId[] = ["launch", "page", "miapp", "market", "marketing", "viewtracker", "emails"];
+/** Sidebar order follows the growth loop. Gallery opens from inside Crear. */
+export const NAV: ViewId[] = ["today", "create", "publish", "creators", "results", "ideas", "miapp", "page"];
 
 const LEGACY_VIEWS: Record<string, ViewId> = {
-  estudio: "marketing",
-  redes: "marketing",
+  launch: "today",
+  estudio: "create",
+  redes: "create",
+  marketing: "create",
+  viewtracker: "results",
+  market: "ideas",
+  emails: "creators",
 };
 
 export function viewFrom(raw: string | null): ViewId {
-  if (!raw) return "launch";
+  if (!raw) return "today";
   if (raw in VIEW_META) return raw as ViewId;
-  return LEGACY_VIEWS[raw] ?? "launch";
+  return LEGACY_VIEWS[raw] ?? "today";
 }

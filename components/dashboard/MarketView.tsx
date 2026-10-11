@@ -33,14 +33,14 @@ import {
   type IconComp,
   type PageProps,
 } from "./market/shared";
-import { AdsPage, IconAds } from "./market/LibraryPages";
+import { AdsPage, IconAds, IconOnboarding, IconOrganic, OnboardingsPage, OrganicPage } from "./market/LibraryPages";
 import { IconKey, IconPhone, KeywordsPage, MyAppsPage } from "./market/AsoPages";
 
-type PageId = "explore" | "ads" | "rankings" | "keywords" | "myapps" | "reviews";
-const PAGES = new Set<PageId>(["explore", "ads", "rankings", "keywords", "myapps", "reviews"]);
+type PageId = "organic" | "onboardings" | "explore" | "ads" | "rankings" | "keywords" | "myapps" | "reviews";
+const PAGES = new Set<PageId>(["organic", "onboardings", "explore", "ads", "rankings", "keywords", "myapps", "reviews"]);
 
 function pageFrom(raw: string | null): PageId {
-  return raw && PAGES.has(raw as PageId) ? (raw as PageId) : "explore";
+  return raw && PAGES.has(raw as PageId) ? (raw as PageId) : "organic";
 }
 /* ---------------- pages ---------------- */
 
@@ -716,9 +716,9 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
 
   function update(next: { page?: PageId; app?: string | null; country?: string }) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("view", "market");
+    params.set("view", "ideas");
     if (next.page) {
-      if (next.page === "explore") params.delete("mk");
+      if (next.page === "organic") params.delete("mk");
       else params.set("mk", next.page);
     }
     if (next.app !== undefined) {
@@ -751,6 +751,8 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
   };
 
   const nav: { id: PageId; label: string; icon: IconComp }[] = [
+    { id: "organic", label: "Videos virales", icon: IconOrganic },
+    { id: "onboardings", label: "Onboardings", icon: IconOnboarding },
     { id: "explore", label: "Apps", icon: IconApps },
     { id: "ads", label: "Anuncios", icon: IconAds },
     { id: "rankings", label: "Tendencias", icon: IconTrend },
@@ -800,6 +802,10 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
               onBack={() => update({ app: null })}
               onOpen={pageProps.onOpen}
             />
+          ) : page === "organic" ? (
+            <OrganicPage {...pageProps} />
+          ) : page === "onboardings" ? (
+            <OnboardingsPage {...pageProps} />
           ) : page === "rankings" ? (
             <RankingsPage {...pageProps} />
           ) : page === "reviews" ? (
@@ -819,9 +825,9 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
       <MobileFabMenu
         open={mobileOpen}
         onOpenChange={setMobileOpen}
-        title="Market"
+        title="Ideas"
         subtitle={projectName || "Workspace"}
-        fabLabel="Menú de Market"
+        fabLabel="Menú de Ideas"
         fabClassName="bottom-[5.25rem] right-4"
         accent="dark"
         fabIcon={<MarketIcon className="h-5 w-5" />}

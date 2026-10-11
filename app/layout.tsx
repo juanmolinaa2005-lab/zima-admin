@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vantko · Ya creaste tu producto. ¿Qué sigue?",
+  title: "Vantko · Ya creaste tu producto. Ahora haz que lo vean.",
   description:
-    "Vantko guía a solo founders y equipos pequeños para lanzar su app o producto web, conseguir usuarios y empezar a cobrar.",
+    "Vantko crea videos con IA cada día, los publica solos en todas tus cuentas y mide qué videos traen dinero. El sistema de crecimiento para founders.",
 };
 
 export const viewport: Viewport = {

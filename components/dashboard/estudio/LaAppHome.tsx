@@ -2,6 +2,7 @@
 
 import { AppLegalCenter } from "./AppLegalCenter";
 import { ProductHome } from "./ProductHome";
+import { TopTabs } from "../TopTabs";
 
 export type AppSection = "product" | "screenshots" | "legal";
 
@@ -26,24 +27,7 @@ export function LaAppHome({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[var(--background)]">
-      <nav className="flex shrink-0 gap-5 border-b border-[var(--border)] px-5 pt-5 sm:px-8" aria-label="Mi app">
-        {SECTIONS.map((item) => {
-          const active = section === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSection(item.id)}
-              aria-current={active ? "page" : undefined}
-              className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium transition ${
-                active ? "border-[var(--foreground)] text-[var(--foreground)]" : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
+      <TopTabs label="App" items={SECTIONS} active={section} onSelect={onSection} />
       {section === "product" ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <ProductHome projectId={projectId} />

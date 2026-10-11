@@ -26,13 +26,18 @@ function Logo({ light = false }: { light?: boolean }) {
   );
 }
 
-const TOOLS = [
-  { name: "Legal", hint: "Privacidad y términos publicados" },
-  { name: "Screenshots", hint: "Ficha de App Store y Play" },
-  { name: "Market", hint: "Competencia, keywords, anuncios" },
-  { name: "Studio", hint: "Demos e influencers para redes" },
-  { name: "Redes", hint: "Cuentas y publicación" },
-  { name: "Emails", hint: "Soporte desde tu dominio" },
+const STATS = [
+  { label: "Vistas · 7 días", value: "1,2 M" },
+  { label: "Videos", value: "63" },
+  { label: "Hits", value: "4" },
+  { label: "Ingresos", value: "$3.410" },
+];
+
+const LOOP = [
+  { name: "Crear", hint: "12 videos con IA listos para revisar" },
+  { name: "Publicar", hint: "9 cuentas · próximo en 14 min" },
+  { name: "Creadores", hint: "6 creadores pagados por vista" },
+  { name: "Medir", hint: "Un video a 840 K vistas · 12× tu mediana" },
 ];
 
 function HeroMock() {
@@ -40,10 +45,18 @@ function HeroMock() {
     <div className="overflow-hidden rounded-t-2xl border border-b-0 border-[#e3e8ee] bg-white shadow-[0_-8px_50px_-18px_rgba(26,40,80,0.22)]">
       <div className="flex items-center gap-3 border-b border-[#e3e8ee] px-5 py-3">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#111114] text-[10px] font-bold text-white">V</span>
-        <p className="text-[13px] font-medium text-[#1a1f36]">tuapp.com</p>
+        <p className="text-[13px] font-medium text-[#1a1f36]">Hoy</p>
+      </div>
+      <div className="grid grid-cols-2 border-b border-[#eef1f5] sm:grid-cols-4">
+        {STATS.map((s) => (
+          <div key={s.label} className="px-5 py-3.5">
+            <p className="text-[11px] text-[#8792a2]">{s.label}</p>
+            <p className="mt-0.5 text-[20px] font-semibold tabular-nums tracking-tight text-[#1a1f36]">{s.value}</p>
+          </div>
+        ))}
       </div>
       <ul>
-        {TOOLS.map((t) => (
+        {LOOP.map((t) => (
           <li key={t.name} className="flex items-baseline justify-between gap-6 border-b border-[#eef1f5] px-5 py-3.5 last:border-b-0">
             <span className="text-[14px] font-medium text-[#1a1f36]">{t.name}</span>
             <span className="truncate text-[13px] text-[#8792a2]">{t.hint}</span>
@@ -89,10 +102,10 @@ export function LandingPage() {
               <h1 className={`${serif.className} text-[48px] leading-[1.05] tracking-[-0.03em] text-white sm:text-[72px]`}>
                 Ya creaste tu producto.
                 <br />
-                ¿Qué sigue?
+                Ahora haz que lo vean.
               </h1>
-              <p className="mx-auto mt-5 max-w-[400px] text-[16px] leading-relaxed text-white/80 sm:text-[18px]">
-                Lo que necesitas después de terminar tu app.
+              <p className="mx-auto mt-5 max-w-[480px] text-[16px] leading-relaxed text-white/80 sm:text-[18px]">
+                Videos con IA cada día, publicados solos en todas tus cuentas y medidos hasta el dinero que traen.
               </p>
               <div className="mt-8">
                 <LandingHeroForm />

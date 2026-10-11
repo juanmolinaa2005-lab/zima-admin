@@ -23,9 +23,9 @@ export default function LoginPage() {
           <h1 className="text-[42px] font-semibold leading-[1.05] tracking-[-0.04em]">
             Ya creaste tu producto.
             <br />
-            ¿Qué sigue?
+            Ahora haz que lo vean.
           </h1>
-          <p className="mt-4 text-[16px] text-white/75">Lo que necesitas después de terminar tu app.</p>
+          <p className="mt-4 text-[16px] text-white/75">Videos con IA, publicados solos y medidos hasta el dinero.</p>
         </div>
       </section>
 
