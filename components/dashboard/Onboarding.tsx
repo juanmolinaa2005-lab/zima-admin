@@ -44,7 +44,7 @@ function Option({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
+      className={`ui-press flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors duration-200 ${
         selected ? "border-[var(--foreground)] bg-[var(--foreground)] text-white" : "border-[var(--border)] bg-white hover:border-[var(--foreground)]"
       }`}
     >
@@ -54,7 +54,7 @@ function Option({
           selected ? "border-white bg-white" : "border-[var(--muted-soft)]"
         }`}
       >
-        {selected ? <span className={`h-2 w-2 bg-[var(--foreground)] ${multi ? "rounded-sm" : "rounded-full"}`} /> : null}
+        {selected ? <span className={`ui-pop h-2 w-2 bg-[var(--foreground)] ${multi ? "rounded-sm" : "rounded-full"}`} /> : null}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] font-medium">{label}</span>
@@ -152,15 +152,25 @@ export function Onboarding({
   if (finished && type) {
     return (
       <div className="flex min-h-full items-center justify-center px-5 py-16">
-        <div className="w-full max-w-[520px]">
+        <div className="ui-stagger-slow w-full max-w-[520px]">
           <p className="text-[13px] font-medium text-[var(--muted)]">Todo listo</p>
           <h1 className="mt-2 text-[30px] font-semibold leading-tight tracking-tight text-[var(--foreground)]">
             Vantko está preparado para {type === "app" ? "tu app" : "tu producto web"}.
           </h1>
           <ul className="mt-6 space-y-2.5">
-            {preparedFor(type, answers).map((line) => (
-              <li key={line} className="flex items-start gap-3 text-[15px] text-[var(--foreground)]">
-                <svg viewBox="0 0 16 16" className="mt-1 h-3.5 w-3.5 shrink-0" fill="none" aria-hidden>
+            {preparedFor(type, answers).map((line, i) => (
+              <li
+                key={line}
+                className="ui-blur-rise flex items-start gap-3 text-[15px] text-[var(--foreground)]"
+                style={{ animationDelay: `${450 + i * 140}ms` }}
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  className="ui-pop mt-1 h-3.5 w-3.5 shrink-0"
+                  style={{ animationDelay: `${600 + i * 140}ms` }}
+                  fill="none"
+                  aria-hidden
+                >
                   <path d="m3.5 8.5 3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 {line}
@@ -170,7 +180,7 @@ export function Onboarding({
           <button
             type="button"
             onClick={onDone}
-            className="mt-8 rounded-xl bg-[var(--foreground)] px-5 py-3 text-[15px] font-medium text-white transition hover:opacity-85"
+            className="ui-press ui-shine mt-8 rounded-xl bg-[var(--foreground)] px-5 py-3 text-[15px] font-medium text-white transition hover:opacity-85"
           >
             Ir a Hoy
           </button>
@@ -182,7 +192,7 @@ export function Onboarding({
   if (step < 0 || !question) {
     return (
       <div className="flex min-h-full items-center justify-center px-5 py-16">
-        <div className="w-full max-w-[520px]">
+        <div className="ui-stagger-slow w-full max-w-[520px]">
           <p className="text-[13px] font-medium text-[var(--muted)]">{projectName}</p>
           <h1 className="mt-2 text-[34px] font-semibold leading-[1.1] tracking-tight text-[var(--foreground)]">
             Es hora de preparar Vantko para ti.
@@ -193,7 +203,7 @@ export function Onboarding({
           <button
             type="button"
             onClick={() => setStep(0)}
-            className="mt-8 rounded-xl bg-[var(--foreground)] px-5 py-3 text-[15px] font-medium text-white transition hover:opacity-85"
+            className="ui-press ui-shine mt-8 rounded-xl bg-[var(--foreground)] px-5 py-3 text-[15px] font-medium text-white transition hover:opacity-85"
           >
             Empezar
           </button>
@@ -217,10 +227,11 @@ export function Onboarding({
           </span>
         </div>
 
+        <div key={`${type}-${step}`} className="ui-step-in">
         <h1 className="mt-8 text-[26px] font-semibold leading-tight tracking-tight text-[var(--foreground)]">{question.title}</h1>
         {question.hint ? <p className="mt-2 text-[15px] text-[var(--muted)]">{question.hint}</p> : null}
 
-        <div className="mt-6 space-y-2">
+        <div className="ui-stagger mt-6 space-y-2">
           {question.kind === "text" ? (
             <input
               autoFocus
@@ -250,6 +261,8 @@ export function Onboarding({
           )}
         </div>
 
+        </div>
+
         {error ? <p className="mt-4 text-[14px] text-red-600">{error}</p> : null}
 
         <div className="mt-8 flex items-center justify-between">
@@ -265,7 +278,7 @@ export function Onboarding({
               type="button"
               onClick={next}
               disabled={!canContinue(question) || saving}
-              className="rounded-xl bg-[var(--foreground)] px-5 py-2.5 text-[14px] font-medium text-white transition hover:opacity-85 disabled:opacity-30"
+              className="ui-press rounded-xl bg-[var(--foreground)] px-5 py-2.5 text-[14px] font-medium text-white transition hover:opacity-85 disabled:opacity-30"
             >
               {saving ? "Guardando…" : isLast ? "Terminar" : question.optional && !canContinueFilled(value) ? "Saltar" : "Continuar"}
             </button>

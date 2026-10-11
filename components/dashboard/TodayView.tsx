@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { CountUp, formatCount } from "@/components/motion/CountUp";
 import { STAGES, planFor, type LaunchTask, type TaskLink } from "@/lib/launch/playbook";
 import type { BuildType } from "@/lib/onboarding/questions";
 import { Onboarding } from "./Onboarding";
@@ -9,7 +10,6 @@ import type { TodayData } from "@/lib/today/types";
 type OpenFn = (link: Pick<TaskLink, "view" | "params">) => void;
 
 const nf = new Intl.NumberFormat("es", { notation: "compact", maximumFractionDigits: 1 });
-const money = new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 function compact(n: number) {
   return nf.format(n);
@@ -24,16 +24,16 @@ function timeLabel(iso: string) {
   return d.toLocaleString("es", { weekday: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-function Stat({ label, value, hint, onClick }: { label: string; value: string; hint: string; onClick?: () => void }) {
+function Stat({ label, value, hint, onClick }: { label: string; value: ReactNode; hint: string; onClick?: () => void }) {
   const body = (
     <>
       <span className="block text-[12px] font-medium text-[var(--muted)]">{label}</span>
-      <span className="mt-1 block text-[30px] font-semibold tracking-tight tabular-nums text-[var(--foreground)]">{value}</span>
+      <span className="mt-1 block text-[30px] font-semibold tracking-tight text-[var(--foreground)]">{value}</span>
       <span className="mt-0.5 block text-[12px] text-[var(--muted-soft)]">{hint}</span>
     </>
   );
   return onClick ? (
-    <button type="button" onClick={onClick} className="rounded-xl border border-[var(--border)] bg-white p-4 text-left transition hover:border-[var(--foreground)]">
+    <button type="button" onClick={onClick} className="ui-lift ui-press rounded-xl border border-[var(--border)] bg-white p-4 text-left hover:border-[var(--foreground)]">
       {body}
     </button>
   ) : (
@@ -46,12 +46,12 @@ function Spark({ series }: { series: { day: string; views: number }[] }) {
   const max = Math.max(1, ...series.map((s) => s.views));
   return (
     <div className="flex h-10 items-end gap-[3px]" aria-hidden>
-      {series.map((s) => (
+      {series.map((s, i) => (
         <span
           key={s.day}
           title={`${s.day}: ${compact(s.views)}`}
-          className="w-2 rounded-sm bg-[var(--foreground)] opacity-80"
-          style={{ height: `${Math.max(6, (s.views / max) * 100)}%` }}
+          className="ui-grow-y w-2 rounded-sm bg-[var(--foreground)] opacity-80"
+          style={{ height: `${Math.max(6, (s.views / max) * 100)}%`, animationDelay: `${200 + i * 45}ms` }}
         />
       ))}
     </div>
@@ -73,19 +73,18 @@ function LoopStep({
   cta: string;
   onClick: () => void;
 }) {
-  const dot = tone === "ok" ? "bg-emerald-500" : tone === "error" ? "bg-red-500" : "bg-amber-400";
   return (
-    <div className="flex flex-col rounded-xl border border-[var(--border)] bg-white p-4">
+    <div className="ui-lift flex flex-col rounded-xl border border-[var(--border)] bg-white p-4">
       <div className="flex items-center gap-2 text-[12px] font-medium text-[var(--muted)]">
         <span className="tabular-nums">{n}</span>
-        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        {tone === "ok" ? <span className="ui-live-dot" /> : <span className={`h-1.5 w-1.5 rounded-full ${tone === "error" ? "bg-red-500" : "bg-amber-400"}`} />}
       </div>
       <p className="mt-2 text-[16px] font-semibold text-[var(--foreground)]">{title}</p>
       <p className={`mt-1 flex-1 text-[13px] leading-snug ${tone === "error" ? "text-red-600" : "text-[var(--muted)]"}`}>{status}</p>
       <button
         type="button"
         onClick={onClick}
-        className="mt-4 self-start rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-[13px] font-medium text-white transition hover:opacity-85"
+        className="ui-press mt-4 self-start rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-[13px] font-medium text-white transition hover:opacity-85"
       >
         {cta}
       </button>
@@ -112,12 +111,12 @@ function PlanTask({
           type="button"
           onClick={onToggle}
           aria-label={done ? "Marcar como pendiente" : "Marcar como hecho"}
-          className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border transition ${
+          className={`ui-press flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border transition-colors duration-200 ${
             done ? "border-[var(--foreground)] bg-[var(--foreground)] text-white" : "border-[var(--border-strong,#d1d5db)] hover:border-[var(--foreground)]"
           }`}
         >
           {done ? (
-            <svg viewBox="0 0 16 16" className="h-2.5 w-2.5" fill="none" aria-hidden>
+            <svg viewBox="0 0 16 16" className="ui-pop h-2.5 w-2.5" fill="none" aria-hidden>
               <path d="m3.5 8.5 3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : null}
@@ -137,7 +136,7 @@ function PlanTask({
         ) : null}
       </div>
       {open ? (
-        <div className="pb-3 pl-[30px] text-[13px] leading-relaxed text-[var(--muted)]">
+        <div className="ui-enter pb-3 pl-[30px] text-[13px] leading-relaxed text-[var(--muted)]">
           <p>{task.why}</p>
           <ul className="mt-2 list-disc space-y-0.5 pl-4">
             {task.how.map((h) => (
@@ -208,15 +207,29 @@ export function TodayView({
   }
 
   if (!data) {
-    return (
-      <div className="flex h-full items-center justify-center text-[14px] text-[var(--muted)]">
-        {error ? (
+    if (error) {
+      return (
+        <div className="flex h-full items-center justify-center text-[14px] text-[var(--muted)]">
           <button type="button" onClick={() => void load()} className="underline">
             {error}. Reintentar
           </button>
-        ) : (
-          "Cargando…"
-        )}
+        </div>
+      );
+    }
+    return (
+      <div className="mx-auto max-w-[1040px] px-5 pt-8 sm:px-8" aria-busy="true" aria-label="Cargando">
+        <div className="ui-skeleton h-4 w-40 rounded" />
+        <div className="ui-skeleton mt-3 h-8 w-64 rounded-lg" />
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="ui-skeleton h-[104px] rounded-xl" />
+          ))}
+        </div>
+        <div className="mt-8 grid gap-3 md:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="ui-skeleton h-[150px] rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -271,7 +284,7 @@ export function TodayView({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-[1040px] px-5 pb-24 pt-8 sm:px-8">
+      <div className="ui-stagger-slow mx-auto max-w-[1040px] px-5 pb-24 pt-8 sm:px-8">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[13px] text-[var(--muted)]">
@@ -282,34 +295,34 @@ export function TodayView({
           <Spark series={views.series} />
         </header>
 
-        <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="ui-stagger mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat
             label="Vistas · 7 días"
-            value={compact(views.last7d ?? views.total)}
+            value={<CountUp value={views.last7d ?? views.total} format="compact" />}
             hint={views.last7d == null ? "Total acumulado. El histórico diario empieza hoy." : `${compact(views.total)} en total`}
             onClick={() => onOpen({ view: "results" })}
           />
           <Stat
             label="Videos · 7 días"
-            value={String(videos.posted7d)}
+            value={<CountUp value={videos.posted7d} />}
             hint={`${videos.tracked} medidos en total`}
             onClick={() => onOpen({ view: "results", params: { vt: "videos" } })}
           />
           <Stat
             label="Hits"
-            value={String(videos.hits)}
+            value={<CountUp value={videos.hits} />}
             hint={videos.median > 0 ? `Más de ${compact(videos.median * 10)} vistas (10× tu mediana)` : "Videos que superan 10× tu mediana"}
           />
           {revenue.connected ? (
             <Stat
               label={`Ingresos · ${revenue.days} días`}
-              value={revenue.net == null ? "—" : money.format(revenue.net)}
-              hint={`${revenue.newUsers ?? 0} usuarios nuevos${revenue.mrr ? ` · MRR ${money.format(revenue.mrr)}` : ""}`}
+              value={revenue.net == null ? "—" : <CountUp value={revenue.net} format="money" />}
+              hint={`${revenue.newUsers ?? 0} usuarios nuevos${revenue.mrr ? ` · MRR ${formatCount(revenue.mrr, "money")}` : ""}`}
             />
           ) : isWeb ? (
             <Stat
               label="Interesados"
-              value={compact(data.page.subscribers)}
+              value={<CountUp value={data.page.subscribers} format="compact" />}
               hint={data.page.published ? "Emails recogidos en tu página" : "Publica tu página para recoger emails"}
               onClick={() => onOpen({ view: "page" })}
             />
@@ -320,7 +333,7 @@ export function TodayView({
 
         <section className="mt-8">
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--muted)]">El ciclo</h2>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="ui-stagger mt-3 grid gap-3 md:grid-cols-3">
             <LoopStep
               n={1}
               title="Crear"
@@ -356,15 +369,15 @@ export function TodayView({
                 Todos →
               </button>
             </div>
-            <ul className="mt-3 divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-white">
+            <ul className="ui-stagger mt-3 divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-white">
               {videos.top.map((v) => {
                 const ratio = videos.median > 0 ? v.views / videos.median : 0;
                 return (
-                  <li key={v.id} className="flex items-center gap-3 p-3">
+                  <li key={v.id} className="group flex items-center gap-3 p-3 transition-colors hover:bg-[var(--surface-alt)]">
                     <a href={v.url} target="_blank" rel="noreferrer" className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md bg-[#111827]">
                       {v.thumbnailUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                        <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       ) : null}
                     </a>
                     <div className="min-w-0 flex-1">
@@ -377,7 +390,7 @@ export function TodayView({
                     <button
                       type="button"
                       onClick={() => onOpen({ view: "create" })}
-                      className="shrink-0 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+                      className="ui-press shrink-0 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] transition hover:border-[var(--foreground)]"
                     >
                       Hacer variantes
                     </button>
@@ -402,7 +415,11 @@ export function TodayView({
           </div>
 
           {next ? (
-            <div className="mt-3 rounded-xl bg-[var(--foreground)] p-5 text-white">
+            <div key={next.id} className="ui-blur-rise relative isolate mt-3 overflow-hidden rounded-xl bg-[var(--foreground)] p-5 text-white">
+              <div
+                aria-hidden
+                className="ui-glow pointer-events-none absolute -right-16 -top-20 -z-10 h-56 w-56 rounded-full bg-[radial-gradient(closest-side,rgba(167,139,250,0.45),transparent)]"
+              />
               <p className="text-[12px] font-medium uppercase tracking-wide text-white/60">Siguiente</p>
               <p className="mt-1 text-[18px] font-semibold">{next.title}</p>
               <p className="mt-1 max-w-[640px] text-[14px] leading-relaxed text-white/75">{next.why}</p>
@@ -411,7 +428,7 @@ export function TodayView({
                   <button
                     type="button"
                     onClick={() => onOpen(next.link!)}
-                    className="rounded-lg bg-white px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] hover:opacity-90"
+                    className="ui-press ui-shine rounded-lg bg-white px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] hover:opacity-90"
                   >
                     {next.link.label}
                   </button>

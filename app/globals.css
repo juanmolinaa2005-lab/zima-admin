@@ -270,7 +270,7 @@ h3 {
 }
 
 .ui-stagger > * {
-  animation: ui-rise 0.55s var(--ease) both;
+  animation: ui-rise 0.55s var(--ease) backwards;
 }
 .ui-stagger > *:nth-child(2) { animation-delay: 50ms; }
 .ui-stagger > *:nth-child(3) { animation-delay: 100ms; }
@@ -876,4 +876,183 @@ button.bg-\[var\(--accent\)\]:active:not(:disabled) {
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9),
     0 8px 18px rgba(17, 24, 39, 0.12);
+}
+
+/* Motion: landing, onboarding, Hoy */
+@keyframes ui-blur-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ui-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ui-kenburns {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes ui-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes ui-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ui-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ui-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ui-shine {
+  0%,
+  60% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+@keyframes ui-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.08);
+  }
+}
+
+.ui-blur-rise {
+  animation: ui-blur-rise 0.9s var(--ease) backwards;
+}
+
+.ui-step-in {
+  animation: ui-step-in 0.45s var(--ease) backwards;
+}
+
+.ui-kenburns {
+  animation: ui-kenburns 2.6s var(--ease) both;
+}
+
+.ui-drift {
+  animation: ui-drift 6s ease-in-out infinite;
+}
+
+.ui-grow-y {
+  transform-origin: bottom;
+  animation: ui-grow-y 0.7s var(--ease) both;
+}
+
+.ui-pop {
+  animation: ui-pop 0.45s var(--ease-spring) both;
+}
+
+.ui-word {
+  display: inline-block;
+  animation: ui-word-in 0.5s var(--ease) both;
+}
+
+.ui-glow {
+  animation: ui-glow 5s ease-in-out infinite;
+}
+
+.ui-lift {
+  transition: transform 260ms var(--ease), box-shadow 260ms var(--ease), border-color 260ms var(--ease);
+}
+.ui-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -14px rgba(17, 24, 39, 0.28);
+}
+
+.ui-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ui-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: ui-shine 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ui-stagger-slow > * {
+  animation: ui-blur-rise 0.8s var(--ease) backwards;
+}
+.ui-stagger-slow > *:nth-child(1) { animation-delay: 80ms; }
+.ui-stagger-slow > *:nth-child(2) { animation-delay: 160ms; }
+.ui-stagger-slow > *:nth-child(3) { animation-delay: 240ms; }
+.ui-stagger-slow > *:nth-child(4) { animation-delay: 320ms; }
+.ui-stagger-slow > *:nth-child(5) { animation-delay: 400ms; }
+.ui-stagger-slow > *:nth-child(n + 6) { animation-delay: 480ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shine::after,
+  .ui-drift,
+  .ui-glow {
+    animation: none !important;
+  }
 }
