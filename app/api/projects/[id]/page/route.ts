@@ -56,19 +56,21 @@ export async function GET(_request: Request, { params }: Params) {
   if (!current) {
     const [{ data: project }, { data: profile }, { data: legal }] = await Promise.all([
       db.from("projects").select("name, description").eq("id", projectId).maybeSingle(),
-      db.from("launch_profiles").select("pitch").eq("project_id", projectId).maybeSingle(),
+      db.from("launch_profiles").select("pitch, answers").eq("project_id", projectId).maybeSingle(),
       db.from("project_app_legal").select("slug").eq("project_id", projectId).maybeSingle(),
     ]);
     const name = (project?.name as string | undefined) ?? "Mi app";
     const legalSlug = legal?.slug as string | null | undefined;
+    const answers = (profile?.answers ?? {}) as Record<string, unknown>;
+    const fromAnswers = (key: string) => (typeof answers[key] === "string" && answers[key] !== "none" ? (answers[key] as string) : null);
     current = {
       slug: legalSlug && isValidSlug(legalSlug) ? legalSlug : await suggestSlug(name, projectId),
       published: false,
-      title: name.slice(0, 80),
+      title: (fromAnswers("appName") ?? name).slice(0, 80),
       tagline: (profile?.pitch as string | null | undefined)?.slice(0, 160) ?? null,
-      description: (project?.description as string | null | undefined)?.slice(0, 1000) ?? null,
-      website_url: null,
-      ios_url: null,
+      description: (fromAnswers("appDescription") ?? (project?.description as string | null | undefined))?.slice(0, 1000) ?? null,
+      website_url: cleanUrl(fromAnswers("url")),
+      ios_url: cleanUrl(fromAnswers("appUrl")),
       android_url: null,
       collect_emails: true,
       accent: "#111114",

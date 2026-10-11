@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { planFor } from "@/lib/launch/playbook";
-import { has, questionsFor, type Answers, type BuildType, type Question } from "@/lib/onboarding/questions";
+import { has, NO_APP, questionsFor, type Answers, type BuildType, type Question } from "@/lib/onboarding/questions";
 
 type Initial = { type: BuildType | null; pitch: string | null; answers: Answers };
 
@@ -10,7 +10,9 @@ function preparedFor(type: BuildType, answers: Answers): string[] {
   const platforms = Array.isArray(answers.platforms) ? answers.platforms.length : 0;
   const tasks = planFor(type, answers).length;
   if (type === "app") {
+    const appName = typeof answers.appName === "string" && answers.appId !== NO_APP ? answers.appName : null;
     return [
+      ...(appName ? [`Hemos leído la ficha de ${appName} en la App Store`] : []),
       has(answers, "face", "creators") ? "Creadores pagados por vista para tus videos" : "Videos con IA listos para publicar cada día",
       `Publicación automática en ${platforms > 1 ? `${platforms} plataformas` : "tus cuentas"}`,
       "Ideas de videos virales y onboardings de apps como la tuya",
@@ -24,6 +26,128 @@ function preparedFor(type: BuildType, answers: Answers): string[] {
     "Páginas de comparación para aparecer en Google y ChatGPT",
     `Un plan de ${tasks} pasos para tu producto web`,
   ];
+}
+
+type FoundApp = { id: string; name: string; seller: string; icon: string | null; genre: string; country: string; ratingCount: number };
+
+function AppStorePicker({
+  projectId,
+  answers,
+  onPick,
+  onClear,
+  onNone,
+}: {
+  projectId: string;
+  answers: Answers;
+  onPick: (app: FoundApp) => void;
+  onClear: () => void;
+  onNone: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<FoundApp[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    const id = window.setTimeout(async () => {
+      if (q.length < 2) {
+        setResults(null);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/projects/${projectId}/onboarding/app-search?q=${encodeURIComponent(q)}`);
+        const json = (await res.json()) as { apps?: FoundApp[] };
+        setResults(json.apps ?? []);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+    return () => window.clearTimeout(id);
+  }, [query, projectId]);
+
+  const selected = typeof answers.appId === "string" && answers.appId && answers.appId !== NO_APP;
+  if (selected) {
+    return (
+      <div className="ui-blur-rise flex items-center gap-4 rounded-xl border border-[var(--foreground)] bg-white p-4">
+        {typeof answers.appIcon === "string" && answers.appIcon ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={answers.appIcon} alt="" className="ui-pop h-14 w-14 rounded-[14px] border border-[var(--border)]" />
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[16px] font-semibold text-[var(--foreground)]">{answers.appName}</p>
+          <p className="truncate text-[13px] text-[var(--muted)]">
+            {answers.appSeller} · {answers.appGenre}
+          </p>
+        </div>
+        <button type="button" onClick={onClear} className="text-[13px] font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
+          Cambiar
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="relative">
+        <svg viewBox="0 0 20 20" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" fill="none" aria-hidden>
+          <circle cx="9" cy="9" r="5.75" stroke="currentColor" strokeWidth="1.6" />
+          <path d="m13.5 13.5 3.25 3.25" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <input
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Nombre de tu app o apps.apple.com/…"
+          aria-label="Buscar tu app en la App Store"
+          className="w-full rounded-xl border border-[var(--border)] bg-white py-3.5 pl-11 pr-4 text-[16px] outline-none transition focus:border-[var(--foreground)]"
+        />
+      </div>
+
+      <div className="mt-2 min-h-[56px]">
+        {loading && !results ? (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="ui-skeleton h-[64px] rounded-xl" />
+            ))}
+          </div>
+        ) : results && results.length === 0 ? (
+          <p className="px-1 py-3 text-[14px] text-[var(--muted)]">No encontramos ninguna app. Prueba con el enlace de su ficha.</p>
+        ) : results ? (
+          <ul className={`ui-stagger space-y-1.5 transition-opacity ${loading ? "opacity-50" : ""}`}>
+            {results.map((app) => (
+              <li key={app.id}>
+                <button
+                  type="button"
+                  onClick={() => onPick(app)}
+                  className="ui-press ui-lift flex w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-white p-2.5 text-left hover:border-[var(--foreground)]"
+                >
+                  {app.icon ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={app.icon} alt="" className="h-11 w-11 shrink-0 rounded-[11px] border border-[var(--border)]" />
+                  ) : (
+                    <span className="h-11 w-11 shrink-0 rounded-[11px] bg-[var(--surface-alt)]" />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px] font-medium text-[var(--foreground)]">{app.name}</span>
+                    <span className="block truncate text-[13px] text-[var(--muted)]">
+                      {app.seller} · {app.genre}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <button type="button" onClick={onNone} className="mt-3 text-[14px] font-medium text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline">
+        Mi app aún no está publicada
+      </button>
+    </div>
+  );
 }
 
 function Option({
@@ -85,7 +209,7 @@ export function Onboarding({
   const [error, setError] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
 
-  const questions = questionsFor(type);
+  const questions = questionsFor(type, answers);
   const total = type ? questions.length : questionsFor("app").length;
   const question: Question | undefined = questions[step];
 
@@ -232,7 +356,34 @@ export function Onboarding({
         {question.hint ? <p className="mt-2 text-[15px] text-[var(--muted)]">{question.hint}</p> : null}
 
         <div className="ui-stagger mt-6 space-y-2">
-          {question.kind === "text" ? (
+          {question.kind === "appstore" ? (
+            <AppStorePicker
+              projectId={projectId}
+              answers={answers}
+              onPick={(app) => {
+                setAnswers({
+                  ...answers,
+                  appId: app.id,
+                  appName: app.name,
+                  appIcon: app.icon ?? "",
+                  appSeller: app.seller,
+                  appGenre: app.genre,
+                  appCountry: app.country,
+                  stores: Array.isArray(answers.stores) && answers.stores.length ? answers.stores : ["ios"],
+                });
+                window.setTimeout(() => setStep(step + 1), 450);
+              }}
+              onClear={() => {
+                const rest = { ...answers };
+                for (const key of ["appId", "appName", "appIcon", "appSeller", "appGenre", "appCountry"]) delete rest[key];
+                setAnswers(rest);
+              }}
+              onNone={() => {
+                setAnswers({ ...answers, appId: NO_APP, stores: ["none"] });
+                setStep(step + 1);
+              }}
+            />
+          ) : question.kind === "text" ? (
             <input
               autoFocus
               value={typeof value === "string" ? value : ""}

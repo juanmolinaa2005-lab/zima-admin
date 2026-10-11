@@ -6,7 +6,7 @@ export type Question = {
   id: string;
   title: string;
   hint?: string;
-  kind: "single" | "multi" | "text";
+  kind: "single" | "multi" | "text" | "appstore";
   options?: { id: string; label: string; hint?: string }[];
   placeholder?: string;
   optional?: boolean;
@@ -34,14 +34,23 @@ const STAGE: Question = {
   ],
 };
 
+const APP_STORE: Question = {
+  id: "appstore",
+  title: "Busca tu app en la App Store",
+  hint: "Escribe su nombre o pega el enlace de su ficha. Así sabremos exactamente qué hace.",
+  kind: "appstore",
+  placeholder: "Nombre de tu app o apps.apple.com/…",
+};
+
+const APP_PITCH: Question = {
+  id: "pitch",
+  title: "¿Qué hace tu app, en una frase?",
+  hint: "La usaremos en tu página y en los guiones de tus videos.",
+  kind: "text",
+  placeholder: "Cuenta calorías con una foto",
+};
+
 const APP_QUESTIONS: Question[] = [
-  {
-    id: "pitch",
-    title: "¿Qué hace tu app, en una frase?",
-    hint: "La usaremos en tu página y en los guiones de tus videos.",
-    kind: "text",
-    placeholder: "Cuenta calorías con una foto",
-  },
   {
     id: "stores",
     title: "¿Dónde está tu app?",
@@ -140,16 +149,39 @@ const WEB_QUESTIONS: Question[] = [
   },
 ];
 
-export function questionsFor(type: BuildType | null): Question[] {
+export function questionsFor(type: BuildType | null, answers: Answers = {}): Question[] {
   if (!type) return [TYPE_QUESTION];
-  return [TYPE_QUESTION, ...(type === "app" ? APP_QUESTIONS : WEB_QUESTIONS)];
+  if (type === "web") return [TYPE_QUESTION, ...WEB_QUESTIONS];
+  const unpublished = answers.appId === NO_APP;
+  return [TYPE_QUESTION, APP_STORE, ...(unpublished ? [APP_PITCH] : []), ...APP_QUESTIONS];
+}
+
+export const NO_APP = "none";
+
+export const APP_FIELDS = ["appId", "appName", "appIcon", "appUrl", "appGenre", "appSeller", "appCountry"] as const;
+
+export function parseAppStoreUrl(raw: string): { id: string; country: string } | null {
+  const match = raw.match(/apps\.apple\.com\/(?:([a-z]{2})\/)?(?:app\/)?(?:[^/?#]*\/)?id(\d{5,})/i);
+  if (match) return { id: match[2], country: (match[1] || "us").toLowerCase() };
+  const bare = raw.trim().match(/^id?(\d{6,})$/i);
+  return bare ? { id: bare[1], country: "us" } : null;
+}
+
+export function pitchFromDescription(description: string): string {
+  const firstLine =
+    description
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .find((l) => l.length >= 30 && /[a-záéíóúñ]/.test(l) && !l.endsWith(":") && !/^(\d+[).]|[-•*–])/.test(l)) ?? "";
+  const sentence = firstLine.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? firstLine;
+  return sentence.length > 160 ? `${sentence.slice(0, 157).trimEnd()}…` : sentence;
 }
 
 export function cleanAnswers(type: BuildType, raw: unknown): Answers {
   const input = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const out: Answers = {};
-  for (const q of questionsFor(type)) {
-    if (q.id === "type" || q.id === "pitch") continue;
+  for (const q of questionsFor(type, input as Answers)) {
+    if (q.id === "type" || q.id === "pitch" || q.kind === "appstore") continue;
     const value = input[q.id];
     const allowed = new Set(q.options?.map((o) => o.id));
     if (q.kind === "text" && typeof value === "string" && value.trim()) out[q.id] = value.trim().slice(0, 200);
