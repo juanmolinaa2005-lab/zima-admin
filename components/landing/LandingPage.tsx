@@ -1,5 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
+import { Instrument_Serif } from "next/font/google";
 import { STAGES } from "@/lib/launch/playbook";
+import { LandingHeroForm } from "./LandingHeroForm";
+
+const serif = Instrument_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const PAINS = [
   {
@@ -20,8 +29,8 @@ const STAGE_COPY: Record<string, string> = {
   prepare: "Legal, ficha de tienda, screenshots, analítica y soporte listos antes del día D.",
   launch: "Fecha, materiales y los canales correctos para tu tipo de producto.",
   traction: "Contenido corto, creadores, comunidades y un test de anuncios con números.",
-  monetize: "Calculadora de precios, paywall y emails que convierten pruebas en clientes.",
   measure: "Cinco métricas por semana y un tablero de feedback para decidir qué construir.",
+  monetize: "Calculadora de precios, paywall y emails que convierten pruebas en clientes.",
   scale: "Contratos, documentos, automatización y un equipo que crece contigo.",
 };
 
@@ -59,86 +68,78 @@ const FAQ = [
   },
 ];
 
-function Logo({ dark = false }: { dark?: boolean }) {
+function Logo() {
   return (
     <span className="flex items-center gap-2.5">
-      <span
-        className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold ${
-          dark ? "bg-white text-[#0b0b0e]" : "bg-[#0b0b0e] text-white"
-        }`}
-      >
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111114] text-[13px] font-bold text-white">
         V
       </span>
-      <span className="text-[15px] font-semibold tracking-tight">Vantko</span>
+      <span className="text-[15px] font-semibold tracking-tight text-[#111114]">Vantko</span>
     </span>
   );
 }
 
 function HeroMock() {
-  const progress = [1, 0.6, 0.2, 0, 0, 0];
+  const rows = [
+    { sku: "Legal", name: "Privacidad y términos", cat: "Preparar", status: "Hecho", next: "—" },
+    { sku: "Store", name: "Screenshots de tienda", cat: "Preparar", status: "En curso", next: "Hoy" },
+    { sku: "PH", name: "Lanzar en Product Hunt", cat: "Lanzar", status: "Pendiente", next: "Mar 14" },
+  ];
   return (
-    <div className="relative mx-auto w-full max-w-[560px]">
-      <div aria-hidden className="absolute -inset-6 rounded-[32px] bg-[radial-gradient(closest-side,rgba(99,102,241,0.35),transparent)] blur-2xl" />
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white text-[#1a1f36] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
-        <div className="flex items-center gap-1.5 border-b border-[#e3e8ee] px-4 py-2.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <span className="ml-3 text-[11px] text-[#8792a2]">vantko.com · Lanzamiento</span>
+    <div className="overflow-hidden rounded-t-2xl border border-b-0 border-[#e3e8ee] bg-white shadow-[0_-8px_50px_-18px_rgba(26,40,80,0.18)]">
+      <div className="flex items-center gap-3 border-b border-[#e3e8ee] px-5 py-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#111114] text-[10px] font-bold text-white">V</span>
+        <p className="text-[12.5px] text-[#8792a2]">
+          <span className="font-medium text-[#1a1f36]">Vantko</span>
+          <span className="mx-1.5">/</span>
+          MOUN
+          <span className="mx-1.5">/</span>
+          Lanzamiento
+        </p>
+        <div className="ml-auto flex gap-2">
+          <span className="hidden h-8 items-center rounded-lg border border-[#e3e8ee] px-3 text-[12px] text-[#8792a2] sm:inline-flex">Buscar…</span>
+          <span className="inline-flex h-8 items-center rounded-full bg-[#111114] px-3 text-[12px] font-semibold text-white">Siguiente paso</span>
         </div>
-        <div className="space-y-4 p-5">
-          <div className="flex items-center gap-4">
-            <div className="relative h-16 w-16 shrink-0">
-              <svg viewBox="0 0 64 64" className="h-16 w-16 -rotate-90">
-                <circle cx="32" cy="32" r="27" stroke="#e3e8ee" strokeWidth="6" fill="none" />
-                <circle cx="32" cy="32" r="27" stroke="#6366f1" strokeWidth="6" fill="none" strokeLinecap="round" strokeDasharray="169.6" strokeDashoffset="110" />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[13px] font-semibold">35%</span>
-            </div>
-            <div>
-              <p className="text-[11px] text-[#596171]">Etapa actual</p>
-              <p className="text-[17px] font-semibold text-[#0ea5e9]">Lanzar</p>
-              <p className="text-[11px] text-[#8792a2]">Faltan 6 días para tu lanzamiento</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-6 gap-1.5">
-            {STAGES.map((s, i) => (
-              <div key={s.id}>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#f3f5f9]">
-                  <div className="h-full rounded-full" style={{ width: `${progress[i] * 100}%`, background: s.color }} />
-                </div>
-                <p className="mt-1 truncate text-[10px] font-medium text-[#596171]">{s.label}</p>
-              </div>
+      </div>
+      <div className="px-5 pb-2 pt-4">
+        <p className="text-[22px] font-semibold tracking-tight text-[#1a1f36]">Ruta de lanzamiento</p>
+        <p className="mt-0.5 text-[13px] text-[#8792a2]">Ya creaste tu producto. Esto es lo que sigue.</p>
+      </div>
+      <div className="overflow-x-auto px-2 pb-1">
+        <table className="w-full min-w-[640px] text-left text-[12.5px]">
+          <thead>
+            <tr className="text-[11px] font-semibold uppercase tracking-wide text-[#8792a2]">
+              <th className="px-3 py-2 font-semibold">Paso</th>
+              <th className="px-3 py-2 font-semibold">Qué hacer</th>
+              <th className="px-3 py-2 font-semibold">Etapa</th>
+              <th className="px-3 py-2 font-semibold">Estado</th>
+              <th className="px-3 py-2 font-semibold">Fecha</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#eef1f5]">
+            {rows.map((r) => (
+              <tr key={r.sku}>
+                <td className="px-3 py-2.5 font-medium tabular-nums text-[#8792a2]">{r.sku}</td>
+                <td className="px-3 py-2.5 font-medium text-[#1a1f36]">{r.name}</td>
+                <td className="px-3 py-2.5 text-[#596171]">{r.cat}</td>
+                <td className="px-3 py-2.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      r.status === "Hecho"
+                        ? "bg-[#e7f7ef] text-[#0e7a55]"
+                        : r.status === "En curso"
+                          ? "bg-[#eef0ff] text-[#4338ca]"
+                          : "bg-[#f3f5f9] text-[#8792a2]"
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-[#8792a2]">{r.next}</td>
+              </tr>
             ))}
-          </div>
-          <div className="rounded-xl bg-[linear-gradient(135deg,#eef0ff,#fff_70%)] p-4 ring-1 ring-[#e3e8ee]">
-            <p className="text-[11px] font-semibold text-[#4338ca]">Siguiente paso</p>
-            <p className="mt-0.5 text-[14px] font-semibold">Elige tus 5 canales de lanzamiento</p>
-            <p className="mt-0.5 text-[11.5px] text-[#596171]">Lanzar en todos lados a la vez no funciona; elige donde está tu cliente.</p>
-            <div className="mt-3 flex gap-2">
-              <span className="rounded-lg bg-[#111114] px-3 py-1.5 text-[11px] font-semibold text-white">Ver canales</span>
-              <span className="rounded-lg bg-white px-3 py-1.5 text-[11px] font-semibold ring-1 ring-[#e3e8ee]">Ya lo hice</span>
-            </div>
-          </div>
-          <ul className="divide-y divide-[#e3e8ee] rounded-xl ring-1 ring-[#e3e8ee]">
-            {[
-              ["Publica política de privacidad y términos", true],
-              ["Ficha de tienda con screenshots que venden", true],
-              ["Prepara los materiales: video, GIF e imágenes", false],
-            ].map(([label, done]) => (
-              <li key={label as string} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[12px]">
-                <span className={`flex h-4 w-4 items-center justify-center rounded ${done ? "bg-[#6366f1] text-white" : "ring-1 ring-[#d5dbe3]"}`}>
-                  {done ? (
-                    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
-                      <path d="m5 12.5 4.5 4.5L19 7.5" />
-                    </svg>
-                  ) : null}
-                </span>
-                <span className={done ? "text-[#8792a2] line-through" : "font-medium"}>{label}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -146,65 +147,66 @@ function HeroMock() {
 
 export function LandingPage() {
   return (
-    <div className="min-h-dvh bg-[#f6f8fb] text-[#1a1f36]">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0b0b0e]/85 text-white backdrop-blur-md">
-        <nav className="mx-auto flex h-14 max-w-[1180px] items-center justify-between px-5 sm:px-8">
+    <div className="min-h-dvh bg-white text-[#1a1f36]">
+      <header className="absolute inset-x-0 top-0 z-30">
+        <nav className="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-5 sm:px-8">
           <Link href="/" aria-label="Vantko, inicio">
-            <Logo dark />
+            <Logo />
           </Link>
-          <div className="hidden items-center gap-7 text-[13px] text-white/70 md:flex">
-            <a href="#ruta" className="transition hover:text-white">Cómo funciona</a>
-            <a href="#funciones" className="transition hover:text-white">Funciones</a>
-            <a href="#faq" className="transition hover:text-white">Preguntas</a>
+          <div className="hidden items-center gap-8 text-[13.5px] text-[#3c4257] md:flex">
+            <a href="#funciones" className="transition hover:text-[#111114]">Producto</a>
+            <a href="#ruta" className="transition hover:text-[#111114]">Ruta</a>
+            <a href="#faq" className="transition hover:text-[#111114]">Preguntas</a>
           </div>
-          <Link href="/login" className="rounded-[10px] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#0b0b0e] transition hover:bg-white/90">
+          <Link
+            href="/login"
+            className="inline-flex h-9 items-center rounded-full bg-[#111114] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2b2b31]"
+          >
             Entrar
           </Link>
         </nav>
       </header>
 
       <main id="main" tabIndex={-1} className="outline-none">
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-[#0b0b0e] text-white">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <span className="login-orb -left-24 -top-24 h-[420px] w-[420px] bg-[#6366f1]" />
-            <span className="login-orb right-[-120px] top-[20%] h-[380px] w-[380px] bg-[#ec4899] [animation-delay:-6s]" />
-            <span className="login-orb bottom-[-200px] left-[30%] h-[420px] w-[420px] bg-[#f59e0b] opacity-25 [animation-delay:-11s]" />
-            <div className="login-grid absolute inset-0" />
-          </div>
-          <div className="relative mx-auto grid max-w-[1180px] items-center gap-14 px-5 pb-24 pt-16 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
-            <div>
-              <p className="ui-enter inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 text-[12px] text-white/75 backdrop-blur">
-                <span className="ui-live-dot" />
-                Para solo founders y equipos pequeños
-              </p>
-              <h1 className="ui-enter mt-6 text-[44px] font-semibold leading-[1.02] tracking-[-0.045em] [animation-delay:60ms] sm:text-[60px]">
-                Ya creaste tu producto.{" "}
-                <span className="bg-[linear-gradient(90deg,#c7d2fe,#f0abfc,#fcd34d)] bg-clip-text text-transparent">¿Qué sigue?</span>
-              </h1>
-              <p className="ui-enter mt-6 max-w-[520px] text-[17px] leading-relaxed text-white/65 [animation-delay:120ms]">
-                Vantko te dice qué hacer después —y te da las herramientas para hacerlo— para lanzar tu app o tu web, conseguir usuarios y empezar a cobrar.
-              </p>
-              <div className="ui-enter mt-8 flex flex-wrap gap-3 [animation-delay:180ms]">
-                <Link href="/login" className="rounded-xl bg-white px-5 py-3 text-[14px] font-semibold text-[#0b0b0e] shadow-[0_10px_30px_-10px_rgba(255,255,255,0.6)] transition hover:bg-white/90">
-                  Entrar en Vantko
-                </Link>
-                <a href="#ruta" className="rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-[14px] font-semibold text-white backdrop-blur transition hover:bg-white/[0.12]">
-                  Ver cómo funciona
-                </a>
-              </div>
-              <p className="ui-enter mt-6 text-[12.5px] text-white/45 [animation-delay:240ms]">Apps iOS y Android · Productos web y SaaS</p>
+        <section className="relative min-h-[100dvh] overflow-hidden">
+          <div aria-hidden className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-x-0 -top-[52%] h-[160%]">
+              <Image
+                src="/hero-city.jpg"
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-[center_62%]"
+              />
             </div>
-            <div className="ui-enter [animation-delay:200ms]">
+          </div>
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white" />
+
+          <div className="relative mx-auto flex min-h-[100dvh] max-w-[1120px] flex-col px-5 pt-24 sm:px-8">
+            <div className="mx-auto mt-[6vh] max-w-[720px] text-center sm:mt-[7vh]">
+              <h1 className={`${serif.className} text-[48px] leading-[1.05] tracking-[-0.03em] text-[#111114] sm:text-[72px]`}>
+                Ya creaste tu producto.
+                <br />
+                ¿Qué sigue?
+              </h1>
+              <p className="mx-auto mt-5 max-w-[420px] text-[16px] leading-relaxed text-[#3c4257] sm:text-[18px]">
+                Vantko: el software para lanzar tu app o tu web.
+              </p>
+              <div className="mt-8">
+                <LandingHeroForm />
+              </div>
+            </div>
+
+            <div className="mx-auto mt-auto w-full max-w-[920px] pt-28">
               <HeroMock />
             </div>
           </div>
         </section>
 
-        {/* Problem */}
-        <section className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-24">
+        <section className="mx-auto max-w-[1120px] px-5 py-20 sm:px-8 sm:py-24">
           <p className="text-[13px] font-semibold text-[#4338ca]">El problema</p>
-          <h2 className="mt-2 max-w-[640px] text-[34px] font-semibold leading-[1.1] tracking-[-0.035em] sm:text-[40px]">
+          <h2 className={`${serif.className} mt-2 max-w-[640px] text-[36px] leading-[1.1] tracking-[-0.02em] sm:text-[44px]`}>
             Construirlo era la parte fácil.
           </h2>
           <p className="mt-4 max-w-[600px] text-[16px] leading-relaxed text-[#596171]">
@@ -220,11 +222,10 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Roadmap */}
-        <section id="ruta" className="scroll-mt-14 border-y border-[#e3e8ee] bg-white">
-          <div className="mx-auto max-w-[1180px] px-5 py-20 sm:px-8 sm:py-24">
+        <section id="ruta" className="scroll-mt-16 border-y border-[#e3e8ee] bg-[#f6f8fb]">
+          <div className="mx-auto max-w-[1120px] px-5 py-20 sm:px-8 sm:py-24">
             <p className="text-[13px] font-semibold text-[#4338ca]">Cómo funciona</p>
-            <h2 className="mt-2 max-w-[700px] text-[34px] font-semibold leading-[1.1] tracking-[-0.035em] sm:text-[40px]">
+            <h2 className={`${serif.className} mt-2 max-w-[720px] text-[36px] leading-[1.1] tracking-[-0.02em] sm:text-[44px]`}>
               Una ruta de 6 etapas, del “ya está hecho” al “ya factura”.
             </h2>
             <p className="mt-4 max-w-[620px] text-[16px] leading-relaxed text-[#596171]">
@@ -232,7 +233,7 @@ export function LandingPage() {
             </p>
             <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {STAGES.map((s, i) => (
-                <li key={s.id} className="relative rounded-2xl border border-[#e3e8ee] bg-[#f6f8fb] p-6">
+                <li key={s.id} className="relative rounded-2xl border border-[#e3e8ee] bg-white p-6">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold text-white" style={{ background: s.color }}>
                     {i + 1}
                   </span>
@@ -245,10 +246,9 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Features */}
-        <section id="funciones" className="mx-auto max-w-[1180px] scroll-mt-14 px-5 py-20 sm:px-8 sm:py-24">
+        <section id="funciones" className="mx-auto max-w-[1120px] scroll-mt-16 px-5 py-20 sm:px-8 sm:py-24">
           <p className="text-[13px] font-semibold text-[#4338ca]">Todo en un sitio</p>
-          <h2 className="mt-2 max-w-[700px] text-[34px] font-semibold leading-[1.1] tracking-[-0.035em] sm:text-[40px]">
+          <h2 className={`${serif.className} mt-2 max-w-[720px] text-[36px] leading-[1.1] tracking-[-0.02em] sm:text-[44px]`}>
             Las herramientas que necesitas después de programar.
           </h2>
           <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-[#e3e8ee] bg-[#e3e8ee] sm:grid-cols-2 lg:grid-cols-3">
@@ -264,8 +264,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* For whom */}
-        <section className="mx-auto max-w-[1180px] px-5 pb-20 sm:px-8 sm:pb-24">
+        <section className="mx-auto max-w-[1120px] px-5 pb-20 sm:px-8 sm:pb-24">
           <div className="grid gap-4 md:grid-cols-2">
             {[
               {
@@ -296,12 +295,11 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section id="faq" className="scroll-mt-14 border-t border-[#e3e8ee] bg-white">
-          <div className="mx-auto grid max-w-[1180px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1.4fr]">
+        <section id="faq" className="scroll-mt-16 border-t border-[#e3e8ee] bg-[#f6f8fb]">
+          <div className="mx-auto grid max-w-[1120px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1.4fr]">
             <div>
               <p className="text-[13px] font-semibold text-[#4338ca]">Preguntas</p>
-              <h2 className="mt-2 text-[34px] font-semibold leading-[1.1] tracking-[-0.035em]">Lo que suelen preguntarnos.</h2>
+              <h2 className={`${serif.className} mt-2 text-[36px] leading-[1.1] tracking-[-0.02em]`}>Lo que suelen preguntarnos.</h2>
             </div>
             <div className="divide-y divide-[#e3e8ee] border-y border-[#e3e8ee]">
               {FAQ.map((item) => (
@@ -317,18 +315,15 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="px-5 py-20 sm:px-8">
-          <div className="relative mx-auto max-w-[1180px] overflow-hidden rounded-[28px] bg-[#0b0b0e] px-8 py-16 text-center text-white sm:py-20">
-            <div aria-hidden className="pointer-events-none absolute inset-0">
-              <span className="login-orb left-[10%] top-[-140px] h-[320px] w-[320px] bg-[#6366f1]" />
-              <span className="login-orb right-[5%] bottom-[-160px] h-[320px] w-[320px] bg-[#ec4899] [animation-delay:-8s]" />
-            </div>
-            <h2 className="relative mx-auto max-w-[640px] text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] sm:text-[44px]">
+        <section className="px-5 py-16 sm:px-8 sm:py-20">
+          <div className="relative mx-auto max-w-[1120px] overflow-hidden rounded-[28px] px-8 py-16 text-center text-white sm:py-20">
+            <Image src="/hero-city.jpg" alt="" aria-hidden fill sizes="1120px" className="object-cover object-[center_30%]" />
+            <div aria-hidden className="absolute inset-0 bg-[#111114]/35" />
+            <h2 className={`${serif.className} relative mx-auto max-w-[640px] text-[36px] leading-[1.08] tracking-[-0.02em] sm:text-[48px]`}>
               Tu producto merece algo más que un repositorio.
             </h2>
-            <p className="relative mx-auto mt-4 max-w-[520px] text-[16px] text-white/65">Empieza por el siguiente paso. Vantko se encarga de decirte cuál es.</p>
-            <Link href="/login" className="relative mt-8 inline-flex rounded-xl bg-white px-6 py-3 text-[14px] font-semibold text-[#0b0b0e] transition hover:bg-white/90">
+            <p className="relative mx-auto mt-4 max-w-[480px] text-[16px] text-white/85">Empieza por el siguiente paso. Vantko se encarga de decirte cuál es.</p>
+            <Link href="/login" className="relative mt-8 inline-flex h-11 items-center rounded-full bg-white px-6 text-[14px] font-semibold text-[#111114] transition hover:bg-white/90">
               Entrar en Vantko
             </Link>
           </div>
@@ -336,7 +331,7 @@ export function LandingPage() {
       </main>
 
       <footer className="border-t border-[#e3e8ee]">
-        <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-4 px-5 py-8 text-[13px] text-[#596171] sm:px-8">
+        <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-4 px-5 py-8 text-[13px] text-[#596171] sm:px-8">
           <Logo />
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-[#1a1f36]">Privacidad</Link>
