@@ -34,7 +34,7 @@ export function LandingHeroForm() {
           </svg>
         </button>
       </label>
-      <p className="mt-3 text-center text-[12.5px] text-[#3c4257]/70">Entra si ya tienes cuenta. Si no, escríbenos.</p>
+      <p className="mt-3 text-center text-[12.5px] text-white/70">Entra si ya tienes cuenta. Si no, escríbenos.</p>
     </form>
   );
 }

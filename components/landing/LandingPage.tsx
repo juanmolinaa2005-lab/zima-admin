@@ -68,13 +68,19 @@ const FAQ = [
   },
 ];
 
-function Logo() {
+function Logo({ light = false }: { light?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111114] text-[13px] font-bold text-white">
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold ${
+          light ? "bg-white text-[#111114]" : "bg-[#111114] text-white"
+        }`}
+      >
         V
       </span>
-      <span className="text-[15px] font-semibold tracking-tight text-[#111114]">Vantko</span>
+      <span className={`text-[15px] font-semibold tracking-tight ${light ? "text-white" : "text-[#111114]"}`}>
+        Vantko
+      </span>
     </span>
   );
 }
@@ -151,16 +157,16 @@ export function LandingPage() {
       <header className="absolute inset-x-0 top-0 z-30">
         <nav className="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-5 sm:px-8">
           <Link href="/" aria-label="Vantko, inicio">
-            <Logo />
+            <Logo light />
           </Link>
-          <div className="hidden items-center gap-8 text-[13.5px] text-[#3c4257] md:flex">
-            <a href="#funciones" className="transition hover:text-[#111114]">Producto</a>
-            <a href="#ruta" className="transition hover:text-[#111114]">Ruta</a>
-            <a href="#faq" className="transition hover:text-[#111114]">Preguntas</a>
+          <div className="hidden items-center gap-8 text-[13.5px] text-white/80 md:flex">
+            <a href="#funciones" className="transition hover:text-white">Producto</a>
+            <a href="#ruta" className="transition hover:text-white">Ruta</a>
+            <a href="#faq" className="transition hover:text-white">Preguntas</a>
           </div>
           <Link
             href="/login"
-            className="inline-flex h-9 items-center rounded-full bg-[#111114] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2b2b31]"
+            className="inline-flex h-9 items-center rounded-full bg-white px-4 text-[13px] font-semibold text-[#111114] transition hover:bg-white/90"
           >
             Entrar
           </Link>
@@ -169,28 +175,25 @@ export function LandingPage() {
 
       <main id="main" tabIndex={-1} className="outline-none">
         <section className="relative min-h-[100dvh] overflow-hidden">
-          <div aria-hidden className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-x-0 -top-[52%] h-[160%]">
-              <Image
-                src="/hero-city.jpg"
-                alt=""
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[center_62%]"
-              />
-            </div>
-          </div>
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white" />
+          <Image
+            src="/hero-night.jpg"
+            alt=""
+            aria-hidden
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[center_40%]"
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-white" />
 
           <div className="relative mx-auto flex min-h-[100dvh] max-w-[1120px] flex-col px-5 pt-24 sm:px-8">
             <div className="mx-auto mt-[6vh] max-w-[720px] text-center sm:mt-[7vh]">
-              <h1 className={`${serif.className} text-[48px] leading-[1.05] tracking-[-0.03em] text-[#111114] sm:text-[72px]`}>
+              <h1 className={`${serif.className} text-[48px] leading-[1.05] tracking-[-0.03em] text-white sm:text-[72px]`}>
                 Ya creaste tu producto.
                 <br />
                 ¿Qué sigue?
               </h1>
-              <p className="mx-auto mt-5 max-w-[420px] text-[16px] leading-relaxed text-[#3c4257] sm:text-[18px]">
+              <p className="mx-auto mt-5 max-w-[420px] text-[16px] leading-relaxed text-white/80 sm:text-[18px]">
                 Vantko: el software para lanzar tu app o tu web.
               </p>
               <div className="mt-8">
@@ -317,7 +320,7 @@ export function LandingPage() {
 
         <section className="px-5 py-16 sm:px-8 sm:py-20">
           <div className="relative mx-auto max-w-[1120px] overflow-hidden rounded-[28px] px-8 py-16 text-center text-white sm:py-20">
-            <Image src="/hero-city.jpg" alt="" aria-hidden fill sizes="1120px" className="object-cover object-[center_30%]" />
+            <Image src="/hero-night.jpg" alt="" aria-hidden fill sizes="1120px" className="object-cover object-[center_30%]" />
             <div aria-hidden className="absolute inset-0 bg-[#111114]/35" />
             <h2 className={`${serif.className} relative mx-auto max-w-[640px] text-[36px] leading-[1.08] tracking-[-0.02em] sm:text-[48px]`}>
               Tu producto merece algo más que un repositorio.
