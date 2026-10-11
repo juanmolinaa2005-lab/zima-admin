@@ -65,6 +65,15 @@ export const TASKS: LaunchTask[] = [
     applies: "web",
   },
   {
+    id: "public-page",
+    stage: "prepare",
+    title: "Publica la página de tu producto",
+    why: "Necesitas un enlace al que mandar a la gente desde cada canal, y una forma de guardar a los interesados.",
+    how: ["Escribe la frase principal: el resultado que obtiene tu cliente.", "Añade los enlaces a la web o a las tiendas.", "Activa la recogida de emails y publica."],
+    applies: "all",
+    link: { kind: "page", label: "Abrir Página" },
+  },
+  {
     id: "aso",
     stage: "prepare",
     title: "Investiga keywords y competidores",
@@ -294,6 +303,7 @@ export type LaunchState = {
   channels: Record<string, ChannelState>;
   feedback: FeedbackItem[];
   metrics: MetricWeek[];
+  context?: { name: string; tagline: string | null; url: string | null };
 };
 
 export const TASK_IDS = new Set(TASKS.map((t) => t.id));

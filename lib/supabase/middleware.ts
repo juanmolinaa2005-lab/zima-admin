@@ -1,10 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { RESERVED_SLUGS } from "@/lib/page/types";
 
 function isAppLegalPath(path: string) {
   const match = path.match(/^\/([a-z0-9]+)\/(privacy|terms|cookies|aviso)$/);
   if (!match) return false;
   return !["api", "auth", "docs", "legal", "login", "osg", "projects"].includes(match[1]);
+}
+
+function isProductPagePath(path: string) {
+  const match = path.match(/^\/([a-z0-9][a-z0-9-]{1,38}[a-z0-9])$/);
+  return Boolean(match && !RESERVED_SLUGS.has(match[1]));
 }
 
 export async function updateSession(request: NextRequest) {
@@ -51,6 +57,8 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/terms") ||
     path.startsWith("/legal/") ||
     isAppLegalPath(path) ||
+    isProductPagePath(path) ||
+    path === "/api/public/subscribe" ||
     path.startsWith("/data-deletion");
 
   if (!user && !isPublicRoute) {

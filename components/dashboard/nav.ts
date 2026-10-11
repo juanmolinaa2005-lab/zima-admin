@@ -6,12 +6,13 @@ import {
   MarketIcon,
   MarketingIcon,
   MiAppIcon,
+  PageIcon,
   ViewTrackerIcon,
 } from "./icons";
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type ViewId = "launch" | "miapp" | "market" | "marketing" | "viewtracker" | "emails" | "gallery";
+export type ViewId = "launch" | "page" | "miapp" | "market" | "marketing" | "viewtracker" | "emails" | "gallery";
 
 export type ViewMeta = {
   label: string;
@@ -20,6 +21,7 @@ export type ViewMeta = {
 
 export const VIEW_META: Record<ViewId, ViewMeta> = {
   launch: { label: "Lanzamiento", icon: LaunchIcon },
+  page: { label: "Página", icon: PageIcon },
   miapp: { label: "Mi app", icon: MiAppIcon },
   market: { label: "Market", icon: MarketIcon },
   marketing: { label: "Studio", icon: MarketingIcon },
@@ -29,7 +31,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
 };
 
 /** Sidebar order. Gallery opens from inside Studio. */
-export const NAV: ViewId[] = ["launch", "miapp", "market", "marketing", "viewtracker", "emails"];
+export const NAV: ViewId[] = ["launch", "page", "miapp", "market", "marketing", "viewtracker", "emails"];
 
 const LEGACY_VIEWS: Record<string, ViewId> = {
   estudio: "marketing",

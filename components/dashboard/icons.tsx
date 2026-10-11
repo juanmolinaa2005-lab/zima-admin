@@ -619,3 +619,17 @@ export function ArrowRightIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function PageIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M3.75 12h16.5M12 3.75c2.1 2.2 3.25 5.1 3.25 8.25S14.1 18.05 12 20.25C9.9 18.05 8.75 15.15 8.75 12S9.9 5.95 12 3.75Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

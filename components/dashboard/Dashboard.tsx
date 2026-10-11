@@ -8,6 +8,7 @@ import { ViewTrackerView } from "./ViewTrackerView";
 import { MarketView } from "./MarketView";
 import { LaunchView, type OpenTarget } from "./LaunchView";
 import { EmailsView } from "./EmailsView";
+import { PageView } from "./PageView";
 import { CreatorEstudioV1View } from "./CreatorEstudioV1View";
 import { LaAppHome, appSectionFrom, type AppSection } from "./estudio/LaAppHome";
 import { GalleryView } from "./GalleryView";
@@ -66,6 +67,8 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
     switch (id) {
       case "launch":
         return <LaunchView projectId={project.id} onOpen={openTarget} />;
+      case "page":
+        return <PageView projectId={project.id} />;
       case "miapp":
         return (
           <LaAppHome

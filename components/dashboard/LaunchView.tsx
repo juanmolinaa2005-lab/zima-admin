@@ -18,6 +18,7 @@ import {
   type ProductType,
   type TaskLink,
 } from "@/lib/launch/playbook";
+import { channelCopy, type CopyInput } from "@/lib/launch/copy";
 import type { ToolKind } from "@/lib/types";
 import { Svg, type IconComp } from "./market/shared";
 
@@ -215,38 +216,93 @@ function RoadmapPage({
 
 const STATUS_ORDER: ChannelStatus[] = ["todo", "planned", "launched", "skipped"];
 
+function ChannelCopy({ text }: { text: string }) {
+  const [value, setValue] = useState(text);
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="mt-3">
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={Math.min(14, value.split("\n").length + 1)}
+        className="w-full resize-y rounded-lg border border-[var(--border)] bg-[var(--surface-alt)] px-3 py-2.5 text-[13px] leading-relaxed text-[var(--foreground)] outline-none focus:border-black/25 focus:bg-white"
+      />
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <p className="text-[12px] text-[var(--muted-soft)]">Cambia lo que está entre [corchetes].</p>
+        <button
+          type="button"
+          className="ui-btn-primary h-8 px-3 text-[13px]"
+          onClick={() =>
+            void navigator.clipboard.writeText(value).then(() => {
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 1500);
+            })
+          }
+        >
+          {copied ? "Copiado" : "Copiar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ChannelsPage({ state, onSave }: { state: LaunchState; onSave: (id: string, s: ChannelState) => Promise<void> }) {
   const list = CHANNELS.filter((c) => appliesTo(c.applies, state.profile.product_type));
+  const [open, setOpen] = useState<string | null>(null);
+  const copyInput: CopyInput = {
+    name: state.context?.name || "Mi app",
+    pitch: state.context?.tagline || state.profile.pitch || "[tu promesa en una frase]",
+    url: state.context?.url || "[tu enlace]",
+  };
 
   return (
-    <ul className="divide-y divide-[var(--border)] border-t border-[var(--border)]">
-      {list.map((channel) => {
-        const current: ChannelState = state.channels[channel.id] ?? { status: "todo", planned_for: null, url: null, result: null };
-        return (
-          <li key={channel.id} className="flex items-start gap-4 py-4">
-            <div className="min-w-0 flex-1">
-              <a href={channel.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[14px] font-medium text-[var(--foreground)] hover:underline">
-                {channel.name}
-                <IconExternal className="h-3 w-3 text-[var(--muted-soft)]" />
-              </a>
-              <p className="mt-0.5 text-[13px] text-[var(--muted)]">{channel.tip}</p>
-            </div>
-            <select
-              value={current.status}
-              onChange={(e) => onSave(channel.id, { ...current, status: e.target.value as ChannelStatus })}
-              aria-label={`Estado de ${channel.name}`}
-              className={`h-8 shrink-0 rounded-full border border-[var(--border)] bg-white px-3 text-[12px] font-medium outline-none ${
-                current.status === "launched" ? "text-[#0e7a55]" : current.status === "skipped" ? "text-[var(--muted-soft)]" : "text-[var(--foreground)]"
-              }`}
-            >
-              {STATUS_ORDER.map((s) => (
-                <option key={s} value={s}>{CHANNEL_STATUS_LABEL[s]}</option>
-              ))}
-            </select>
-          </li>
-        );
-      })}
-    </ul>
+    <div>
+      {!state.context?.url ? (
+        <p className="mb-6 text-[13px] text-[var(--muted)]">Publica tu página para que los textos incluyan tu enlace.</p>
+      ) : null}
+      <ul className="divide-y divide-[var(--border)] border-t border-[var(--border)]">
+        {list.map((channel) => {
+          const current: ChannelState = state.channels[channel.id] ?? { status: "todo", planned_for: null, url: null, result: null };
+          const expanded = open === channel.id;
+          return (
+            <li key={channel.id} className="py-4">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <a href={channel.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[14px] font-medium text-[var(--foreground)] hover:underline">
+                    {channel.name}
+                    <IconExternal className="h-3 w-3 text-[var(--muted-soft)]" />
+                  </a>
+                  <p className="mt-0.5 text-[13px] text-[var(--muted)]">{channel.tip}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen(expanded ? null : channel.id)}
+                  aria-expanded={expanded}
+                  className={`h-8 shrink-0 rounded-full px-3 text-[12px] font-medium transition ${
+                    expanded ? "bg-[var(--foreground)] text-white" : "border border-[var(--border)] bg-white text-[var(--foreground)] hover:border-black/25"
+                  }`}
+                >
+                  Texto
+                </button>
+                <select
+                  value={current.status}
+                  onChange={(e) => onSave(channel.id, { ...current, status: e.target.value as ChannelStatus })}
+                  aria-label={`Estado de ${channel.name}`}
+                  className={`h-8 shrink-0 rounded-full border border-[var(--border)] bg-white px-3 text-[12px] font-medium outline-none ${
+                    current.status === "launched" ? "text-[#0e7a55]" : current.status === "skipped" ? "text-[var(--muted-soft)]" : "text-[var(--foreground)]"
+                  }`}
+                >
+                  {STATUS_ORDER.map((s) => (
+                    <option key={s} value={s}>{CHANNEL_STATUS_LABEL[s]}</option>
+                  ))}
+                </select>
+              </div>
+              {expanded ? <ChannelCopy key={JSON.stringify(copyInput)} text={channelCopy(channel, copyInput)} /> : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

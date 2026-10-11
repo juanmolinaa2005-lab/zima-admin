@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireProjectOwner } from "@/lib/mail/access";
+import { PAGE_HOST } from "@/lib/page/types";
 import {
   CHANNEL_IDS,
   TASK_IDS,
@@ -53,6 +54,11 @@ export async function GET(_request: Request, { params }: Params) {
   const failed = [profile, tasks, channels, feedback, metrics].find((r) => r.error);
   if (failed?.error) return NextResponse.json({ error: failed.error.message }, { status: 500 });
 
+  const [{ data: project }, { data: page }] = await Promise.all([
+    db.from("projects").select("name").eq("id", projectId).maybeSingle(),
+    db.from("product_pages").select("slug, published, title, tagline, website_url, updated_at").eq("project_id", projectId).maybeSingle(),
+  ]);
+
   const p = profile.data as (LaunchProfile & { goal_mrr: number | string | null }) | null;
   const state: LaunchState = {
     profile: {
@@ -70,7 +76,13 @@ export async function GET(_request: Request, { params }: Params) {
     ),
     feedback: (feedback.data ?? []) as FeedbackItem[],
     metrics: ((metrics.data ?? []) as MetricWeek[]).map((m) => ({ ...m, mrr: m.mrr != null ? Number(m.mrr) : null })),
+    context: {
+      name: (page?.title as string | null) || (project?.name as string | undefined) || "Mi app",
+      tagline: (page?.tagline as string | null) ?? null,
+      url: page?.published ? `https://${PAGE_HOST}/${page.slug}` : ((page?.website_url as string | null) ?? null),
+    },
   };
+  if (page?.published && !state.tasks["public-page"]) state.tasks["public-page"] = page.updated_at as string;
   return NextResponse.json(state);
 }
 

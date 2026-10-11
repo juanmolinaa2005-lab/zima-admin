@@ -25,6 +25,7 @@ export type ToolKind =
   | "home"
   | "miapp"
   | "launch"
+  | "page"
   | "apps"
   | "clients"
   | "emails"
