@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MARKET_COUNTRIES, type MarketApp, type MarketChart, type MarketReview } from "@/lib/market/appstore";
 import { MobileFabMenu, type MobileNavSection } from "./MobileFabMenu";
 import { MarketIcon } from "./icons";
+import type { BuildKind } from "./nav";
 import {
   AppIcon,
   AppTable,
@@ -38,6 +39,8 @@ import { IconKey, IconPhone, KeywordsPage, MyAppsPage } from "./market/AsoPages"
 
 type PageId = "organic" | "onboardings" | "explore" | "ads" | "rankings" | "keywords" | "myapps" | "reviews";
 const PAGES = new Set<PageId>(["organic", "onboardings", "explore", "ads", "rankings", "keywords", "myapps", "reviews"]);
+
+const WEB_PAGES = new Set<PageId>(["organic", "ads"]);
 
 function pageFrom(raw: string | null): PageId {
   return raw && PAGES.has(raw as PageId) ? (raw as PageId) : "organic";
@@ -704,11 +707,12 @@ function AppDetailPage({
 
 /* ---------------- shell ---------------- */
 
-export function MarketView({ projectId, projectName }: { projectId: string; projectName?: string }) {
+export function MarketView({ projectId, projectName, kind }: { projectId: string; projectName?: string; kind: BuildKind }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const page = pageFrom(searchParams.get("mk"));
+  const requested = pageFrom(searchParams.get("mk"));
+  const page = kind === "web" && !WEB_PAGES.has(requested) ? "organic" : requested;
   const appId = searchParams.get("mapp");
   const [country, setCountry] = useState(searchParams.get("mc") || "us");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -750,7 +754,7 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
     onOpen: (app) => update({ app: app.id }),
   };
 
-  const nav: { id: PageId; label: string; icon: IconComp }[] = [
+  const allNav: { id: PageId; label: string; icon: IconComp }[] = [
     { id: "organic", label: "Videos virales", icon: IconOrganic },
     { id: "onboardings", label: "Onboardings", icon: IconOnboarding },
     { id: "explore", label: "Apps", icon: IconApps },
@@ -760,6 +764,7 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
     { id: "myapps", label: "Tus apps", icon: IconPhone },
     { id: "reviews", label: "Reseñas", icon: IconReviews },
   ];
+  const nav = kind === "web" ? allNav.filter((item) => WEB_PAGES.has(item.id)) : allNav;
 
   const mobileSections: MobileNavSection[] = [
     {
@@ -785,7 +790,9 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
           ))}
         </div>
         <p className="shrink-0 border-t border-[var(--border)] px-4 py-3 text-[11px] leading-snug text-[var(--muted-soft)]">
-          Datos públicos de la App Store de Apple. Rankings y apps seguidas se registran cada día.
+          {kind === "web"
+            ? "Videos y anuncios que ya funcionan, para inspirar los tuyos."
+            : "Datos públicos de la App Store de Apple. Rankings y apps seguidas se registran cada día."}
         </p>
       </aside>
 

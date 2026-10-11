@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
 import { MobileFabMenu } from "./MobileFabMenu";
-import { NAV, VIEW_META, type IconComp, type ViewId } from "./nav";
+import { NAV, VIEW_META, viewLabel, type BuildKind, type IconComp, type ViewId } from "./nav";
 
 type SidebarProps = {
   active: ViewId;
@@ -15,6 +15,7 @@ type SidebarProps = {
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onSelect: (view: ViewId) => void;
+  kind: BuildKind;
 };
 
 function NavButton({
@@ -65,7 +66,7 @@ function NavButton({
   );
 }
 
-export function Sidebar({ active, userEmail, projectName, projectId, collapsed, onToggleCollapsed, onSelect }: SidebarProps) {
+export function Sidebar({ active, userEmail, projectName, projectId, collapsed, onToggleCollapsed, onSelect, kind }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const userInitial = (userEmail?.trim()[0] || "U").toUpperCase();
 
@@ -82,7 +83,7 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
           {
             items: NAV.map((id) => ({
               id,
-              label: VIEW_META[id].label,
+              label: viewLabel(id, kind),
               icon: VIEW_META[id].icon,
               active: active === id,
               onClick: () => {
@@ -148,7 +149,7 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
           {NAV.map((id) => (
             <NavButton
               key={id}
-              label={VIEW_META[id].label}
+              label={viewLabel(id, kind)}
               icon={VIEW_META[id].icon}
               active={active === id}
               collapsed={collapsed}

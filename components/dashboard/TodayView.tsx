@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { STAGES, appliesTo, TASKS, type LaunchTask, type TaskLink } from "@/lib/launch/playbook";
+import { STAGES, planFor, type LaunchTask, type TaskLink } from "@/lib/launch/playbook";
+import type { BuildType } from "@/lib/onboarding/questions";
+import { Onboarding } from "./Onboarding";
 import type { TodayData } from "@/lib/today/types";
 
 type OpenFn = (link: Pick<TaskLink, "view" | "params">) => void;
@@ -148,8 +150,19 @@ function PlanTask({
   );
 }
 
-export function TodayView({ projectId, projectName, onOpen }: { projectId: string; projectName: string; onOpen: OpenFn }) {
+export function TodayView({
+  projectId,
+  projectName,
+  onOpen,
+  onConfigured,
+}: {
+  projectId: string;
+  projectName: string;
+  onOpen: OpenFn;
+  onConfigured: () => void;
+}) {
   const [data, setData] = useState<TodayData | null>(null);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -194,11 +207,6 @@ export function TodayView({ projectId, projectName, onOpen }: { projectId: strin
     void patchLaunch({ task: { id, done } });
   }
 
-  function setType(product_type: "app" | "web" | "both") {
-    if (data) setData({ ...data, productType: product_type });
-    void patchLaunch({ profile: { product_type } });
-  }
-
   if (!data) {
     return (
       <div className="flex h-full items-center justify-center text-[14px] text-[var(--muted)]">
@@ -213,8 +221,30 @@ export function TodayView({ projectId, projectName, onOpen }: { projectId: strin
     );
   }
 
+  if (!data.onboarded || editing) {
+    const type: BuildType | null = data.productType === "app" || data.productType === "web" ? data.productType : null;
+    return (
+      <div className="h-full overflow-y-auto">
+        <Onboarding
+          key={editing ? "edit" : "first"}
+          projectId={projectId}
+          projectName={projectName}
+          initial={{ type, pitch: data.pitch, answers: data.answers }}
+          onCancel={editing ? () => setEditing(false) : undefined}
+          onDone={() => {
+            setEditing(false);
+            setData(null);
+            void load();
+            onConfigured();
+          }}
+        />
+      </div>
+    );
+  }
+
   const { views, videos, accounts, publishing, revenue } = data;
-  const tasks = TASKS.filter((t) => appliesTo(t.applies, data.productType));
+  const isWeb = data.productType === "web";
+  const tasks = planFor(data.productType, data.answers);
   const doneCount = tasks.filter((t) => data.plan[t.id]).length;
   const next = tasks.find((t) => !data.plan[t.id]);
 
@@ -275,6 +305,13 @@ export function TodayView({ projectId, projectName, onOpen }: { projectId: strin
               label={`Ingresos · ${revenue.days} días`}
               value={revenue.net == null ? "—" : money.format(revenue.net)}
               hint={`${revenue.newUsers ?? 0} usuarios nuevos${revenue.mrr ? ` · MRR ${money.format(revenue.mrr)}` : ""}`}
+            />
+          ) : isWeb ? (
+            <Stat
+              label="Interesados"
+              value={compact(data.page.subscribers)}
+              hint={data.page.published ? "Emails recogidos en tu página" : "Publica tu página para recoger emails"}
+              onClick={() => onOpen({ view: "page" })}
             />
           ) : (
             <Stat label="Ingresos" value="—" hint="Conecta Superwall en Ajustes para cruzar vistas con dinero" />
@@ -354,32 +391,15 @@ export function TodayView({ projectId, projectName, onOpen }: { projectId: strin
         <section className="mt-8">
           <div className="flex items-baseline justify-between">
             <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--muted)]">Plan de crecimiento</h2>
-            <span className="text-[13px] tabular-nums text-[var(--muted)]">
-              {doneCount}/{tasks.length}
+            <span className="flex items-baseline gap-4 text-[13px] text-[var(--muted)]">
+              <button type="button" onClick={() => setEditing(true)} className="hover:text-[var(--foreground)]">
+                Ajustar respuestas
+              </button>
+              <span className="tabular-nums">
+                {doneCount}/{tasks.length}
+              </span>
             </span>
           </div>
-
-          {!data.productType ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-white p-4 text-[14px]">
-              <span className="mr-2 text-[var(--foreground)]">¿Qué has construido?</span>
-              {(
-                [
-                  ["app", "App móvil"],
-                  ["web", "Web / SaaS"],
-                  ["both", "Ambas"],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setType(id)}
-                  className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-[13px] font-medium hover:border-[var(--foreground)]"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          ) : null}
 
           {next ? (
             <div className="mt-3 rounded-xl bg-[var(--foreground)] p-5 text-white">

@@ -1,3 +1,5 @@
+import { has, type Answers } from "@/lib/onboarding/questions";
+
 
 export type ProductType = "app" | "web" | "both";
 export type Applies = "app" | "web" | "all";
@@ -14,6 +16,7 @@ export type LaunchTask = {
   how: string[];
   applies: Applies;
   link?: TaskLink;
+  when?: (answers: Answers) => boolean;
 };
 
 export type StageId = "base" | "content" | "distribution" | "creators" | "iterate";
@@ -39,6 +42,7 @@ export const TASKS: LaunchTask[] = [
     why: "Un paywall duro convierte ~5 veces más que freemium, con la misma retención. El plan semanal ya es más de la mitad de los ingresos por suscripción.",
     how: ["Muestra el paywall al terminar el onboarding, antes de usar la app.", "Plan semanal con prueba gratis + anual con descuento.", "Prueba variantes con Superwall o RevenueCat."],
     applies: "app",
+    when: (a) => !has(a, "monetization", "one-time"),
   },
   {
     id: "onboarding-quiz",
@@ -46,7 +50,7 @@ export const TASKS: LaunchTask[] = [
     title: "Onboarding de varias pantallas",
     why: "Los paywalls tras un onboarding largo convierten un 37% más que los de una sola pantalla.",
     how: ["5–10 preguntas sobre el objetivo del usuario.", "Muestra un resultado personalizado antes del paywall.", "Inspírate en los onboardings que mejor funcionan en tu categoría."],
-    applies: "all",
+    applies: "app",
     link: { view: "ideas", params: { mk: "onboardings" }, label: "Ver onboardings" },
   },
   {
@@ -91,6 +95,7 @@ export const TASKS: LaunchTask[] = [
     why: "Una cara constante te permite publicar a diario sin grabarte ni pagar a nadie.",
     how: ["Define edad, estilo y nicho de tu cliente ideal.", "Genera sus fotos de referencia.", "Úsalo en todos tus formatos."],
     applies: "all",
+    when: (a) => !has(a, "audience", "b2b") && !has(a, "audience", "dev"),
     link: { view: "create", label: "Abrir Crear" },
   },
   {
@@ -108,7 +113,7 @@ export const TASKS: LaunchTask[] = [
     title: "Abre 3 cuentas por plataforma",
     why: "Las apps que más crecen publican desde muchas cuentas a la vez: cada una es otra oportunidad de viral.",
     how: ["TikTok, Instagram y YouTube Shorts.", "Una temática por cuenta, misma app.", "Calienta cada cuenta 3–5 días antes de publicar."],
-    applies: "all",
+    applies: "app",
     link: { view: "results", params: { vt: "accounts" }, label: "Añadir cuentas" },
   },
   {
@@ -126,8 +131,69 @@ export const TASKS: LaunchTask[] = [
     title: "Recluta 10 creadores pagados por vista",
     why: "Pagar por vistas reales (~$1–4 por cada 1.000) pone el riesgo del lado del creador, no del tuyo.",
     how: ["Busca micro-creadores de tu nicho.", "Oferta: pago fijo pequeño + bono por cada 1.000 vistas.", "Exige mostrar la app en los primeros 15 segundos."],
-    applies: "all",
+    applies: "app",
     link: { view: "creators", label: "Abrir Creadores" },
+  },
+  {
+    id: "web-activation",
+    stage: "base",
+    title: "Primer resultado en la primera sesión",
+    why: "Quien no ve valor en sus primeros minutos no vuelve. La activación pesa más que cualquier campaña.",
+    how: ["Define la acción que demuestra el valor (primer informe, primera integración…).", "Quita todo paso que no lleve a esa acción.", "Datos de ejemplo para que nadie empiece con una pantalla vacía."],
+    applies: "web",
+  },
+  {
+    id: "web-pricing",
+    stage: "base",
+    title: "Página de precios clara",
+    why: "Es la página que más visitan quienes están a punto de pagar.",
+    how: ["Tres planes con uno destacado.", "Precio anual con descuento visible.", "Prueba gratis y preguntas frecuentes al lado del botón."],
+    applies: "web",
+    when: (a) => !has(a, "monetization", "none"),
+  },
+  {
+    id: "free-tool",
+    stage: "content",
+    title: "Lanza una herramienta gratis",
+    why: "Una calculadora o un generador gratuito atrae búsquedas y enlaces durante años, y lleva a tu producto.",
+    how: ["Resuelve un trozo pequeño del problema que resuelve tu producto.", "Sin registro para usarla, registro para guardar el resultado.", "Una página por variante de búsqueda."],
+    applies: "web",
+  },
+  {
+    id: "founder-content",
+    stage: "distribution",
+    title: "Publica como fundador en LinkedIn y X",
+    why: "En software para empresas y desarrolladores, la gente compra a personas. El fundador es el mejor canal.",
+    how: ["3–5 publicaciones por semana.", "Cuenta lo que construyes, cifras reales y casos de clientes.", "Recicla cada publicación que funcione en video corto."],
+    applies: "web",
+    when: (a) => has(a, "audience", "b2b") || has(a, "audience", "dev") || has(a, "platforms", "linkedin") || has(a, "platforms", "x"),
+    link: { view: "publish", label: "Abrir Publicar" },
+  },
+  {
+    id: "comparison-pages",
+    stage: "distribution",
+    title: "Páginas de comparación y alternativas",
+    why: "“Alternativa a X” y “X vs Y” son búsquedas de gente lista para comprar, en Google y en ChatGPT.",
+    how: ["Una página por competidor: honesta, con tabla comparativa.", "Explica para quién eres mejor y para quién no.", "Enlázalas desde tu página de precios."],
+    applies: "web",
+  },
+  {
+    id: "affiliates",
+    stage: "creators",
+    title: "Programa de afiliados",
+    why: "Creadores y newsletters de tu nicho venden por ti y solo pagas cuando hay ventas.",
+    how: ["Comisión recurrente del 20–30% durante 12 meses.", "Contacta a 20 creadores y newsletters de tu nicho.", "Dales una demo y un enlace con seguimiento."],
+    applies: "web",
+    link: { view: "creators", label: "Abrir Creadores" },
+  },
+  {
+    id: "integrations",
+    stage: "iterate",
+    title: "Aparece en marketplaces e integraciones",
+    why: "Los marketplaces de otras plataformas (Shopify, Zapier, Slack…) traen clientes que ya buscan una solución.",
+    how: ["Elige la plataforma que más usan tus clientes.", "Publica la integración en su directorio.", "Documentación pública y clara: también es marketing."],
+    applies: "web",
+    when: (a) => has(a, "audience", "b2b") || has(a, "audience", "dev"),
   },
   {
     id: "hits",
@@ -273,4 +339,8 @@ export function nextTasks(state: Pick<LaunchState, "profile" | "tasks">, limit =
 export function currentStage(state: Pick<LaunchState, "profile" | "tasks">): LaunchStage {
   const next = nextTasks(state, 1)[0];
   return STAGES.find((s) => s.id === next?.stage) ?? STAGES[STAGES.length - 1];
+}
+
+export function planFor(type: ProductType | null, answers: Answers): LaunchTask[] {
+  return TASKS.filter((t) => appliesTo(t.applies, type) && (!t.when || t.when(answers)));
 }

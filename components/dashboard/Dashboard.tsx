@@ -14,15 +14,16 @@ import { CreatorEstudioV1View } from "./CreatorEstudioV1View";
 import { LaAppHome, appSectionFrom, type AppSection } from "./estudio/LaAppHome";
 import { GalleryView } from "./GalleryView";
 import { Sidebar } from "./Sidebar";
-import { viewFrom, type ViewId } from "./nav";
+import { viewFrom, type BuildKind, type ViewId } from "./nav";
 import type { TaskLink } from "@/lib/launch/playbook";
 
 type DashboardProps = {
   project: Project;
   userEmail: string | null;
+  kind: BuildKind;
 };
 
-export function Dashboard({ project, userEmail }: DashboardProps) {
+export function Dashboard({ project, userEmail, kind }: DashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,7 +60,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   function renderView(id: ViewId): ReactNode {
     switch (id) {
       case "today":
-        return <TodayView projectId={project.id} projectName={project.name} onOpen={openLink} />;
+        return <TodayView projectId={project.id} projectName={project.name} onOpen={openLink} onConfigured={() => router.refresh()} />;
       case "page":
         return <PageView projectId={project.id} />;
       case "miapp":
@@ -67,11 +68,12 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
           <LaAppHome
             projectId={project.id}
             section={appSection}
+            kind={kind}
             onSection={(section: AppSection) => select("miapp", { app: section })}
           />
         );
       case "ideas":
-        return <MarketView projectId={project.id} projectName={project.name} />;
+        return <MarketView projectId={project.id} projectName={project.name} kind={kind} />;
       case "create":
         return (
           <CreatorEstudioV1View
@@ -106,6 +108,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
         collapsed={!sidebarExpanded}
         onToggleCollapsed={() => setSidebarExpanded((v) => !v)}
         onSelect={(next) => select(next)}
+        kind={kind}
       />
 
       <main id="main" tabIndex={-1} className="relative min-w-0 flex-1 outline-none">

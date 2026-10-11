@@ -57,7 +57,7 @@ export async function GET(_request: Request, { params }: Params) {
     db.from("launch_tasks").select("task_id, done_at").eq("project_id", projectId),
     db.from("product_pages").select("slug, published").eq("project_id", projectId).maybeSingle(),
     db.from("page_subscribers").select("id", { count: "exact", head: true }).eq("project_id", projectId),
-    db.from("launch_profiles").select("product_type").eq("project_id", projectId).maybeSingle(),
+    db.from("launch_profiles").select("product_type, pitch, answers, onboarded_at").eq("project_id", projectId).maybeSingle(),
     loadRevenue(),
   ]);
 
@@ -119,6 +119,9 @@ export async function GET(_request: Request, { params }: Params) {
     revenue,
     page: { published: Boolean(page.data?.published), slug: (page.data?.slug as string | undefined) ?? null, subscribers: subscribers.count ?? 0 },
     productType: (profile.data?.product_type as TodayData["productType"] | undefined) ?? null,
+    onboarded: Boolean(profile.data?.onboarded_at),
+    pitch: (profile.data?.pitch as string | null | undefined) ?? null,
+    answers: (profile.data?.answers as TodayData["answers"] | undefined) ?? {},
     plan: Object.fromEntries((tasks.data ?? []).map((t) => [t.task_id as string, t.done_at as string])),
   };
   if (data.page.published && !data.plan["public-page"]) data.plan["public-page"] = new Date().toISOString();

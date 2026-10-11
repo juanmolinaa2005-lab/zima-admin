@@ -3,6 +3,7 @@
 import { AppLegalCenter } from "./AppLegalCenter";
 import { ProductHome } from "./ProductHome";
 import { TopTabs } from "../TopTabs";
+import type { BuildKind } from "../nav";
 
 export type AppSection = "product" | "screenshots" | "legal";
 
@@ -18,16 +19,20 @@ export function appSectionFrom(raw: string | null): AppSection {
 
 export function LaAppHome({
   projectId,
-  section,
+  section: requested,
   onSection,
+  kind,
 }: {
   projectId: string;
+  kind: BuildKind;
   section: AppSection;
   onSection: (section: AppSection) => void;
 }) {
+  const items = kind === "web" ? SECTIONS.filter((s) => s.id !== "screenshots") : SECTIONS;
+  const section = items.some((s) => s.id === requested) ? requested : "product";
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[var(--background)]">
-      <TopTabs label="App" items={SECTIONS} active={section} onSelect={onSection} />
+      <TopTabs label="Producto" items={items} active={section} onSelect={onSection} />
       {section === "product" ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <ProductHome projectId={projectId} />

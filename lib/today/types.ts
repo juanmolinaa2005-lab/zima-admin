@@ -40,5 +40,8 @@ export type TodayData = {
   };
   page: { published: boolean; slug: string | null; subscribers: number };
   productType: "app" | "web" | "both" | null;
+  onboarded: boolean;
+  pitch: string | null;
+  answers: Record<string, string | string[]>;
   plan: Record<string, string>;
 };

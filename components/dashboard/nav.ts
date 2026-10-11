@@ -35,6 +35,13 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
 /** Sidebar order follows the growth loop. Gallery opens from inside Crear. */
 export const NAV: ViewId[] = ["today", "create", "publish", "creators", "results", "ideas", "miapp", "page"];
 
+export type BuildKind = "app" | "web" | "both" | null;
+
+export function viewLabel(id: ViewId, kind: BuildKind): string {
+  if (id === "miapp" && kind === "web") return "Producto";
+  return VIEW_META[id].label;
+}
+
 const LEGACY_VIEWS: Record<string, ViewId> = {
   launch: "today",
   estudio: "create",
