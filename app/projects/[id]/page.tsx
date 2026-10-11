@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getProject, getProjectTools } from "@/app/actions/projects";
+import { getProject } from "@/app/actions/projects";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 
 type PageProps = {
@@ -18,8 +18,6 @@ export default async function ProjectPage({ params }: PageProps) {
   const project = await getProject(id);
   if (!project) notFound();
 
-  const tools = await getProjectTools(id);
-
   return (
     <Suspense
       fallback={
@@ -30,7 +28,6 @@ export default async function ProjectPage({ params }: PageProps) {
     >
       <Dashboard
         project={project}
-        initialTools={tools}
         userEmail={user?.email ?? null}
       />
     </Suspense>

@@ -2,7 +2,7 @@
 
 import type { ComponentType, SVGProps } from "react";
 import type { EstudioSectionId } from "@/lib/creator/estudio-v1";
-import { ESTUDIO_NAV_GROUPS } from "@/lib/creator/estudio-v1";
+import { ESTUDIO_NAV } from "@/lib/creator/estudio-v1";
 
 type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -43,6 +43,8 @@ const SimulatorIcon = strokeIcon(
 const RedesMark = strokeIcon(
   "M8.2 10.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM16.4 8.4a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4ZM16.8 19a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6ZM9.4 9.6l5.4-2.1M9.6 11.4l5.8 3.4"
 );
+
+const VISIBLE = ESTUDIO_NAV.filter((item) => item.id !== "simulador");
 
 const ICONS: Record<EstudioSectionId, IconComp> = {
   "creator-imagen": ImageGenIcon,
@@ -101,33 +103,16 @@ export function EstudioSidebar({
 }) {
   return (
     <aside className="hidden h-full w-[232px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
-      <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-3.5 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[image:var(--accent-metal)] text-[12px] font-bold text-white shadow-[0_2px_6px_rgba(0,0,0,0.28)]">
-          S
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">Studio</p>
-          <p className="truncate text-[11px] text-[var(--muted-soft)]">De la idea al video</p>
-        </div>
-      </div>
-
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-        {ESTUDIO_NAV_GROUPS.map((group) => (
-          <div key={group.label} className="mb-4">
-            <p className="px-2.5 pb-1.5 pt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-soft)]">
-              {group.label}
-            </p>
-            {group.items.map((item) => (
-              <NavButton
-                key={item.id}
-                id={item.id}
-                label={item.label}
-                active={section === item.id}
-                badge={item.id === "creator-imagen" ? imageQueueCount ?? 0 : 0}
-                onSelect={onSelect}
-              />
-            ))}
-          </div>
+        {VISIBLE.map((item) => (
+          <NavButton
+            key={item.id}
+            id={item.id}
+            label={item.label}
+            active={section === item.id}
+            badge={item.id === "creator-imagen" ? imageQueueCount ?? 0 : 0}
+            onSelect={onSelect}
+          />
         ))}
       </div>
     </aside>
@@ -142,33 +127,22 @@ export function EstudioMobileNav({
   onSelect: (id: EstudioSectionId) => void;
 }) {
   return (
-    <div className="border-b border-[var(--border)] bg-white px-2 py-2 md:hidden">
-      {ESTUDIO_NAV_GROUPS.map((group) => (
-        <div key={group.label} className="mb-1 last:mb-0">
-          <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-soft)]">
-            {group.label}
-          </p>
-          <div className="flex gap-1 overflow-x-auto">
-            {group.items.map((item) => {
-              const active = section === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelect(item.id)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${
-                    active
-                      ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent-ink)]"
-                      : "text-[var(--muted)]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+    <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] bg-white px-2 py-2 md:hidden">
+      {VISIBLE.map((item) => {
+        const active = section === item.id;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onSelect(item.id)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${
+              active ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent-ink)]" : "text-[var(--muted)]"
+            }`}
+          >
+            {item.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

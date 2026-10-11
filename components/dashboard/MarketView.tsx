@@ -18,14 +18,11 @@ import {
   flag,
   GENRE_OPTIONS,
   IconApps,
-  IconHeart,
   IconReviews,
-  IconRising,
   IconSearch,
   IconTrend,
   NavItem,
   PageTitle,
-  SectionLabel,
   Segmented,
   shortDate,
   SkeletonRows,
@@ -35,24 +32,12 @@ import {
   type DetailPayload,
   type IconComp,
   type PageProps,
-  type RisingApp,
 } from "./market/shared";
-import { AdsPage, IconAds, IconOnboarding, IconOrganic, OnboardingsPage, OrganicPage } from "./market/LibraryPages";
-import { CompetitorsPage, IconKey, IconPhone, IconRadar, KeywordsPage, MyAppsPage } from "./market/AsoPages";
+import { AdsPage, IconAds } from "./market/LibraryPages";
+import { IconKey, IconPhone, KeywordsPage, MyAppsPage } from "./market/AsoPages";
 
-type PageId =
-  | "explore"
-  | "ads"
-  | "organic"
-  | "onboardings"
-  | "rankings"
-  | "rising"
-  | "favorites"
-  | "keywords"
-  | "myapps"
-  | "reviews"
-  | "competitors";
-const PAGES = new Set<PageId>(["explore", "ads", "organic", "onboardings", "rankings", "rising", "favorites", "keywords", "myapps", "reviews", "competitors"]);
+type PageId = "explore" | "ads" | "rankings" | "keywords" | "myapps" | "reviews";
+const PAGES = new Set<PageId>(["explore", "ads", "rankings", "keywords", "myapps", "reviews"]);
 
 function pageFrom(raw: string | null): PageId {
   return raw && PAGES.has(raw as PageId) ? (raw as PageId) : "explore";
@@ -275,97 +260,6 @@ function RankingsPage({ projectId, country, setCountry, favorites, onFavorite, o
             ),
           }}
         />
-      )}
-    </div>
-  );
-}
-
-function RisingPage({ projectId, country, setCountry, favorites, onFavorite, onOpen }: PageProps) {
-  const [months, setMonths] = useState("6");
-  const [genre, setGenre] = useState("");
-  const [excludeGames, setExcludeGames] = useState(true);
-  const { data, loading, error } = useMarket<{ items: RisingApp[] }>(projectId, {
-    op: "rising",
-    country,
-    months,
-    excludeGames: excludeGames ? "1" : "0",
-    ...(genre ? { genre } : {}),
-  });
-  const items = data?.items ?? [];
-  return (
-    <div className="space-y-4">
-      <PageTitle icon={IconRising} title="Apps en ascenso" subtitle="Apps lanzadas hace poco que ya están en el top 200 de descargas o ingresos" />
-      <div className="flex flex-wrap items-center gap-2">
-        <Segmented
-          label="Lanzadas en"
-          value={months}
-          onChange={setMonths}
-          options={[
-            { value: "1", label: "1M" },
-            { value: "3", label: "3M" },
-            { value: "6", label: "6M" },
-            { value: "12", label: "1A" },
-          ]}
-        />
-        <FilterSelect label="País" value={country} options={COUNTRY_OPTIONS} onChange={setCountry} />
-        <FilterSelect label="Categoría" value={genre} options={GENRE_OPTIONS} onChange={setGenre} />
-        <button
-          type="button"
-          onClick={() => setExcludeGames((v) => !v)}
-          aria-pressed={excludeGames}
-          className={`h-9 rounded-xl border px-3 text-[13px] transition ${
-            excludeGames ? "border-[#111113] bg-white font-semibold text-[var(--foreground)]" : "border-[var(--border)] bg-white text-[var(--foreground-soft)]"
-          }`}
-        >
-          {excludeGames ? "Sin juegos" : "Con juegos"}
-        </button>
-      </div>
-      {error ? <Empty>{error}</Empty> : loading || !data ? <SkeletonRows /> : items.length === 0 ? (
-        <Empty>Ninguna app lanzada en ese periodo está en el top 200.</Empty>
-      ) : (
-        <AppTable
-          apps={items}
-          favorites={favorites}
-          onFavorite={onFavorite}
-          onOpen={onOpen}
-          extraColumn={{
-            label: "Posición",
-            render: (app) => {
-              const row = app as RisingApp;
-              return (
-                <span className="flex flex-col items-end gap-1">
-                  {row.grossingRank ? (
-                    <span className="whitespace-nowrap rounded-full bg-[#dcfce7] px-2 py-0.5 text-[11px] font-semibold text-[#15803d]">#{row.grossingRank} ingresos</span>
-                  ) : null}
-                  {row.freeRank ? (
-                    <span className="whitespace-nowrap rounded-full bg-[#e0e7ff] px-2 py-0.5 text-[11px] font-semibold text-[#4338ca]">#{row.freeRank} descargas</span>
-                  ) : null}
-                </span>
-              );
-            },
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function FavoritesPage({ projectId, country, favorites, onFavorite, onOpen }: PageProps) {
-  const { data, loading, error } = useMarket<{ items: MarketApp[] }>(
-    projectId,
-    favorites.length ? { op: "lookup", ids: favorites.join(","), country } : null
-  );
-  return (
-    <div className="space-y-4">
-      <PageTitle icon={IconHeart} title="Favoritos" subtitle="Las apps que guardaste para seguirlas de cerca" />
-      {favorites.length === 0 ? (
-        <Empty>Toca el corazón de cualquier app para guardarla aquí.</Empty>
-      ) : error ? (
-        <Empty>{error}</Empty>
-      ) : loading || !data ? (
-        <SkeletonRows />
-      ) : (
-        <AppTable apps={data.items} favorites={favorites} onFavorite={onFavorite} onOpen={onOpen} />
       )}
     </div>
   );
@@ -691,7 +585,7 @@ function AppDetailPage({
                     <span className="bg-[#16a34a]" style={{ width: `${positive * 100}%` }} />
                   </span>
                 </span>
-              ) : null}
+          ) : null}
             </div>
             {ranks.length ? (
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -707,14 +601,14 @@ function AppDetailPage({
                   </span>
                 ))}
               </div>
-            ) : (
+          ) : (
               <p className="mt-3 text-[12px] text-[var(--muted-soft)]">No está en el top 200 de ningún país revisado.</p>
             )}
             {ranks.length ? (
               <p className="mt-1.5 text-[11px] text-[var(--muted-soft)]">
                 <span className="text-[#15803d]">Verde</span> = top ingresos · <span className="text-[#4338ca]">Azul</span> = top gratis
               </p>
-            ) : null}
+          ) : null}
           </div>
           <div className="flex flex-col items-end gap-2">
             <FavButton active={favorites.includes(app.id)} onClick={() => onFavorite(app.id)} />
@@ -773,7 +667,7 @@ function AppDetailPage({
                   </a>
                 </dd>
               </div>
-            ) : null}
+          ) : null}
           </dl>
         </div>
       </section>
@@ -856,60 +750,36 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
     onOpen: (app) => update({ app: app.id }),
   };
 
-  const nav: { section?: string; items: { id: PageId; label: string; icon: IconComp }[] }[] = [
-    {
-      section: "Explorar",
-      items: [
-        { id: "explore", label: "Apps", icon: IconApps },
-        { id: "ads", label: "Anuncios", icon: IconAds },
-        { id: "organic", label: "Orgánico", icon: IconOrganic },
-        { id: "onboardings", label: "Onboardings", icon: IconOnboarding },
-        { id: "rankings", label: "Tendencias", icon: IconTrend },
-        { id: "rising", label: "En ascenso", icon: IconRising },
-      ],
-    },
-    { section: "Guardado", items: [{ id: "favorites", label: `Favoritos${favorites.length ? ` · ${favorites.length}` : ""}`, icon: IconHeart }] },
-    {
-      section: "ASO",
-      items: [
-        { id: "keywords", label: "Keyword Explorer", icon: IconKey },
-        { id: "myapps", label: "Tus apps", icon: IconPhone },
-      ],
-    },
-    {
-      section: "Herramientas",
-      items: [
-        { id: "reviews", label: "Reseñas", icon: IconReviews },
-        { id: "competitors", label: "Competidores", icon: IconRadar },
-      ],
-    },
+  const nav: { id: PageId; label: string; icon: IconComp }[] = [
+    { id: "explore", label: "Apps", icon: IconApps },
+    { id: "ads", label: "Anuncios", icon: IconAds },
+    { id: "rankings", label: "Tendencias", icon: IconTrend },
+    { id: "keywords", label: "Keywords", icon: IconKey },
+    { id: "myapps", label: "Tus apps", icon: IconPhone },
+    { id: "reviews", label: "Reseñas", icon: IconReviews },
   ];
 
-  const mobileSections: MobileNavSection[] = nav.map((group) => ({
-    label: group.section,
-    items: group.items.map((item) => ({
-      id: item.id,
-      label: item.label,
-      icon: item.icon,
-      active: !appId && page === item.id,
-      onClick: () => {
-        go(item.id);
-        setMobileOpen(false);
-      },
-    })),
-  }));
+  const mobileSections: MobileNavSection[] = [
+    {
+      items: nav.map((item) => ({
+        id: item.id,
+        label: item.label,
+        icon: item.icon,
+        active: !appId && page === item.id,
+        onClick: () => {
+          go(item.id);
+          setMobileOpen(false);
+        },
+      })),
+    },
+  ];
 
   return (
     <div className="relative flex h-full overflow-hidden bg-[var(--background)]">
       <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[var(--border)] bg-white md:flex">
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
-          {nav.map((group) => (
-            <div key={group.section}>
-              {group.section ? <SectionLabel>{group.section}</SectionLabel> : null}
-              {group.items.map((item) => (
-                <NavItem key={item.id} label={item.label} icon={item.icon} active={!appId && page === item.id} onClick={() => go(item.id)} />
-              ))}
-            </div>
+          {nav.map((item) => (
+            <NavItem key={item.id} label={item.label} icon={item.icon} active={!appId && page === item.id} onClick={() => go(item.id)} />
           ))}
         </div>
         <p className="shrink-0 border-t border-[var(--border)] px-4 py-3 text-[11px] leading-snug text-[var(--muted-soft)]">
@@ -932,24 +802,14 @@ export function MarketView({ projectId, projectName }: { projectId: string; proj
             />
           ) : page === "rankings" ? (
             <RankingsPage {...pageProps} />
-          ) : page === "rising" ? (
-            <RisingPage {...pageProps} />
-          ) : page === "favorites" ? (
-            <FavoritesPage {...pageProps} />
           ) : page === "reviews" ? (
             <ReviewsPage {...pageProps} />
           ) : page === "ads" ? (
             <AdsPage {...pageProps} />
-          ) : page === "organic" ? (
-            <OrganicPage {...pageProps} />
-          ) : page === "onboardings" ? (
-            <OnboardingsPage {...pageProps} />
           ) : page === "keywords" ? (
             <KeywordsPage {...pageProps} />
           ) : page === "myapps" ? (
             <MyAppsPage {...pageProps} />
-          ) : page === "competitors" ? (
-            <CompetitorsPage {...pageProps} />
           ) : (
             <ExplorePage {...pageProps} />
           )}

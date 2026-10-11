@@ -1,48 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
+import { deleteProject } from "@/app/actions/projects";
 import type { Project } from "@/lib/types";
 import { ConnectSupabaseModal } from "@/components/projects/ConnectSupabaseModal";
-import {
-  ContractIcon,
-  DocumentIcon,
-  GridIcon,
-  LogoutIcon,
-  TaskIcon,
-  UsersIcon,
-} from "@/components/dashboard/icons";
-import { ContractsPanel } from "./ContractsPanel";
-import { DocumentsPanel } from "./DocumentsPanel";
-import { ProjectsPanel } from "./ProjectsPanel";
-import { TasksPanel } from "./TasksPanel";
-import { TeamPanel } from "./TeamPanel";
-import { useBusinessWorkspace } from "./use-workspace";
-
-export type BusinessSection =
-  | "proyectos"
-  | "task"
-  | "documents"
-  | "contratos"
-  | "team";
-
-const SECTIONS: {
-  id: BusinessSection;
-  label: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-}[] = [
-  { id: "proyectos", label: "Proyectos", icon: GridIcon },
-  { id: "task", label: "Task", icon: TaskIcon },
-  { id: "documents", label: "Documents", icon: DocumentIcon },
-  { id: "contratos", label: "Contratos", icon: ContractIcon },
-  { id: "team", label: "Team", icon: UsersIcon },
-];
-
-function isSection(value: string | null): value is BusinessSection {
-  return SECTIONS.some((section) => section.id === value);
-}
+import { CreateProjectModal } from "@/components/projects/CreateProjectModal";
+import { PlusIcon, TrashIcon } from "@/components/dashboard/icons";
 
 type BusinessDashboardProps = {
   projects: Project[];
@@ -50,218 +16,119 @@ type BusinessDashboardProps = {
   supabaseConnected: boolean;
 };
 
-export function BusinessDashboard({
-  projects,
-  userEmail,
-  supabaseConnected: initialConnected,
-}: BusinessDashboardProps) {
+export function BusinessDashboard({ projects, userEmail, supabaseConnected: initialConnected }: BusinessDashboardProps) {
   const router = useRouter();
   const userKey = userEmail ?? "default";
-  const [workspace, updateWorkspace] = useBusinessWorkspace(userKey);
-  const clearLegacyDocuments = useCallback(
-    () => updateWorkspace((prev) => ({ ...prev, documents: [] })),
-    [updateWorkspace]
-  );
-  const [section, setSection] = useState<BusinessSection>("proyectos");
   const [connected, setConnected] = useState(initialConnected);
   const [connectOpen, setConnectOpen] = useState(false);
-
-  useEffect(() => {
+  const [createOpen, setCreateOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [lastInitial, setLastInitial] = useState(initialConnected);
+  if (initialConnected !== lastInitial) {
+    setLastInitial(initialConnected);
     setConnected(initialConnected);
-  }, [initialConnected]);
+  }
 
-  useEffect(() => {
-    const current = new URLSearchParams(window.location.search).get("section");
-    if (isSection(current)) setSection(current);
-  }, []);
+  function handleCreate() {
+    if (!connected) setConnectOpen(true);
+    else setCreateOpen(true);
+  }
 
-  function go(next: BusinessSection) {
-    setSection(next);
-    const url = new URL(window.location.href);
-    if (next === "proyectos") url.searchParams.delete("section");
-    else url.searchParams.set("section", next);
-    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  function handleDelete(id: string, name: string) {
+    if (!window.confirm(`¿Eliminar el proyecto “${name}”?`)) return;
+    startTransition(async () => {
+      await deleteProject(id);
+      router.refresh();
+    });
   }
 
   return (
-    <div className="flex min-h-dvh bg-[var(--background)]">
-      <aside className="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:flex">
-        <div className="flex h-14 items-center gap-2.5 border-b border-[var(--border)] px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white shadow-[0_2px_6px_rgba(0,0,0,0.28)]">
-            Z
-          </div>
-          <div className="min-w-0">
-            <p className="text-[14px] font-semibold text-[var(--foreground)]">
-              My Business
-            </p>
-            <p className="truncate text-[11px] text-[var(--muted)]">Zima Admin</p>
-          </div>
+    <div className="min-h-dvh bg-[var(--background)]">
+      <header className="mx-auto flex h-16 max-w-[720px] items-center justify-between px-5 sm:px-8">
+        <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">Vantko</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setConnectOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]"
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-[var(--success)]" : "bg-[var(--muted-soft)]"}`} />
+            Supabase
+          </button>
+          <form action={signOut}>
+            <button
+              type="submit"
+              title={userEmail ?? undefined}
+              className="rounded-full px-3 py-1.5 text-[12px] font-medium text-[var(--muted)] transition hover:text-[var(--foreground)]"
+            >
+              Salir
+            </button>
+          </form>
         </div>
-        <nav aria-label="Secciones" className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-4">
-          <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-soft)]">
-            Workspace
-          </p>
-          {SECTIONS.map((item) => {
-            const active = section === item.id;
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => go(item.id)}
-                data-active={active}
-                aria-current={active ? "page" : undefined}
-                className="ui-nav-item"
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
+      </header>
 
-          {projects.length > 0 ? (
-            <>
-              <p className="mb-1.5 mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-soft)]">
-                Proyectos
-              </p>
-              {projects.slice(0, 8).map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.id}`}
-                  className="ui-nav-item group"
-                >
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-[var(--accent-soft)] text-[10px] font-bold text-[var(--accent-ink)]">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-[720px] px-5 pb-16 pt-10 outline-none sm:px-8">
+        <div className="flex items-end justify-between gap-4">
+          <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">Proyectos</h1>
+          <button type="button" onClick={handleCreate} className="ui-btn-primary">
+            <PlusIcon className="h-4 w-4" />
+            Nuevo
+          </button>
+        </div>
+
+        {!connected ? (
+          <button
+            type="button"
+            onClick={() => setConnectOpen(true)}
+            className="mt-6 text-[13px] text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline"
+          >
+            Conecta Supabase para crear proyectos →
+          </button>
+        ) : null}
+
+        {projects.length === 0 ? (
+          <p className="mt-16 text-center text-[14px] text-[var(--muted)]">Aún no tienes proyectos.</p>
+        ) : (
+          <ul className="mt-8 divide-y divide-[var(--border)] border-t border-[var(--border)]">
+            {projects.map((project) => (
+              <li key={project.id} className="group flex items-center gap-3">
+                <Link href={`/projects/${project.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-4">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--accent-metal)] text-[13px] font-bold text-white">
                     {(project.name.trim()[0] || "P").toUpperCase()}
                   </span>
-                  <span className="min-w-0 flex-1 truncate">{project.name}</span>
-                  <span className="text-[11px] text-[var(--muted-soft)] opacity-0 transition group-hover:opacity-100">
-                    →
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[14px] font-medium text-[var(--foreground)]">{project.name}</span>
+                    {project.description ? (
+                      <span className="block truncate text-[13px] text-[var(--muted)]">{project.description}</span>
+                    ) : null}
                   </span>
+                  <span className="text-[13px] text-[var(--muted-soft)] transition group-hover:text-[var(--foreground)]">→</span>
                 </Link>
-              ))}
-            </>
-          ) : null}
-        </nav>
-        <div className="border-t border-[var(--border)] p-3">
-          <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[image:var(--accent-metal)] text-[11px] font-bold text-white">
-              {(userEmail?.[0] ?? "?").toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12px] font-semibold text-[var(--foreground)]">
-                {userEmail ?? "Workspace"}
-              </span>
-              <span className="block text-[11px] text-[var(--muted-soft)]">Admin</span>
-            </span>
-            <form action={signOut}>
-              <button
-                type="submit"
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
-                className="rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"
-              >
-                <LogoutIcon className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-white/85 backdrop-blur">
-          <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-5">
-            <div className="flex min-w-0 items-center gap-2.5 md:hidden">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[12px] font-bold text-white">
-                Z
-              </div>
-              <p className="truncate text-[14px] font-semibold text-[var(--foreground)]">
-                My Business
-              </p>
-            </div>
-            <p className="hidden truncate text-[15px] font-semibold tracking-tight text-[var(--foreground)] md:block">
-              {SECTIONS.find((item) => item.id === section)?.label}
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setConnectOpen(true)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition ${
-                  connected
-                    ? "bg-[var(--success-soft)] text-[#027a48] hover:bg-[#d1fadf]"
-                    : "bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[#e5e7eb]"
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    connected ? "bg-[var(--success)]" : "bg-[var(--accent)]"
-                  }`}
-                />
-                {connected ? "Supabase conectado" : "Conectar Supabase"}
-              </button>
-              <form action={signOut} className="md:hidden">
                 <button
-                  type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-[var(--muted)] transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"
-                >
-                  <LogoutIcon className="h-3.5 w-3.5" />
-                  Sign out
-                </button>
-              </form>
-            </div>
-          </div>
-          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:hidden">
-            {SECTIONS.map((item) => {
-              const active = section === item.id;
-              return (
-                <button
-                  key={item.id}
                   type="button"
-                  onClick={() => go(item.id)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold ${
-                    active
-                      ? "bg-[var(--accent)] text-white shadow-[0_2px_5px_rgba(0,0,0,0.28)]"
-                      : "bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--border)]"
-                  }`}
+                  disabled={pending}
+                  onClick={() => handleDelete(project.id, project.name)}
+                  className="rounded-lg p-1.5 text-[var(--muted-soft)] opacity-0 transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] focus-visible:opacity-100 group-hover:opacity-100"
+                  aria-label={`Eliminar ${project.name}`}
                 >
-                  {item.label}
+                  <TrashIcon className="h-3.5 w-3.5" />
                 </button>
-              );
-            })}
-          </nav>
-        </header>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
 
-        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 outline-none sm:px-8">
-          {section === "proyectos" ? (
-            <ProjectsPanel
-              projects={projects}
-              userEmail={userEmail}
-              connected={connected}
-              workspace={workspace}
-              onNeedConnect={() => setConnectOpen(true)}
-              onOpenSection={go}
-            />
-          ) : null}
-          {section === "task" ? (
-            <TasksPanel tasks={workspace.tasks} onChange={updateWorkspace} />
-          ) : null}
-          {section === "documents" ? (
-            <DocumentsPanel
-              legacy={workspace.documents}
-              onLegacyImported={clearLegacyDocuments}
-            />
-          ) : null}
-          {section === "contratos" ? (
-            <ContractsPanel
-              contracts={workspace.contracts}
-              onChange={updateWorkspace}
-            />
-          ) : null}
-          {section === "team" ? (
-            <TeamPanel team={workspace.team} onChange={updateWorkspace} />
-          ) : null}
-        </main>
-      </div>
-
+      <CreateProjectModal
+        open={createOpen}
+        userKey={userKey}
+        connected={connected}
+        onClose={() => setCreateOpen(false)}
+        onNeedConnect={() => {
+          setCreateOpen(false);
+          setConnectOpen(true);
+        }}
+      />
       <ConnectSupabaseModal
         open={connectOpen}
         connected={connected}
