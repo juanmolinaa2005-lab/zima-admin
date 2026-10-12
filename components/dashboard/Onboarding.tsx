@@ -7,6 +7,12 @@ import { has, NO_APP, questionsFor, type Answers, type BuildType, type Question 
 type Initial = { type: BuildType | null; pitch: string | null; answers: Answers };
 
 function preparedFor(type: BuildType, answers: Answers): string[] {
+  const accounts = typeof answers.accounts === "string" ? answers.accounts.split(/\s+/).filter((l) => l.includes(".")).length : 0;
+  const tracking = accounts ? [`Midiendo ${accounts} ${accounts === 1 ? "cuenta" : "cuentas"}: sus videos aparecerán en unos minutos`] : [];
+  return [...preparedCore(type, answers), ...tracking];
+}
+
+function preparedCore(type: BuildType, answers: Answers): string[] {
   const platforms = Array.isArray(answers.platforms) ? answers.platforms.length : 0;
   const tasks = planFor(type, answers).length;
   if (type === "app") {
@@ -238,6 +244,14 @@ export function Onboarding({
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || "No se pudo guardar");
+      const accounts = typeof answers.accounts === "string" ? answers.accounts.trim() : "";
+      if (accounts) {
+        void fetch(`/api/projects/${projectId}/viewtracker/accounts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: accounts }),
+        });
+      }
       setFinished(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar");
@@ -382,6 +396,15 @@ export function Onboarding({
                 setAnswers({ ...answers, appId: NO_APP, stores: ["none"] });
                 setStep(step + 1);
               }}
+            />
+          ) : question.kind === "accounts" ? (
+            <textarea
+              autoFocus
+              rows={4}
+              value={typeof value === "string" ? value : ""}
+              placeholder={question.placeholder}
+              onChange={(e) => setAnswers({ ...answers, [question.id]: e.target.value })}
+              className="w-full resize-none rounded-xl border border-[var(--border)] bg-white px-4 py-3.5 text-[15px] leading-relaxed outline-none transition focus:border-[var(--foreground)]"
             />
           ) : question.kind === "text" ? (
             <input

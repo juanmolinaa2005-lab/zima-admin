@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { isAuthorizedImageWorker } from "@/lib/creator/image-queue-worker";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { statsPatch } from "@/lib/viewtracker/refresh";
+import { discoverAccountVideos } from "@/lib/viewtracker/account-feed";
+import { ingestDiscoveredVideos } from "@/lib/viewtracker/ingest";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
@@ -12,6 +14,9 @@ const BUDGET_MS = 240_000;
 const STALE_MS = 12 * 3_600_000;
 const BATCH = 200;
 const CONCURRENCY = 6;
+const ACCOUNT_STALE_MS = 6 * 3_600_000;
+const ACCOUNT_BUDGET_MS = 90_000;
+const ACCOUNT_BATCH = 30;
 
 function safeEqual(a: string, b: string) {
   if (!a || a.length !== b.length) return false;
@@ -31,6 +36,32 @@ async function handle(request: Request) {
   }
   if (!authorized) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
+  const touched = new Set<string>();
+  let discovered = 0;
+  const accountsBefore = new Date(Date.now() - ACCOUNT_STALE_MS).toISOString();
+  const { data: accounts } = await admin
+    .from("project_tracked_accounts")
+    .select("id, project_id, user_id, url, platform, username")
+    .or(`last_refreshed_at.is.null,last_refreshed_at.lt.${accountsBefore}`)
+    .order("last_refreshed_at", { ascending: true, nullsFirst: true })
+    .limit(ACCOUNT_BATCH);
+  const accountQueue = [...(accounts ?? [])];
+  async function accountWorker() {
+    while (accountQueue.length && Date.now() - started < ACCOUNT_BUDGET_MS) {
+      const acc = accountQueue.shift()!;
+      try {
+        const items = await discoverAccountVideos({ url: acc.url, platform: acc.platform, username: acc.username });
+        const result = await ingestDiscoveredVideos(admin, { projectId: acc.project_id, userId: acc.user_id, accountId: acc.id, items });
+        discovered += result.inserted;
+        touched.add(acc.project_id);
+      } catch {
+        /* next run retries */
+      }
+      await admin.from("project_tracked_accounts").update({ last_refreshed_at: new Date().toISOString() }).eq("id", acc.id);
+    }
+  }
+  await Promise.all(Array.from({ length: 3 }, accountWorker));
+
   const staleBefore = new Date(Date.now() - STALE_MS).toISOString();
   const { data, error } = await admin
     .from("project_tracked_videos")
@@ -41,7 +72,6 @@ async function handle(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const queue = [...((data ?? []) as Row[])];
-  const touched = new Set<string>();
   let refreshed = 0;
   let failed = 0;
 
@@ -71,7 +101,7 @@ async function handle(request: Request) {
       .upsert({ project_id: projectId, day: today, total_views: total, videos: list.length, updated_at: new Date().toISOString() }, { onConflict: "project_id,day" });
   }
 
-  return NextResponse.json({ refreshed, failed, projects: touched.size, pending: queue.length });
+  return NextResponse.json({ refreshed, failed, discovered, projects: touched.size, pending: queue.length });
 }
 
 export const GET = handle;

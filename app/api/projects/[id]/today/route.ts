@@ -58,7 +58,12 @@ export async function GET(_request: Request, { params }: Params) {
     db.from("product_pages").select("slug, published").eq("project_id", projectId).maybeSingle(),
     db.from("page_subscribers").select("id", { count: "exact", head: true }).eq("project_id", projectId),
     db.from("launch_profiles").select("product_type, pitch, answers, onboarded_at").eq("project_id", projectId).maybeSingle(),
-    loadRevenue(),
+    Promise.race([
+      loadRevenue(),
+      new Promise<TodayData["revenue"]>((resolve) =>
+        setTimeout(() => resolve({ connected: true, net: null, newUsers: null, mrr: null, days: REVENUE_DAYS }), 4000)
+      ),
+    ]),
   ]);
 
   const now = Date.now();

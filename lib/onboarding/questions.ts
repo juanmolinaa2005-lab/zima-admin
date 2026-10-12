@@ -6,7 +6,7 @@ export type Question = {
   id: string;
   title: string;
   hint?: string;
-  kind: "single" | "multi" | "text" | "appstore";
+  kind: "single" | "multi" | "text" | "appstore" | "accounts";
   options?: { id: string; label: string; hint?: string }[];
   placeholder?: string;
   optional?: boolean;
@@ -48,6 +48,15 @@ const APP_PITCH: Question = {
   hint: "La usaremos en tu página y en los guiones de tus videos.",
   kind: "text",
   placeholder: "Cuenta calorías con una foto",
+};
+
+const ACCOUNTS: Question = {
+  id: "accounts",
+  title: "¿Ya tienes cuentas? Pega sus enlaces",
+  hint: "Mediremos sus videos solos cada hora. Una por línea, hasta 5.",
+  kind: "accounts",
+  placeholder: "https://www.tiktok.com/@tuapp\nhttps://www.instagram.com/tuapp",
+  optional: true,
 };
 
 const APP_QUESTIONS: Question[] = [
@@ -95,6 +104,7 @@ const APP_QUESTIONS: Question[] = [
       { id: "unsure", label: "Aún no lo sé" },
     ],
   },
+  ACCOUNTS,
 ];
 
 const WEB_QUESTIONS: Question[] = [
@@ -147,6 +157,7 @@ const WEB_QUESTIONS: Question[] = [
       { id: "youtube", label: "YouTube" },
     ],
   },
+  ACCOUNTS,
 ];
 
 export function questionsFor(type: BuildType | null, answers: Answers = {}): Question[] {
@@ -185,6 +196,7 @@ export function cleanAnswers(type: BuildType, raw: unknown): Answers {
     const value = input[q.id];
     const allowed = new Set(q.options?.map((o) => o.id));
     if (q.kind === "text" && typeof value === "string" && value.trim()) out[q.id] = value.trim().slice(0, 200);
+    if (q.kind === "accounts" && typeof value === "string" && value.trim()) out[q.id] = value.trim().slice(0, 1500);
     if (q.kind === "single" && typeof value === "string" && allowed.has(value)) out[q.id] = value;
     if (q.kind === "multi" && Array.isArray(value)) {
       const picked = value.filter((v): v is string => typeof v === "string" && allowed.has(v));

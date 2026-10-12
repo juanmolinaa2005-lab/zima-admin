@@ -5,6 +5,7 @@ import { CountUp, formatCount } from "@/components/motion/CountUp";
 import { STAGES, planFor, type LaunchTask, type TaskLink } from "@/lib/launch/playbook";
 import type { BuildType } from "@/lib/onboarding/questions";
 import { Onboarding } from "./Onboarding";
+import { IdeasPanel } from "./today/IdeasPanel";
 import type { TodayData } from "@/lib/today/types";
 
 type OpenFn = (link: Pick<TaskLink, "view" | "params">) => void;
@@ -162,6 +163,7 @@ export function TodayView({
 }) {
   const [data, setData] = useState<TodayData | null>(null);
   const [editing, setEditing] = useState(false);
+  const [variant, setVariant] = useState<{ title: string; nonce: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -331,6 +333,8 @@ export function TodayView({
           )}
         </section>
 
+        <IdeasPanel projectId={projectId} variantOf={variant} onCreate={() => onOpen({ view: "create" })} />
+
         <section className="mt-8">
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--muted)]">El ciclo</h2>
           <div className="ui-stagger mt-3 grid gap-3 md:grid-cols-3">
@@ -389,7 +393,10 @@ export function TodayView({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onOpen({ view: "create" })}
+                      onClick={() => {
+                        setVariant({ title: v.title || v.author || "tu video", nonce: Date.now() });
+                        document.getElementById("ideas-hoy")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
                       className="ui-press shrink-0 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] transition hover:border-[var(--foreground)]"
                     >
                       Hacer variantes
