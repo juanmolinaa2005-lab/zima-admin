@@ -1100,9 +1100,9 @@ button.bg-\[var\(--accent\)\]:active:not(:disabled) {
 
 .nav-indicator {
   transition:
-    transform 420ms var(--ease),
-    height 420ms var(--ease),
-    opacity 200ms var(--ease);
+    transform 240ms var(--ease),
+    height 240ms var(--ease),
+    opacity 150ms var(--ease);
 }
 
 .nav-collapse {

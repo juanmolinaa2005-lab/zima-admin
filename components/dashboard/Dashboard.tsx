@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Project } from "@/lib/types";
 import type { EstudioSectionId } from "@/lib/creator/estudio-v1";
 import { MarketingPage } from "./MarketingPages";
@@ -16,7 +16,6 @@ type DashboardProps = {
 };
 
 export function Dashboard({ project, userEmail }: DashboardProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -32,7 +31,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   function select(next: ViewId) {
-    router.replace(next === "overview" ? pathname : `${pathname}?view=${next}`, { scroll: false });
+    window.history.replaceState(null, "", next === "overview" ? pathname : `${pathname}?view=${next}`);
   }
 
   function renderView(id: ViewId): ReactNode {
