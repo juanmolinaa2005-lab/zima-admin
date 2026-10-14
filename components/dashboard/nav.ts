@@ -1,19 +1,9 @@
 import type { ComponentType, SVGProps } from "react";
-import {
-  AnalyticsIcon,
-  EstudioIcon,
-  GalleryIcon,
-  HomeIcon,
-  IdeasIcon,
-  MiAppIcon,
-  PageIcon,
-  PublishIcon,
-  UsersIcon,
-} from "./icons";
+import { EstudioIcon, GalleryIcon, ViewTrackerIcon } from "./icons";
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type ViewId = "today" | "create" | "publish" | "creators" | "results" | "ideas" | "miapp" | "page" | "gallery";
+export type ViewId = "marketing" | "studio" | "gallery";
 
 export type ViewMeta = {
   label: string;
@@ -21,39 +11,18 @@ export type ViewMeta = {
 };
 
 export const VIEW_META: Record<ViewId, ViewMeta> = {
-  today: { label: "Hoy", icon: HomeIcon },
-  create: { label: "Crear", icon: EstudioIcon },
-  publish: { label: "Publicar", icon: PublishIcon },
-  creators: { label: "Creadores", icon: UsersIcon },
-  results: { label: "Resultados", icon: AnalyticsIcon },
-  ideas: { label: "Ideas", icon: IdeasIcon },
-  miapp: { label: "App", icon: MiAppIcon },
-  page: { label: "Página", icon: PageIcon },
+  marketing: { label: "Marketing", icon: ViewTrackerIcon },
+  studio: { label: "Studio", icon: EstudioIcon },
   gallery: { label: "Galería", icon: GalleryIcon },
 };
 
-/** Sidebar order follows the growth loop. Gallery opens from inside Crear. */
-export const NAV: ViewId[] = ["today", "create", "publish", "creators", "results", "ideas", "miapp", "page"];
+/** Sidebar order. Gallery opens from inside Studio. */
+export const NAV: ViewId[] = ["marketing", "studio"];
 
-export type BuildKind = "app" | "web" | "both" | null;
-
-export function viewLabel(id: ViewId, kind: BuildKind): string {
-  if (id === "miapp" && kind === "web") return "Producto";
-  return VIEW_META[id].label;
-}
-
-const LEGACY_VIEWS: Record<string, ViewId> = {
-  launch: "today",
-  estudio: "create",
-  redes: "create",
-  marketing: "create",
-  viewtracker: "results",
-  market: "ideas",
-  emails: "creators",
-};
+const STUDIO_ALIASES = new Set(["create", "estudio", "redes"]);
 
 export function viewFrom(raw: string | null): ViewId {
-  if (!raw) return "today";
-  if (raw in VIEW_META) return raw as ViewId;
-  return LEGACY_VIEWS[raw] ?? "today";
+  if (raw === "studio" || raw === "gallery") return raw;
+  if (raw && STUDIO_ALIASES.has(raw)) return "studio";
+  return "marketing";
 }

@@ -30,18 +30,18 @@ function Logo({ light = false }: { light?: boolean }) {
 
 const STATS: { label: string; value: number; format: CountFormat }[] = [
   { label: "Vistas · 7 días", value: 1_240_000, format: "compact" },
-  { label: "Videos", value: 63, format: "int" },
-  { label: "Hits", value: 4, format: "int" },
-  { label: "Ingresos", value: 3410, format: "money" },
+  { label: "Videos publicados", value: 63, format: "int" },
+  { label: "Cuentas", value: 9, format: "int" },
+  { label: "Creadores", value: 6, format: "int" },
 ];
 
 const BARS = [22, 35, 28, 46, 40, 62, 55, 78, 70, 100];
 
 const LOOP = [
-  { name: "Crear", hint: "12 videos con IA listos para revisar" },
-  { name: "Publicar", hint: "9 cuentas · próximo en 14 min" },
-  { name: "Creadores", hint: "6 creadores pagados por vista" },
-  { name: "Medir", hint: "Un video a 840 K vistas · 12× tu mediana" },
+  { name: "Publicación automática", hint: "9 cuentas · próximo video en 14 min" },
+  { name: "Seguimiento", hint: "Vistas de cada video, actualizadas cada hora" },
+  { name: "Creadores", hint: "6 activos · 3 respuestas nuevas" },
+  { name: "Studio", hint: "12 videos con IA listos para revisar" },
 ];
 
 function HeroMock() {
@@ -49,7 +49,7 @@ function HeroMock() {
     <div className="overflow-hidden rounded-t-2xl border border-b-0 border-[#e3e8ee] bg-white shadow-[0_-8px_50px_-18px_rgba(26,40,80,0.22)]">
       <div className="flex items-center gap-3 border-b border-[#e3e8ee] px-5 py-3">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#111114] text-[10px] font-bold text-white">V</span>
-        <p className="text-[13px] font-medium text-[#1a1f36]">Hoy</p>
+        <p className="text-[13px] font-medium text-[#1a1f36]">Marketing</p>
         <span className="flex items-center gap-1.5 text-[12px] text-[#8792a2]">
           <span className="ui-live-dot" />
           En vivo
@@ -123,18 +123,18 @@ export function LandingPage() {
           <div className="relative mx-auto flex min-h-[100dvh] max-w-[1120px] flex-col px-5 pt-24 sm:px-8">
             <div className="mx-auto mt-[7vh] max-w-[740px] text-center">
               <h1 className={`${serif.className} text-[48px] leading-[1.05] tracking-[-0.03em] text-white sm:text-[72px]`}>
-                <span className="ui-blur-rise block">Ya creaste tu producto.</span>
+                <span className="ui-blur-rise block">El marketing de tu negocio,</span>
                 <span className="ui-blur-rise block" style={{ animationDelay: "160ms" }}>
-                  Ahora haz que lo vean.
+                  en automático.
                 </span>
               </h1>
               <p
                 className="ui-blur-rise mx-auto mt-5 max-w-[480px] text-[16px] leading-relaxed text-white/80 sm:text-[18px]"
                 style={{ animationDelay: "320ms" }}
               >
-                Videos con IA cada día, publicados solos en todas tus cuentas de{" "}
-                <RotatingWord words={["TikTok", "Instagram", "YouTube"]} className="font-medium text-white" />{" "}
-                y medidos hasta el dinero que traen.
+                Publica solo en todas tus cuentas de{" "}
+                <RotatingWord words={["TikTok", "Instagram", "YouTube"]} className="font-medium text-white" />, mide cada video y
+                controla a tus creadores desde un solo sitio.
               </p>
               <div className="ui-blur-rise mt-8" style={{ animationDelay: "460ms" }}>
                 <LandingHeroForm />

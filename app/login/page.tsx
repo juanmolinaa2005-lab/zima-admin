@@ -21,11 +21,11 @@ export default function LoginPage() {
 
         <div className="relative mt-auto max-w-[440px]">
           <h1 className="text-[42px] font-semibold leading-[1.05] tracking-[-0.04em]">
-            Ya creaste tu producto.
+            El marketing de tu negocio,
             <br />
-            Ahora haz que lo vean.
+            en automático.
           </h1>
-          <p className="mt-4 text-[16px] text-white/75">Videos con IA, publicados solos y medidos hasta el dinero.</p>
+          <p className="mt-4 text-[16px] text-white/75">Publica, mide y controla todo tu marketing desde un solo sitio.</p>
         </div>
       </section>
 

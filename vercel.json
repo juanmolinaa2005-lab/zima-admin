@@ -2,20 +2,12 @@
   "installCommand": "npm install && node node_modules/ffmpeg-static/install.js",
   "crons": [
     {
-      "path": "/api/cron/market-ads",
-      "schedule": "0 7 * * *"
-    },
-    {
       "path": "/api/cron/estudio-images",
       "schedule": "0 4 * * *"
     },
     {
       "path": "/api/cron/video-autopilot",
       "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/cron/market-snapshots",
-      "schedule": "0 6 * * *"
     }
   ]
 }

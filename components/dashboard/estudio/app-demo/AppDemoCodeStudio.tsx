@@ -202,7 +202,7 @@ export function AppDemoCodeStudio({
     }
   }
 
-  const backHref = `/projects/${projectId}?view=create`;
+  const backHref = `/projects/${projectId}?view=studio`;
 
   return (
     <div className="flex h-dvh flex-col bg-[#0b0c10] text-white">

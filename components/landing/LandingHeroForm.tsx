@@ -15,12 +15,12 @@ export function LandingHeroForm() {
   return (
     <form onSubmit={submit} className="mx-auto w-full max-w-[360px]">
       <label className="flex h-12 items-center rounded-full bg-white pl-5 pr-1.5 shadow-[0_10px_40px_-12px_rgba(26,40,80,0.28)] ring-1 ring-black/[0.06]">
-        <span className="sr-only">Tu producto o correo</span>
+        <span className="sr-only">Tu negocio o correo</span>
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="tuapp.com"
+          placeholder="tunegocio.com"
           autoComplete="url"
           className="min-w-0 flex-1 bg-transparent text-[14px] text-[#1a1f36] outline-none placeholder:text-[#8792a2]"
         />

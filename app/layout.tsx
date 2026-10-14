@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vantko · Ya creaste tu producto. Ahora haz que lo vean.",
+  title: "Vantko · Automatización y control de marketing para tu negocio",
   description:
-    "Vantko crea videos con IA cada día, los publica solos en todas tus cuentas y mide qué videos traen dinero. El sistema de crecimiento para founders.",
+    "Vantko publica en automático en todas tus cuentas, mide cada video cada hora y te ayuda a gestionar creadores. Automatización y control de marketing para tu negocio.",
 };
 
 export const viewport: Viewport = {
