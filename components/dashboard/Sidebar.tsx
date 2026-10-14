@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
 import { MobileFabMenu } from "./MobileFabMenu";
-import { NAV, VIEW_META, type IconComp, type ViewId } from "./nav";
+import { NAV_GROUPS, VIEW_META, type IconComp, type ViewId } from "./nav";
 
 type SidebarProps = {
   active: ViewId;
@@ -78,20 +78,19 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
         subtitle="Vantko"
         fabLabel="Abrir menú"
         fabClassName="bottom-5 right-4"
-        sections={[
-          {
-            items: NAV.map((id) => ({
-              id,
-              label: VIEW_META[id].label,
-              icon: VIEW_META[id].icon,
-              active: active === id,
-              onClick: () => {
-                onSelect(id);
-                setMobileOpen(false);
-              },
-            })),
-          },
-        ]}
+        sections={NAV_GROUPS.map((group) => ({
+          label: group.label ?? undefined,
+          items: group.items.map((id) => ({
+            id,
+            label: VIEW_META[id].label,
+            icon: VIEW_META[id].icon,
+            active: active === id,
+            onClick: () => {
+              onSelect(id);
+              setMobileOpen(false);
+            },
+          })),
+        }))}
         footer={
           <div className="space-y-0.5 px-1 pb-1">
             <Link
@@ -144,16 +143,29 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
           </Link>
         </div>
 
-        <nav className={`min-h-0 flex-1 space-y-0.5 overflow-y-auto py-2 ${collapsed ? "px-2" : "px-3"}`}>
-          {NAV.map((id) => (
-            <NavButton
-              key={id}
-              label={VIEW_META[id].label}
-              icon={VIEW_META[id].icon}
-              active={active === id}
-              collapsed={collapsed}
-              onClick={() => onSelect(id)}
-            />
+        <nav className={`min-h-0 flex-1 overflow-y-auto py-2 ${collapsed ? "px-2" : "px-3"}`}>
+          {NAV_GROUPS.map((group, i) => (
+            <div key={group.label ?? "top"} className={i ? "mt-3" : ""}>
+              {group.label ? (
+                collapsed ? (
+                  <div aria-hidden className="mx-2 mb-2 border-t border-[var(--border)]" />
+                ) : (
+                  <p className="px-2.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-[var(--muted-soft)]">{group.label}</p>
+                )
+              ) : null}
+              <div className="space-y-0.5">
+                {group.items.map((id) => (
+                  <NavButton
+                    key={id}
+                    label={VIEW_META[id].label}
+                    icon={VIEW_META[id].icon}
+                    active={active === id}
+                    collapsed={collapsed}
+                    onClick={() => onSelect(id)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 

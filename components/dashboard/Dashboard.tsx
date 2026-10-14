@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Project } from "@/lib/types";
 import type { EstudioSectionId } from "@/lib/creator/estudio-v1";
-import { ViewTrackerView } from "./ViewTrackerView";
+import { MarketingPage } from "./MarketingPages";
 import { CreatorEstudioV1View } from "./CreatorEstudioV1View";
 import { GalleryView } from "./GalleryView";
 import { Sidebar } from "./Sidebar";
@@ -21,7 +21,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const searchParams = useSearchParams();
 
   const rawView = searchParams.get("view");
-  const view = viewFrom(rawView);
+  const view = viewFrom(rawView, searchParams.get("vt"));
 
   const [studioSection, setStudioSection] = useState<EstudioSectionId | undefined>(
     rawView === "redes" ? "redes" : undefined
@@ -29,21 +29,14 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const [opened, setOpened] = useState<ViewId[]>([view]);
   if (!opened.includes(view)) setOpened([...opened, view]);
 
-  const [sidebarExpanded, setSidebarExpanded] = useState(false);
-  const [lastView, setLastView] = useState(view);
-  if (view !== lastView) {
-    setLastView(view);
-    setSidebarExpanded(false);
-  }
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   function select(next: ViewId) {
-    router.replace(next === "marketing" ? pathname : `${pathname}?view=${next}`, { scroll: false });
+    router.replace(next === "overview" ? pathname : `${pathname}?view=${next}`, { scroll: false });
   }
 
   function renderView(id: ViewId): ReactNode {
     switch (id) {
-      case "marketing":
-        return <ViewTrackerView projectId={project.id} projectName={project.name} />;
       case "studio":
         return (
           <CreatorEstudioV1View
@@ -55,6 +48,8 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
         );
       case "gallery":
         return <GalleryView projectId={project.id} />;
+      default:
+        return <MarketingPage id={id} projectId={project.id} />;
     }
   }
 
