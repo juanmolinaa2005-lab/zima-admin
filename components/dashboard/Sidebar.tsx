@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
@@ -17,49 +17,80 @@ type SidebarProps = {
   onSelect: (view: ViewId) => void;
 };
 
+type Motion = "lift" | "tilt" | "spin" | "nudge" | "pulse";
+
+const MOTION: Partial<Record<ViewId, Motion>> = {
+  overview: "pulse",
+  accounts: "pulse",
+  videos: "nudge",
+  creators: "pulse",
+  upload: "lift",
+  requests: "nudge",
+  responses: "tilt",
+  studio: "tilt",
+};
+
 function NavButton({
   label,
   icon: Icon,
   active,
   collapsed,
+  motion = "pulse",
   onClick,
   href,
+  buttonRef,
 }: {
   label: string;
   icon: IconComp;
   active?: boolean;
   collapsed: boolean;
+  motion?: Motion;
   onClick?: () => void;
   href?: string;
+  buttonRef?: (el: HTMLElement | null) => void;
 }) {
-  const cls = `ui-press group flex w-full font-medium transition-colors duration-200 ${
-    collapsed
-      ? "min-h-[52px] flex-col items-center justify-center gap-1 rounded-[10px] px-0.5 py-1.5 text-[10px] leading-tight"
-      : "h-9 flex-row items-center gap-2.5 rounded-[10px] px-2.5 text-[13px]"
-  } ${
-    active
-      ? "bg-white text-[var(--foreground)] shadow-[0_0_0_1px_var(--border),var(--shadow-sm)]"
-      : "text-[var(--muted)] hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+  const cls = `group relative z-10 flex h-9 w-full items-center gap-3 rounded-[10px] px-[11px] text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/20 ${
+    active ? "text-[var(--foreground)]" : "text-[var(--muted)] hover:bg-black/[0.035] hover:text-[var(--foreground)]"
   }`;
   const inner = (
     <>
-      <Icon
-        className={`h-[17px] w-[17px] shrink-0 ${
-          active ? "text-[var(--foreground)]" : "text-[var(--muted-soft)] group-hover:text-[var(--foreground)]"
+      <span
+        key={active ? "on" : "off"}
+        className="nav-icon"
+        data-motion={motion}
+        data-active={active ? "true" : undefined}
+      >
+        <Icon
+          className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+            active ? "text-[var(--foreground)]" : "text-[var(--muted-soft)] group-hover:text-[var(--foreground)]"
+          }`}
+        />
+      </span>
+      <span
+        className={`min-w-0 flex-1 truncate text-left transition-[opacity,transform] duration-200 ease-[var(--ease)] ${
+          collapsed ? "pointer-events-none -translate-x-1.5 opacity-0" : "translate-x-0 opacity-100 delay-75"
         }`}
-      />
-      <span className={collapsed ? "line-clamp-2 w-full text-center" : "min-w-0 flex-1 truncate text-left"}>{label}</span>
+      >
+        {label}
+      </span>
     </>
   );
   if (href) {
     return (
-      <Link href={href} title={collapsed ? label : undefined} className={cls}>
+      <Link ref={buttonRef} href={href} title={collapsed ? label : undefined} className={cls}>
         {inner}
       </Link>
     );
   }
   return (
-    <button type="button" title={collapsed ? label : undefined} aria-current={active ? "page" : undefined} onClick={onClick} className={cls}>
+    <button
+      ref={buttonRef}
+      type="button"
+      title={collapsed ? label : undefined}
+      aria-current={active ? "page" : undefined}
+      onClick={onClick}
+      className={cls}
+    >
       {inner}
     </button>
   );
@@ -68,6 +99,29 @@ function NavButton({
 export function Sidebar({ active, userEmail, projectName, projectId, collapsed, onToggleCollapsed, onSelect }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const userInitial = (userEmail?.trim()[0] || "U").toUpperCase();
+  const listRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef(new Map<ViewId, HTMLElement>());
+
+  useLayoutEffect(() => {
+    const indicator = indicatorRef.current;
+    const list = listRef.current;
+    if (!indicator || !list) return;
+    const place = () => {
+      const el = itemRefs.current.get(active);
+      if (!el) {
+        indicator.style.opacity = "0";
+        return;
+      }
+      indicator.style.transform = `translateY(${el.offsetTop}px)`;
+      indicator.style.height = `${el.offsetHeight}px`;
+      indicator.style.opacity = "1";
+    };
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [active, collapsed]);
 
   return (
     <>
@@ -116,77 +170,98 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
 
       <aside
         aria-label="Navegación del proyecto"
-        className={`ui-shell-rail hidden h-full shrink-0 flex-col border-r border-[var(--border)] transition-[width] duration-300 ease-[var(--ease)] md:flex ${
-          collapsed ? "w-[76px]" : "w-[232px]"
+        className={`ui-shell-rail hidden h-full shrink-0 flex-col overflow-hidden border-r border-[var(--border)] transition-[width] duration-300 ease-[var(--ease)] md:flex ${
+          collapsed ? "w-[64px]" : "w-[236px]"
         }`}
       >
-        <div className={`flex shrink-0 items-center pb-2 pt-3 ${collapsed ? "px-2" : "px-3"}`}>
+        <div className="flex shrink-0 items-center px-3 pb-2 pt-3">
           <Link
             href="/"
             title="Cambiar de proyecto"
-            className={`ui-press flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-1.5 transition hover:bg-white hover:shadow-[0_0_0_1px_var(--border),var(--shadow-sm)] ${
-              collapsed ? "flex-col justify-center gap-1" : ""
-            }`}
+            className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-1 transition-colors duration-200 hover:bg-black/[0.035]"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--accent-metal)] text-[13px] font-bold text-white">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--accent-metal)] text-[13px] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(17,24,39,0.2)] transition-transform duration-300 ease-[var(--ease-spring)] group-hover:scale-105 group-active:scale-95">
               {(projectName.trim()[0] || "V").toUpperCase()}
             </span>
-            <span
-              className={
-                collapsed
-                  ? "w-full truncate text-center text-[10px] font-medium leading-tight text-[var(--foreground-soft)]"
-                  : "min-w-0 flex-1 truncate text-[13px] font-semibold text-[var(--foreground)]"
-              }
-            >
-              {projectName}
+            <span className={`min-w-0 flex-1 transition-[opacity,transform] duration-200 ${collapsed ? "-translate-x-1.5 opacity-0" : "opacity-100 delay-75"}`}>
+              <span className="block truncate text-[13px] font-semibold leading-tight text-[var(--foreground)]">{projectName}</span>
+              <span className="block truncate text-[11px] leading-tight text-[var(--muted-soft)]">Cambiar de proyecto</span>
             </span>
+            <svg
+              viewBox="0 0 16 16"
+              aria-hidden
+              className={`h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)] transition-[opacity,transform] duration-200 group-hover:translate-y-px ${collapsed ? "opacity-0" : "opacity-100"}`}
+              fill="none"
+            >
+              <path d="m5 6.5 3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </Link>
         </div>
 
-        <nav className={`min-h-0 flex-1 overflow-y-auto py-2 ${collapsed ? "px-2" : "px-3"}`}>
-          {NAV_GROUPS.map((group, i) => (
-            <div key={group.label ?? "top"} className={i ? "mt-3" : ""}>
-              {group.label ? (
-                collapsed ? (
-                  <div aria-hidden className="mx-2 mb-2 border-t border-[var(--border)]" />
-                ) : (
-                  <p className="px-2.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-[var(--muted-soft)]">{group.label}</p>
-                )
-              ) : null}
-              <div className="space-y-0.5">
-                {group.items.map((id) => (
-                  <NavButton
-                    key={id}
-                    label={VIEW_META[id].label}
-                    icon={VIEW_META[id].icon}
-                    active={active === id}
-                    collapsed={collapsed}
-                    onClick={() => onSelect(id)}
-                  />
-                ))}
-              </div>
+        <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-2">
+          <div ref={listRef} className="ui-stagger relative">
+            <div
+              ref={indicatorRef}
+              aria-hidden
+              className="nav-indicator pointer-events-none absolute inset-x-0 top-0 z-0 rounded-[10px] bg-white opacity-0 shadow-[0_0_0_1px_var(--border),0_1px_2px_rgba(17,24,39,0.06),0_4px_12px_-6px_rgba(17,24,39,0.12)]"
+            >
+              <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-x-[5px] -translate-y-1/2 rounded-full bg-[var(--foreground)]" />
             </div>
-          ))}
+            {NAV_GROUPS.map((group, i) => (
+              <div key={group.label ?? "top"} className={i ? "mt-2" : ""}>
+                {group.label ? (
+                  <div className="relative h-7">
+                    <p
+                      className={`absolute inset-x-0 bottom-1 truncate px-[11px] text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--muted-soft)] transition-[opacity,transform] duration-200 ${
+                        collapsed ? "-translate-x-1.5 opacity-0" : "opacity-100 delay-75"
+                      }`}
+                    >
+                      {group.label}
+                    </p>
+                    <span
+                      aria-hidden
+                      className={`absolute left-1/2 top-1/2 h-px w-6 -translate-x-1/2 bg-[var(--border)] transition-opacity duration-200 ${collapsed ? "opacity-100 delay-100" : "opacity-0"}`}
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-0.5">
+                  {group.items.map((id) => (
+                    <NavButton
+                      key={id}
+                      label={VIEW_META[id].label}
+                      icon={VIEW_META[id].icon}
+                      motion={MOTION[id]}
+                      active={active === id}
+                      collapsed={collapsed}
+                      onClick={() => onSelect(id)}
+                      buttonRef={(el) => {
+                        if (el) itemRefs.current.set(id, el);
+                        else itemRefs.current.delete(id);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </nav>
 
-        <div className={`shrink-0 space-y-0.5 border-t border-[var(--border)] py-2 ${collapsed ? "px-2" : "px-3"}`}>
-          <NavButton label="Ajustes" icon={SettingsIcon} collapsed={collapsed} href={`/projects/${projectId}/settings`} />
-          <div className={`flex items-center gap-1 pt-1.5 ${collapsed ? "flex-col" : ""}`}>
+        <div className="shrink-0 space-y-0.5 border-t border-[var(--border)] px-3 py-2">
+          <NavButton label="Ajustes" icon={SettingsIcon} motion="spin" collapsed={collapsed} href={`/projects/${projectId}/settings`} />
+          <div className={`flex gap-1 pt-1 ${collapsed ? "flex-col items-center" : "items-center"}`}>
             <form action={signOut} className={collapsed ? "" : "min-w-0 flex-1"}>
               <button
                 type="submit"
                 title={`${userEmail ?? "Cuenta"} · Cerrar sesión`}
-                className={`ui-press group flex w-full items-center gap-2 rounded-[10px] p-1.5 text-left transition hover:bg-black/[0.035] ${
-                  collapsed ? "justify-center" : ""
-                }`}
+                className="group flex w-full items-center gap-2 rounded-[10px] p-1.5 text-left transition-colors duration-200 hover:bg-black/[0.035]"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--foreground)] text-[11px] font-semibold text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--foreground)] text-[11px] font-semibold text-white transition-transform duration-300 ease-[var(--ease-spring)] group-hover:scale-105">
                   {userInitial}
                 </span>
                 {collapsed ? null : (
                   <>
                     <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[var(--foreground-soft)]">{userEmail ?? "Cuenta"}</span>
-                    <LogoutIcon className="h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)] opacity-0 transition group-hover:opacity-100" />
+                    <LogoutIcon className="h-3.5 w-3.5 shrink-0 -translate-x-1 text-[var(--muted-soft)] opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
                   </>
                 )}
               </button>
@@ -196,9 +271,9 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
               onClick={onToggleCollapsed}
               title={collapsed ? "Expandir menú" : "Contraer menú"}
               aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
-              className="ui-press flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[var(--muted-soft)] transition hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+              className="ui-press flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[var(--muted-soft)] transition-colors duration-200 hover:bg-black/[0.035] hover:text-[var(--foreground)]"
             >
-              <PanelCollapseIcon className={`h-4 w-4 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
+              <PanelCollapseIcon className={`h-4 w-4 transition-transform duration-300 ease-[var(--ease)] ${collapsed ? "rotate-180" : ""}`} />
             </button>
           </div>
         </div>

@@ -1056,3 +1056,61 @@ button.bg-\[var\(--accent\)\]:active:not(:disabled) {
     animation: none !important;
   }
 }
+
+/* Sidebar */
+@keyframes nav-lift {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-3px); }
+}
+@keyframes nav-tilt {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-12deg); }
+  65% { transform: rotate(8deg); }
+}
+@keyframes nav-spin {
+  from { transform: rotate(0); }
+  to { transform: rotate(90deg); }
+}
+@keyframes nav-nudge {
+  0%, 100% { transform: translateX(0); }
+  45% { transform: translateX(3px); }
+}
+@keyframes nav-pulse {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+}
+@keyframes nav-active {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.nav-icon {
+  display: inline-flex;
+  transform-origin: center;
+}
+.nav-icon[data-active="true"] {
+  animation: nav-active 0.45s var(--ease-spring);
+}
+.group:hover .nav-icon[data-motion="lift"] { animation: nav-lift 0.5s var(--ease); }
+.group:hover .nav-icon[data-motion="tilt"] { animation: nav-tilt 0.55s var(--ease); }
+.group:hover .nav-icon[data-motion="spin"] { animation: nav-spin 0.5s var(--ease) forwards; }
+.group:hover .nav-icon[data-motion="nudge"] { animation: nav-nudge 0.45s var(--ease); }
+.group:hover .nav-icon[data-motion="pulse"] { animation: nav-pulse 0.45s var(--ease); }
+
+.nav-indicator {
+  transition:
+    transform 420ms var(--ease),
+    height 420ms var(--ease),
+    opacity 200ms var(--ease);
+}
+
+.nav-collapse {
+  display: grid;
+  transition:
+    grid-template-rows 300ms var(--ease),
+    opacity 220ms var(--ease);
+}
+.nav-collapse > * {
+  overflow: hidden;
+}
