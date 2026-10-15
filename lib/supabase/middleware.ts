@@ -59,6 +59,7 @@ export async function updateSession(request: NextRequest) {
     isAppLegalPath(path) ||
     isProductPagePath(path) ||
     path === "/api/public/subscribe" ||
+    path.startsWith("/r/") ||
     path.startsWith("/data-deletion");
 
   if (!user && !isPublicRoute) {

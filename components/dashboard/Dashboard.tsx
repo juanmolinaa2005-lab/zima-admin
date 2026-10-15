@@ -2,12 +2,18 @@
 
 import { useState, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Toaster } from "sonner";
 import type { Project } from "@/lib/types";
 import type { EstudioSectionId } from "@/lib/creator/estudio-v1";
 import { MarketingPage } from "./MarketingPages";
 import { CreatorEstudioV1View } from "./CreatorEstudioV1View";
 import { GalleryView } from "./GalleryView";
 import { Sidebar } from "./Sidebar";
+import { HomePage } from "./marketing/HomePage";
+import { ContentPlannerPage } from "./marketing/ContentPlannerPage";
+import { AdsCampaignsPage } from "./marketing/AdsCampaignsPage";
+import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
+import { LinksPage } from "./marketing/LinksPage";
 import { viewFrom, type ViewId } from "./nav";
 
 type DashboardProps = {
@@ -31,11 +37,21 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   function select(next: ViewId) {
-    window.history.replaceState(null, "", next === "overview" ? pathname : `${pathname}?view=${next}`);
+    window.history.replaceState(null, "", next === "home" ? pathname : `${pathname}?view=${next}`);
   }
 
   function renderView(id: ViewId): ReactNode {
     switch (id) {
+      case "home":
+        return <HomePage projectId={project.id} projectName={project.name} active={view === "home"} onNavigate={select} />;
+      case "planner":
+        return <ContentPlannerPage projectId={project.id} />;
+      case "campaigns":
+        return <AdsCampaignsPage projectId={project.id} active={view === "campaigns"} onOpenCreatives={() => select("creatives")} />;
+      case "creatives":
+        return <AdsCreativesPage projectId={project.id} active={view === "creatives"} />;
+      case "links":
+        return <LinksPage projectId={project.id} />;
       case "studio":
         return (
           <CreatorEstudioV1View
@@ -55,7 +71,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <Sidebar
-        active={view === "gallery" ? "studio" : view}
+        active={view}
         userEmail={userEmail}
         projectName={project.name}
         projectId={project.id}
@@ -79,6 +95,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
           );
         })}
       </main>
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

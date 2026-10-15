@@ -20,6 +20,12 @@ type SidebarProps = {
 type Motion = "lift" | "tilt" | "spin" | "nudge" | "pulse";
 
 const MOTION: Partial<Record<ViewId, Motion>> = {
+  home: "lift",
+  planner: "nudge",
+  gallery: "tilt",
+  campaigns: "tilt",
+  creatives: "spin",
+  links: "nudge",
   overview: "pulse",
   accounts: "pulse",
   videos: "nudge",
