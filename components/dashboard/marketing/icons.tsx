@@ -18,6 +18,16 @@ export function IconMegaphone({ className }: { className?: string }) {
   );
 }
 
+export function IconRobot({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8.5" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5 20c1.1-3.3 3.6-5 7-5s5.9 1.7 7 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M18.5 3.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function IconSparkles({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>

@@ -11,6 +11,8 @@ import {
   type ContentStatus,
 } from "@/lib/marketing/types";
 import { PlatformLogo } from "../viewtracker/vt-ui";
+import type { ViewId } from "../nav";
+import { UgcFlow } from "./UgcFlow";
 import {
   api,
   Button,
@@ -89,7 +91,7 @@ function PostChip({ post, onOpen, compact }: { post: ContentPost; onOpen: () => 
   );
 }
 
-export function ContentPlannerPage({ projectId }: { projectId: string }) {
+export function ContentPlannerPage({ projectId, onNavigate }: { projectId: string; onNavigate: (view: ViewId) => void }) {
   const base = `/api/projects/${projectId}/content/posts`;
   const { data, setData, loading } = useLoad<{ items: ContentPost[] }>(base, { items: [] });
   const posts = data.items;
@@ -121,6 +123,7 @@ export function ContentPlannerPage({ projectId }: { projectId: string }) {
     return {
       ideas: posts.filter((p) => p.status === "idea").length,
       inProgress: posts.filter((p) => ["script", "production", "review"].includes(p.status)).length,
+      toCreate: posts.filter((p) => p.status === "script" || p.status === "production").length,
       thisWeek: posts.filter((p) => p.scheduled_at && +new Date(p.scheduled_at) >= now && +new Date(p.scheduled_at) <= week).length,
       published: posts.filter((p) => p.status === "published" && +new Date(p.scheduled_at ?? p.updated_at) >= month).length,
     };
@@ -161,6 +164,31 @@ export function ContentPlannerPage({ projectId }: { projectId: string }) {
       }
       toast.success("Guardado");
       setDraft(null);
+    } catch (e) {
+      notifyError(e);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function sendToInfluencers() {
+    if (!draft?.title?.trim()) {
+      toast.error("Ponle un título");
+      return;
+    }
+    copyText([draft.hook, draft.script].filter(Boolean).join("\n\n"), "Hook y guion copiados · pégalos en el influencer");
+    setSaving(true);
+    const payload = {
+      ...draft,
+      hashtags: draft.hashtagsText ?? draft.hashtags ?? [],
+      status: draft.status === "idea" || draft.status === "script" || !draft.status ? "production" : draft.status,
+    };
+    delete payload.hashtagsText;
+    try {
+      const { item } = await api<{ item: ContentPost }>(base, draft.id ? "PATCH" : "POST", payload);
+      upsertLocal(item);
+      setDraft(null);
+      onNavigate("ai-influencers");
     } catch (e) {
       notifyError(e);
     } finally {
@@ -230,9 +258,9 @@ export function ContentPlannerPage({ projectId }: { projectId: string }) {
   return (
     <Page>
       <Header
-        kicker="Contenido"
-        title="Planificador"
-        subtitle="Planifica, produce y controla cada pieza de contenido: de la idea al post publicado, en todas tus redes."
+        kicker="UGC · Paso 1"
+        title="Plan de contenido"
+        subtitle="Aquí empieza el flujo de UGC: planifica ideas, hooks y guiones, y llévalos a tus influencers IA para crear los videos."
         actions={
           <>
             <Button onClick={() => setIdeasOpen(true)}>✨ Ideas con IA</Button>
@@ -241,6 +269,12 @@ export function ContentPlannerPage({ projectId }: { projectId: string }) {
             </Button>
           </>
         }
+      />
+
+      <UgcFlow
+        current="planner"
+        onNavigate={onNavigate}
+        counts={{ planner: `${posts.length} piezas`, "ai-influencers": stats.toCreate ? `${stats.toCreate} por crear` : undefined }}
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -543,6 +577,17 @@ export function ContentPlannerPage({ projectId }: { projectId: string }) {
             <Field label="Guion">
               <TextArea rows={6} value={draft.script ?? ""} onChange={(e) => setDraft({ ...draft, script: e.target.value })} placeholder={"1. Gancho\n2. Desarrollo\n3. CTA"} />
             </Field>
+            {draft.format === "video" || draft.format === "story" || !draft.format ? (
+              <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-white p-3.5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold text-[var(--foreground)]">Paso 2 · Crear con un influencer IA</p>
+                  <p className="text-[12px] text-[var(--muted)]">Copia el hook y el guion, marca la pieza como “Grabación” y abre Influencers IA.</p>
+                </div>
+                <Button variant="primary" size="sm" disabled={saving || !(draft.hook || draft.script)} onClick={() => void sendToInfluencers()}>
+                  Crear video →
+                </Button>
+              </div>
+            ) : null}
             <Field label="Caption">
               <TextArea rows={3} value={draft.caption ?? ""} onChange={(e) => setDraft({ ...draft, caption: e.target.value })} />
             </Field>

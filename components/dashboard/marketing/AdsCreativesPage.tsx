@@ -168,7 +168,7 @@ export function AdsCreativesPage({ projectId, active }: { projectId: string; act
   return (
     <Page>
       <Header
-        kicker="Paid Ads"
+        kicker="Pagado"
         title="Creativos"
         subtitle="Prueba hooks y ángulos, mide qué anuncio rinde mejor y escala los ganadores."
         actions={

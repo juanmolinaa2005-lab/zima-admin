@@ -26,17 +26,30 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const searchParams = useSearchParams();
 
   const rawView = searchParams.get("view");
-  const view = viewFrom(rawView, searchParams.get("vt"));
+  const requested = viewFrom(rawView, searchParams.get("vt"));
+  // "Influencers IA" is the influencers section of Studio, shown as its own menu entry.
+  const view: ViewId = requested === "ai-influencers" ? "studio" : requested;
 
   const [studioSection, setStudioSection] = useState<EstudioSectionId | undefined>(
-    rawView === "redes" ? "redes" : undefined
+    rawView === "redes" ? "redes" : requested === "ai-influencers" ? "influencers" : requested === "studio" ? "creator-imagen" : undefined
   );
   const [opened, setOpened] = useState<ViewId[]>([view]);
   if (!opened.includes(view)) setOpened([...opened, view]);
 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
+  const activeNav: ViewId =
+    view === "studio"
+      ? studioSection === "influencers" || studioSection === undefined
+        ? "ai-influencers"
+        : "studio"
+      : view === "gallery"
+        ? "studio"
+        : view;
+
   function select(next: ViewId) {
+    if (next === "ai-influencers") setStudioSection("influencers");
+    else if (next === "studio" && (studioSection === undefined || studioSection === "influencers")) setStudioSection("creator-imagen");
     window.history.replaceState(null, "", next === "home" ? pathname : `${pathname}?view=${next}`);
   }
 
@@ -45,7 +58,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
       case "home":
         return <HomePage projectId={project.id} projectName={project.name} active={view === "home"} onNavigate={select} />;
       case "planner":
-        return <ContentPlannerPage projectId={project.id} />;
+        return <ContentPlannerPage projectId={project.id} onNavigate={select} />;
       case "campaigns":
         return <AdsCampaignsPage projectId={project.id} active={view === "campaigns"} onOpenCreatives={() => select("creatives")} />;
       case "creatives":
@@ -63,6 +76,8 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
         );
       case "gallery":
         return <GalleryView projectId={project.id} />;
+      case "ai-influencers":
+        return null;
       default:
         return <MarketingPage id={id} projectId={project.id} />;
     }
@@ -71,7 +86,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <Sidebar
-        active={view}
+        active={activeNav}
         userEmail={userEmail}
         projectName={project.name}
         projectId={project.id}

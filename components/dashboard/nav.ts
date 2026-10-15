@@ -10,11 +10,11 @@ import {
   MARKETING_PAGES,
   type MarketingPageId,
 } from "./MarketingPages";
-import { IconCalendar, IconMegaphone, IconSparkles } from "./marketing/icons";
+import { IconCalendar, IconMegaphone, IconRobot, IconSparkles } from "./marketing/icons";
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type GrowthViewId = "home" | "planner" | "campaigns" | "creatives" | "links";
+export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links";
 
 export type ViewId = MarketingPageId | GrowthViewId | "studio" | "gallery";
 
@@ -25,40 +25,51 @@ export type ViewMeta = {
 
 export const VIEW_META: Record<ViewId, ViewMeta> = {
   home: { label: "Inicio", icon: HomeIcon },
-  planner: { label: "Planificador", icon: IconCalendar },
+  planner: { label: "Plan de contenido", icon: IconCalendar },
+  "ai-influencers": { label: "Influencers IA", icon: IconRobot },
   studio: { label: "Studio", icon: EstudioIcon },
   gallery: { label: "Biblioteca", icon: GalleryIcon },
-  campaigns: { label: "Campañas", icon: IconMegaphone },
-  creatives: { label: "Creativos", icon: IconSparkles },
-  links: { label: "Enlaces UTM", icon: LinkIcon },
-  overview: { label: "Orgánico", icon: AnalyticsIcon },
+  upload: { label: "Publicar", icon: IconUpload },
+  overview: { label: "Resultados", icon: AnalyticsIcon },
   accounts: { label: "Cuentas", icon: IconAccounts },
   videos: { label: "Videos", icon: IconVideos },
   creators: { label: "Creadores", icon: IconCreators },
-  upload: { label: "Publicar", icon: IconUpload },
   requests: { label: "Solicitudes", icon: IconRequests },
   responses: { label: "Respuestas", icon: IconChat },
+  campaigns: { label: "Campañas", icon: IconMegaphone },
+  creatives: { label: "Creativos", icon: IconSparkles },
+  links: { label: "Enlaces UTM", icon: LinkIcon },
 };
 
+/** The three channels stay separate: own UGC (made with AI influencers), real influencers, and paid. */
 export const NAV_GROUPS: { label: string | null; items: ViewId[] }[] = [
   { label: null, items: ["home"] },
-  { label: "Contenido", items: ["planner", "studio", "gallery"] },
-  { label: "Paid Ads", items: ["campaigns", "creatives"] },
-  { label: "Marketing", items: ["creators", "links"] },
-  { label: "Seguimiento", items: ["overview", "accounts", "videos"] },
-  { label: "Automatización", items: ["upload", "requests", "responses"] },
+  { label: "UGC", items: ["planner", "ai-influencers", "studio", "upload", "overview", "accounts", "videos"] },
+  { label: "Influencers", items: ["creators", "requests", "responses"] },
+  { label: "Pagado", items: ["campaigns", "creatives", "links"] },
 ];
 
 export const NAV: ViewId[] = NAV_GROUPS.flatMap((g) => g.items);
 
-const GROWTH_VIEWS = new Set<string>(["home", "planner", "campaigns", "creatives", "links"]);
+/** The UGC flow, in order. */
+export const UGC_FLOW: { id: ViewId; step: string; text: string }[] = [
+  { id: "planner", step: "Planificar", text: "Ideas, hooks y guiones en el calendario" },
+  { id: "ai-influencers", step: "Crear", text: "Videos con tus influencers IA" },
+  { id: "upload", step: "Publicar", text: "Publicación automática en tus cuentas" },
+  { id: "overview", step: "Medir", text: "Vistas y engagement de cada video" },
+];
+
+const GROWTH_VIEWS = new Set<string>(["home", "planner", "ai-influencers", "campaigns", "creatives", "links"]);
 const STUDIO_ALIASES = new Set(["create", "estudio", "redes"]);
 const MARKETING_ALIASES = new Set(["marketing", "viewtracker", "results"]);
 const ALIASES: Record<string, ViewId> = {
   publish: "upload",
   calendar: "planner",
   content: "planner",
+  plan: "planner",
+  influencers: "ai-influencers",
   ads: "campaigns",
+  paid: "campaigns",
   utm: "links",
   library: "gallery",
 };

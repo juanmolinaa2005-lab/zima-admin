@@ -121,7 +121,7 @@ export function LinksPage({ projectId }: { projectId: string }) {
   return (
     <Page>
       <Header
-        kicker="Marketing"
+        kicker="Pagado"
         title="Enlaces y UTM"
         subtitle="Crea enlaces con UTM para cada canal, compártelos con un enlace corto y mide cuántos clics trae cada uno."
       />

@@ -181,7 +181,7 @@ export function AdsCampaignsPage({ projectId, active, onOpenCreatives }: { proje
   return (
     <Page>
       <Header
-        kicker="Paid Ads"
+        kicker="Pagado"
         title="Campañas"
         subtitle="Controla inversión, retorno y ritmo de gasto de todas tus campañas de pago en un solo lugar."
         actions={

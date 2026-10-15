@@ -22,6 +22,7 @@ type Motion = "lift" | "tilt" | "spin" | "nudge" | "pulse";
 const MOTION: Partial<Record<ViewId, Motion>> = {
   home: "lift",
   planner: "nudge",
+  "ai-influencers": "pulse",
   gallery: "tilt",
   campaigns: "tilt",
   creatives: "spin",
