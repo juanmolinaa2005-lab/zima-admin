@@ -268,56 +268,58 @@ export function Sidebar({
         </aside>
 
         <div
-          className={`h-full overflow-hidden transition-[width] duration-300 ease-[var(--ease)] ${panelOpen ? "w-[228px]" : "w-0"}`}
+          className={`h-full overflow-hidden transition-[width] duration-300 ease-[var(--ease)] ${panelOpen ? "w-[244px]" : "w-0"}`}
           aria-hidden={!panelOpen}
         >
-          <div className="flex h-full w-[228px] flex-col">
-            <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-3">
-              <Link href="/" title="Cambiar de proyecto" tabIndex={panelOpen ? undefined : -1} className="group min-w-0 flex-1">
-                <span className="flex items-center gap-1">
-                  <span className="truncate text-[13px] font-semibold text-[var(--foreground)]">{projectName}</span>
-                  <svg viewBox="0 0 16 16" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)] transition-transform duration-200 group-hover:translate-y-px" fill="none">
-                    <path d="m5 6.5 3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                <span className="block truncate text-[11px] text-[var(--muted-soft)]">Cambiar de proyecto</span>
-              </Link>
-              <button
-                type="button"
-                onClick={onToggleCollapsed}
-                tabIndex={panelOpen ? undefined : -1}
-                title="Ocultar panel"
-                aria-label="Ocultar panel"
-                className="ui-press flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[var(--muted-soft)] transition-colors duration-200 hover:bg-black/[0.035] hover:text-[var(--foreground)]"
-              >
-                <PanelCollapseIcon className="h-4 w-4" />
-              </button>
-            </div>
-
-            <nav aria-label={section.label} className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
-              <p className="px-[11px] pb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--muted-soft)]">{section.label}</p>
-              <div key={section.id} ref={listRef} className="ui-stagger relative space-y-0.5">
-                <div
-                  ref={indicatorRef}
-                  aria-hidden
-                  className="nav-indicator pointer-events-none absolute inset-x-0 top-0 z-0 rounded-[10px] bg-white opacity-0 shadow-[0_0_0_1px_var(--border),0_1px_2px_rgba(17,24,39,0.06),0_4px_12px_-6px_rgba(17,24,39,0.12)]"
-                />
-                {section.tabs.map((tab) => (
-                  <NavButton
-                    key={tab}
-                    label={VIEW_META[tab].label}
-                    icon={VIEW_META[tab].icon}
-                    motion={MOTION[tab]}
-                    active={activeTab === tab}
-                    onClick={() => onSelectTab(tab)}
-                    buttonRef={(el) => {
-                      if (el) itemRefs.current.set(tab, el);
-                      else itemRefs.current.delete(tab);
-                    }}
-                  />
-                ))}
+          <div className="h-full w-[244px] p-2">
+            <div className="flex h-full flex-col overflow-hidden rounded-[18px] border border-[var(--border)] bg-background shadow-[0_1px_2px_rgba(17,24,39,0.04),0_10px_30px_-14px_rgba(17,24,39,0.14)]">
+              <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-3">
+                <Link href="/" title="Cambiar de proyecto" tabIndex={panelOpen ? undefined : -1} className="group min-w-0 flex-1">
+                  <span className="flex items-center gap-1">
+                    <span className="truncate text-[13px] font-semibold text-[var(--foreground)]">{projectName}</span>
+                    <svg viewBox="0 0 16 16" aria-hidden className="h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)] transition-transform duration-200 group-hover:translate-y-px" fill="none">
+                      <path d="m5 6.5 3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <span className="block truncate text-[11px] text-[var(--muted-soft)]">Cambiar de proyecto</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={onToggleCollapsed}
+                  tabIndex={panelOpen ? undefined : -1}
+                  title="Ocultar panel"
+                  aria-label="Ocultar panel"
+                  className="ui-press flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[var(--muted-soft)] transition-colors duration-200 hover:bg-black/[0.035] hover:text-[var(--foreground)]"
+                >
+                  <PanelCollapseIcon className="h-4 w-4" />
+                </button>
               </div>
-            </nav>
+  
+              <nav aria-label={section.label} className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+                <p className="px-[11px] pb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--muted-soft)]">{section.label}</p>
+                <div key={section.id} ref={listRef} className="ui-stagger relative space-y-0.5">
+                  <div
+                    ref={indicatorRef}
+                    aria-hidden
+                    className="nav-indicator pointer-events-none absolute inset-x-0 top-0 z-0 rounded-[10px] bg-white opacity-0 shadow-[0_0_0_1px_var(--border),0_1px_2px_rgba(17,24,39,0.06),0_4px_12px_-6px_rgba(17,24,39,0.12)]"
+                  />
+                  {section.tabs.map((tab) => (
+                    <NavButton
+                      key={tab}
+                      label={VIEW_META[tab].label}
+                      icon={VIEW_META[tab].icon}
+                      motion={MOTION[tab]}
+                      active={activeTab === tab}
+                      onClick={() => onSelectTab(tab)}
+                      buttonRef={(el) => {
+                        if (el) itemRefs.current.set(tab, el);
+                        else itemRefs.current.delete(tab);
+                      }}
+                    />
+                  ))}
+                </div>
+              </nav>
+            </div>
           </div>
         </div>
       </div>

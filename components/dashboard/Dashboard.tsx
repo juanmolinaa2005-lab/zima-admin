@@ -99,7 +99,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
         onSelectTab={select}
       />
 
-      <div className="min-w-0 flex-1 md:p-2">
+      <div className={`min-w-0 flex-1 md:py-2 md:pr-2 ${sidebarExpanded && sectionTabs(section).length > 1 ? "" : "md:pl-2"}`}>
         <main
           id="main"
           tabIndex={-1}
