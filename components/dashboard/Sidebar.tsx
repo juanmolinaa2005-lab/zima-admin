@@ -268,10 +268,10 @@ export function Sidebar({
         </aside>
 
         <div
-          className={`h-full overflow-hidden transition-[width] duration-300 ease-[var(--ease)] ${panelOpen ? "w-[244px]" : "w-0"}`}
+          className={`h-full overflow-hidden transition-[width] duration-300 ease-[var(--ease)] ${panelOpen ? "w-[212px]" : "w-0"}`}
           aria-hidden={!panelOpen}
         >
-          <div className="h-full w-[244px] p-2">
+          <div className="h-full w-[212px] p-2">
             <div className="flex h-full flex-col overflow-hidden rounded-[18px] border border-[var(--border)] bg-background shadow-[0_1px_2px_rgba(17,24,39,0.04),0_10px_30px_-14px_rgba(17,24,39,0.14)]">
               <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-3">
                 <Link href="/" title="Cambiar de proyecto" tabIndex={panelOpen ? undefined : -1} className="group min-w-0 flex-1">
