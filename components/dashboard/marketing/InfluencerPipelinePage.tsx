@@ -21,6 +21,7 @@ import {
   type PipelineDraft,
 } from "@/lib/influencers/pipeline";
 import { parseProfileUrl } from "@/lib/viewtracker/profile";
+import { LinkIcon } from "../icons";
 import { PlatformLogo, VT_PLATFORMS } from "../viewtracker/vt-ui";
 import {
   api,
@@ -102,6 +103,9 @@ function SectionLabel({ children }: { children: string }) {
 function ProfileCard({ draft }: { draft: Draft }) {
   const meta = draft.profileUrl ? parseProfileUrl(draft.profileUrl) : null;
   const platform = platformFrom(draft.profileUrl ?? null, draft.source ?? null);
+  const extra = [...new Set((draft.extraLinks ?? []).map((l) => platformFrom(l, null)))].filter(
+    (p): p is string => Boolean(p && p !== platform && KNOWN_PLATFORMS.has(p)),
+  );
   const [failed, setFailed] = useState<string | null>(null);
   const avatar = meta?.username && meta.avatarUrl !== failed ? meta.avatarUrl : null;
   const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
@@ -119,6 +123,9 @@ function ProfileCard({ draft }: { draft: Draft }) {
         <p className={`truncate text-[14px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>{name || "Nuevo creador"}</p>
         <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-[var(--muted)]">
           {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-3.5 w-3.5 shrink-0" /> : null}
+          {extra.map((p) => (
+            <PlatformLogo key={p} id={p} className="h-3.5 w-3.5 shrink-0" />
+          ))}
           {meta?.username ? `@${meta.username}` : draft.email || "Pega su link para ver la vista previa"}
         </p>
       </div>
@@ -128,6 +135,43 @@ function ProfileCard({ draft }: { draft: Draft }) {
           {STAGE[draft.stage].label}
         </span>
       ) : null}
+    </div>
+  );
+}
+
+function ExtraLinkRow({ value, onChange, onRemove }: { value: string; onChange: (value: string) => void; onRemove: () => void }) {
+  const platform = platformFrom(value || null, null);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[var(--border)] bg-white text-[var(--muted-soft)]">
+        {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
+      </span>
+      <TextInput
+        autoFocus={!value}
+        aria-label="Otro link del perfil"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="tiktok.com/@usuario"
+        className="min-w-0 flex-1"
+      />
+      {value.trim() ? (
+        <a
+          href={profileHref(value)}
+          target="_blank"
+          rel="noreferrer"
+          className="ui-btn-secondary inline-flex h-9 shrink-0 items-center rounded-[10px] px-3 text-[13px] font-semibold"
+        >
+          Abrir ↗
+        </a>
+      ) : null}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Quitar link"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[18px] text-[var(--muted-soft)] hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]"
+      >
+        ×
+      </button>
     </div>
   );
 }
@@ -153,7 +197,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
     const q = search.trim().toLowerCase();
     return creators.filter(
       (c) =>
-        (!q || `${c.name} ${c.email ?? ""} ${c.profileUrl ?? ""} ${c.source ?? ""} ${c.notes ?? ""}`.toLowerCase().includes(q)) &&
+        (!q || `${c.name} ${c.email ?? ""} ${c.profileUrl ?? ""} ${c.extraLinks?.join(" ") ?? ""} ${c.source ?? ""} ${c.notes ?? ""}`.toLowerCase().includes(q)) &&
         (!dueOnly || (ACTIVE_STAGES.includes(c.stage) && nextStep(c).due)),
     );
   }, [creators, search, dueOnly]);
@@ -213,6 +257,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
       name: draft.name,
       email: draft.email ?? "",
       profileUrl: draft.profileUrl ?? "",
+      extraLinks: (draft.extraLinks ?? []).map((l) => l.trim()).filter(Boolean),
       source: draft.source ?? "",
       notes: draft.notes ?? "",
       stage: draft.stage ?? "new",
@@ -577,6 +622,24 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
                   ) : null}
                 </div>
               </Field>
+              {(draft.extraLinks ?? []).map((link, i) => (
+                <ExtraLinkRow
+                  key={i}
+                  value={link}
+                  onChange={(value) => setDraft((d) => (d ? { ...d, extraLinks: (d.extraLinks ?? []).map((l, j) => (j === i ? value : l)) } : d))}
+                  onRemove={() => setDraft((d) => (d ? { ...d, extraLinks: (d.extraLinks ?? []).filter((_, j) => j !== i) } : d))}
+                />
+              ))}
+              {(draft.extraLinks ?? []).length < 10 ? (
+                <button
+                  type="button"
+                  onClick={() => setDraft((d) => (d ? { ...d, extraLinks: [...(d.extraLinks ?? []), ""] } : d))}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-[13px] font-semibold text-[var(--foreground-soft)] hover:text-[var(--foreground)]"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-strong)] text-[13px] leading-none">+</span>
+                  Añadir otra red
+                </button>
+              ) : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Nombre o marca">
                   <TextInput value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej. Make Money Matt" />

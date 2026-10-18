@@ -11,6 +11,8 @@ export type PipelineCreator = {
   name: string;
   email: string | null;
   profileUrl: string | null;
+  /** More profiles of the same creator on other networks. */
+  extraLinks: string[];
   platform: string | null;
   source: string | null;
   notes: string | null;
@@ -229,6 +231,7 @@ export function parsePipelineCsv(text: string, now = new Date()): { items: Pipel
       name,
       email: cell(col.email) || null,
       profileUrl,
+      extraLinks: [],
       platform: platformFrom(profileUrl, source),
       source,
       notes: cell(col.notes) || null,

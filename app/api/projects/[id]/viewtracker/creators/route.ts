@@ -12,6 +12,7 @@ type CreatorRow = {
   status: string;
   stage: CreatorStage;
   profile_url: string | null;
+  extra_links: string[] | null;
   platform: string | null;
   source: string | null;
   notes: string | null;
@@ -25,6 +26,7 @@ type CreatorInput = {
   email?: unknown;
   labels?: unknown;
   profileUrl?: unknown;
+  extraLinks?: unknown;
   source?: unknown;
   notes?: unknown;
   stage?: unknown;
@@ -32,6 +34,7 @@ type CreatorInput = {
 };
 
 const MAX_IMPORT = 500;
+const MAX_EXTRA_LINKS = 10;
 
 function serialize(row: CreatorRow) {
   return {
@@ -42,6 +45,7 @@ function serialize(row: CreatorRow) {
     status: row.status,
     stage: row.stage,
     profileUrl: row.profile_url,
+    extraLinks: row.extra_links ?? [],
     platform: row.platform,
     source: row.source,
     notes: row.notes,
@@ -62,6 +66,12 @@ function columns(input: CreatorInput) {
   if ("email" in input) out.email = text(input.email, 200);
   if ("labels" in input) out.labels = text(input.labels, 200);
   if ("profileUrl" in input) out.profile_url = text(input.profileUrl, 500);
+  if ("extraLinks" in input) {
+    out.extra_links = (Array.isArray(input.extraLinks) ? input.extraLinks : [])
+      .map((link) => text(link, 500))
+      .filter((link): link is string => Boolean(link))
+      .slice(0, MAX_EXTRA_LINKS);
+  }
   if ("source" in input) out.source = text(input.source, 60);
   if ("notes" in input) out.notes = text(input.notes, 4000);
   if ("stage" in input && isStage(input.stage)) out.stage = input.stage;
