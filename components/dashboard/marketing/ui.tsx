@@ -326,11 +326,11 @@ export function Drawer({
         aria-modal="true"
         aria-label={title}
         className={`animate-scale-in relative z-10 flex max-h-full w-full flex-col gap-3 sm:flex-row sm:items-start ${
-          aside ? (wide ? "max-w-[1036px]" : "max-w-[836px]") : wide ? "max-w-[760px]" : "max-w-[560px]"
+          aside ? (wide ? "max-w-[1112px]" : "max-w-[912px]") : wide ? "max-w-[760px]" : "max-w-[560px]"
         }`}
       >
         {aside ? (
-          <div className="shrink-0 rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:w-[264px]">
+          <div className="shrink-0 rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:w-[340px]">
             {aside}
           </div>
         ) : null}

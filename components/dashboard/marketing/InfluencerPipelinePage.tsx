@@ -129,8 +129,8 @@ function NetworksCard({
   const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
   return (
     <div className="p-4">
-      <div className="flex min-w-0 items-center gap-3 sm:flex-col sm:text-center">
-        <span className="flex h-14 w-14 shrink-0 sm:h-16 sm:w-16 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[18px] font-semibold text-[var(--muted)]">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[18px] font-semibold text-[var(--muted)]">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setFailed(avatar)} />
@@ -138,7 +138,7 @@ function NetworksCard({
             (name.replace("@", "")[0] ?? "?").toUpperCase()
           )}
         </span>
-        <div className="min-w-0 sm:w-full">
+        <div className="min-w-0 flex-1">
           <p className={`truncate text-[15px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>{name || "Nuevo creador"}</p>
           {draft.stage ? (
             <span className="ui-tag ui-tag-muted mt-1">
@@ -149,7 +149,7 @@ function NetworksCard({
         </div>
       </div>
 
-      <div className="mt-4 border-t border-[var(--border)] pt-3">
+      <div className="mt-3 border-t border-[var(--border)] pt-3">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
           Redes{links.length ? ` · ${links.length}` : ""}
         </p>
