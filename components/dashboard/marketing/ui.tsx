@@ -307,7 +307,7 @@ export function Drawer({
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
-  /** Rendered as its own floating card above the dialog. */
+  /** Rendered as its own floating card beside the dialog (above it on small screens). */
   aside?: ReactNode;
 }) {
   useEffect(() => {
@@ -325,12 +325,16 @@ export function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`animate-scale-in relative z-10 flex max-h-full w-full flex-col gap-3 ${wide ? "max-w-[760px]" : "max-w-[560px]"}`}
+        className={`animate-scale-in relative z-10 flex max-h-full w-full flex-col gap-3 sm:flex-row sm:items-start ${
+          aside ? (wide ? "max-w-[1036px]" : "max-w-[836px]") : wide ? "max-w-[760px]" : "max-w-[560px]"
+        }`}
       >
         {aside ? (
-          <div className="shrink-0 rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)]">{aside}</div>
+          <div className="shrink-0 rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:w-[264px]">
+            {aside}
+          </div>
         ) : null}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--background)] shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--background)] shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:max-h-[calc(100dvh-48px)]">
         <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] bg-white px-5 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-[17px] font-semibold tracking-tight text-[var(--foreground)]">{title}</h2>
