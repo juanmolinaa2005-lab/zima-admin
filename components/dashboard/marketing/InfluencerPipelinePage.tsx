@@ -413,8 +413,8 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
   return (
     <Page>
       <Header
-        kicker="Influencers"
-        title="Seguimiento"
+        kicker="Seguimiento"
+        title="Influencers"
         subtitle="Cada creador avanza por etapas. Registra cada mensaje con un clic y te avisamos cuándo toca volver a escribir."
         actions={
           <>

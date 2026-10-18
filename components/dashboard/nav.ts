@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { AnalyticsIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon, TaskIcon } from "./icons";
+import { AnalyticsIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon } from "./icons";
 import {
   IconAccounts,
   IconChat,
@@ -33,7 +33,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   overview: { label: "Resultados", icon: AnalyticsIcon },
   accounts: { label: "Cuentas", icon: IconAccounts },
   videos: { label: "Videos", icon: IconVideos },
-  pipeline: { label: "Seguimiento", icon: TaskIcon },
+  pipeline: { label: "Influencers", icon: IconCreators },
   creators: { label: "Creadores", icon: IconCreators },
   requests: { label: "Solicitudes", icon: IconRequests },
   responses: { label: "Respuestas", icon: IconChat },
