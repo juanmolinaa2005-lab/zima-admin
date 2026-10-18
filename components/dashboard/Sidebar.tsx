@@ -243,6 +243,7 @@ export function Sidebar({
                 onClick={() => selectSection(s.id)}
               />
             ))}
+            <span aria-hidden className="mx-auto mt-1 h-px w-8 shrink-0 bg-black/[0.08]" />
           </nav>
 
           <div className="flex shrink-0 flex-col items-center gap-2 pt-3">
