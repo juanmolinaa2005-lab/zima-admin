@@ -41,24 +41,16 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   links: { label: "Enlaces UTM", icon: LinkIcon },
 };
 
-export type SectionId = "organic" | "paid" | "tracking";
+export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid";
 
-/** The sidebar only shows these sections; every view lives as a tab inside one of them. */
+/** The icon rail shows these sections; the panel beside it lists the options of the active one. */
 export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[] }[] = [
-  {
-    id: "organic",
-    label: "Orgánico",
-    icon: IconSparkles,
-    tabs: ["planner", "ai-influencers", "studio", "upload", "creators", "requests", "responses"],
-  },
+  { id: "home", label: "Inicio", icon: HomeIcon, tabs: ["home"] },
+  { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "links"] },
+  { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
+  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["creators", "requests", "responses"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
-  { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["home", "overview", "accounts", "videos", "links"] },
 ];
-
-/** Tab labels that differ from the page title. */
-export const TAB_LABEL: Partial<Record<ViewId, string>> = {
-  home: "Resumen",
-};
 
 const TAB_SECTION = new Map<ViewId, SectionId>(SECTIONS.flatMap((s) => s.tabs.map((tab) => [tab, s.id] as const)));
 
@@ -68,7 +60,7 @@ export function tabOf(view: ViewId): ViewId {
 }
 
 export function sectionOf(view: ViewId): SectionId {
-  return TAB_SECTION.get(tabOf(view)) ?? "tracking";
+  return TAB_SECTION.get(tabOf(view)) ?? "home";
 }
 
 export function sectionTabs(id: SectionId): ViewId[] {
