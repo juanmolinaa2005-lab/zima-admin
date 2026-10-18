@@ -100,78 +100,156 @@ function SectionLabel({ children }: { children: string }) {
   return <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">{children}</p>;
 }
 
-function ProfileCard({ draft }: { draft: Draft }) {
+function linksOf(d: Draft) {
+  return [d.profileUrl, ...(d.extraLinks ?? [])].filter((l): l is string => Boolean(l?.trim()));
+}
+
+function withLinks(d: Draft, links: string[]): Draft {
+  return { ...d, profileUrl: links[0] ?? null, extraLinks: links.slice(1) };
+}
+
+function linkLabel(url: string) {
+  const meta = parseProfileUrl(url);
+  return meta?.username ? `@${meta.username}` : url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+}
+
+function NetworksCard({
+  draft,
+  onRemove,
+  onMakePrimary,
+}: {
+  draft: Draft;
+  onRemove: (index: number) => void;
+  onMakePrimary: (index: number) => void;
+}) {
+  const links = linksOf(draft);
   const meta = draft.profileUrl ? parseProfileUrl(draft.profileUrl) : null;
-  const platform = platformFrom(draft.profileUrl ?? null, draft.source ?? null);
-  const extra = [...new Set((draft.extraLinks ?? []).map((l) => platformFrom(l, null)))].filter(
-    (p): p is string => Boolean(p && p !== platform && KNOWN_PLATFORMS.has(p)),
-  );
   const [failed, setFailed] = useState<string | null>(null);
   const avatar = meta?.username && meta.avatarUrl !== failed ? meta.avatarUrl : null;
   const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white p-3.5 shadow-[var(--shadow-xs)]">
-      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[16px] font-semibold text-[var(--muted)]">
-        {avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setFailed(avatar)} />
-        ) : (
-          (name.replace("@", "")[0] ?? "?").toUpperCase()
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className={`truncate text-[14px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>{name || "Nuevo creador"}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-[var(--muted)]">
-          {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-3.5 w-3.5 shrink-0" /> : null}
-          {extra.map((p) => (
-            <PlatformLogo key={p} id={p} className="h-3.5 w-3.5 shrink-0" />
-          ))}
-          {meta?.username ? `@${meta.username}` : draft.email || "Pega su link para ver la vista previa"}
-        </p>
-      </div>
-      {draft.stage ? (
-        <span className="ui-tag ui-tag-muted shrink-0">
-          <Dot color={STAGE[draft.stage].color} />
-          {STAGE[draft.stage].label}
+    <aside className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-xs)] sm:sticky sm:top-0">
+      <div className="flex flex-col items-center text-center">
+        <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[20px] font-semibold text-[var(--muted)]">
+          {avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setFailed(avatar)} />
+          ) : (
+            (name.replace("@", "")[0] ?? "?").toUpperCase()
+          )}
         </span>
-      ) : null}
-    </div>
+        <p className={`mt-2.5 w-full truncate text-[14px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>
+          {name || "Nuevo creador"}
+        </p>
+        {draft.stage ? (
+          <span className="ui-tag ui-tag-muted mt-1.5">
+            <Dot color={STAGE[draft.stage].color} />
+            {STAGE[draft.stage].label}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-4 border-t border-[var(--border)] pt-3">
+        <p className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
+          Redes
+          {links.length ? <span className="tabular-nums">{links.length}</span> : null}
+        </p>
+        {links.length ? (
+          <ul className="space-y-1">
+            {links.map((link, i) => {
+              const platform = platformFrom(link, null);
+              return (
+                <li key={`${link}-${i}`} className="group flex items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-[var(--surface-alt)]">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-white text-[var(--muted-soft)]">
+                    {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : <LinkIcon className="h-3.5 w-3.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <a
+                      href={profileHref(link)}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={link}
+                      className="block truncate text-[12px] font-medium text-[var(--foreground)] hover:underline"
+                    >
+                      {linkLabel(link)}
+                    </a>
+                    {i === 0 && links.length > 1 ? <span className="block text-[10px] font-semibold text-[var(--muted-soft)]">Principal</span> : null}
+                  </span>
+                  {i === 0 ? null : (
+                    <button
+                      type="button"
+                      onClick={() => onMakePrimary(i)}
+                      className="hidden shrink-0 text-[10px] font-semibold text-[var(--muted-soft)] hover:text-[var(--foreground)] focus-visible:block group-hover:block"
+                    >
+                      Hacer principal
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onRemove(i)}
+                    aria-label={`Quitar ${linkLabel(link)}`}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[15px] text-[var(--muted-soft)] hover:bg-white hover:text-[var(--foreground)]"
+                  >
+                    ×
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="rounded-lg border border-dashed border-[var(--border)] px-3 py-4 text-center text-[12px] leading-relaxed text-[var(--muted-soft)]">
+            Las redes que pegues aparecerán aquí
+          </p>
+        )}
+      </div>
+    </aside>
   );
 }
 
-function ExtraLinkRow({ value, onChange, onRemove }: { value: string; onChange: (value: string) => void; onRemove: () => void }) {
-  const platform = platformFrom(value || null, null);
+function LinkPaste({ autoFocus, full, onAdd }: { autoFocus?: boolean; full?: boolean; onAdd: (url: string) => void }) {
+  const [value, setValue] = useState("");
+  const add = (raw = value) => {
+    const url = raw.trim();
+    if (!url) return;
+    onAdd(url);
+    setValue("");
+  };
   return (
-    <div className="flex items-center gap-2">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[var(--border)] bg-white text-[var(--muted-soft)]">
-        {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
-      </span>
-      <TextInput
-        autoFocus={!value}
-        aria-label="Otro link del perfil"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="tiktok.com/@usuario"
-        className="min-w-0 flex-1"
-      />
-      {value.trim() ? (
-        <a
-          href={profileHref(value)}
-          target="_blank"
-          rel="noreferrer"
-          className="ui-btn-secondary inline-flex h-9 shrink-0 items-center rounded-[10px] px-3 text-[13px] font-semibold"
-        >
-          Abrir ↗
-        </a>
-      ) : null}
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label="Quitar link"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[18px] text-[var(--muted-soft)] hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]"
-      >
-        ×
-      </button>
+    <div>
+      <label htmlFor="creator-link" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
+        Pega sus links
+      </label>
+      <div className="flex h-12 items-center gap-2 rounded-[14px] border border-[var(--border)] bg-white pl-3.5 pr-1.5 shadow-[var(--shadow-xs)] focus-within:border-[var(--foreground)] focus-within:shadow-[0_0_0_3px_rgba(17,17,19,0.08)]">
+        <LinkIcon className="h-4 w-4 shrink-0 text-[var(--muted-soft)]" />
+        <input
+          id="creator-link"
+          autoFocus={autoFocus}
+          disabled={full}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData("text").trim();
+            if (!text || value.trim()) return;
+            e.preventDefault();
+            add(text);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          onBlur={() => add()}
+          placeholder={full ? "Máximo de redes alcanzado" : "youtube.com/@canal, tiktok.com/@usuario…"}
+          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-[var(--foreground)] outline-none placeholder:text-[var(--muted-soft)]"
+        />
+        {value.trim() ? (
+          <Button variant="primary" onClick={() => add()}>
+            Añadir
+          </Button>
+        ) : null}
+      </div>
+      <p className="mt-1.5 text-[11px] text-[var(--muted-soft)]">Pega un link y se añade solo. Puedes añadir todas sus redes.</p>
     </div>
   );
 }
@@ -245,6 +323,25 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
   function followUp(c: PipelineCreator) {
     void patch(c.id, withFollowup(c));
     toast.success(`Seguimiento registrado con ${c.name}`);
+  }
+
+  function addLink(url: string) {
+    if (draft && linksOf(draft).includes(url)) {
+      toast.message("Ese link ya está añadido");
+      return;
+    }
+    setDraft((d) => {
+      if (!d) return d;
+      const links = linksOf(d);
+      if (links.includes(url)) return d;
+      const handle = parseProfileUrl(url)?.username;
+      const label = VT_PLATFORMS.find((p) => p.id === platformFrom(url, null))?.label;
+      return {
+        ...withLinks(d, [...links, url]),
+        name: d.name?.trim() ? d.name : (handle ?? d.name),
+        source: d.source || label || d.source,
+      };
+    });
   }
 
   async function save() {
@@ -559,6 +656,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
         title={draft?.id ? draft.name || "Creador" : "Nuevo creador"}
         subtitle={live ? `${STAGE[live.stage].label} · ${nextStep(live).label}` : "Añádelo al seguimiento"}
         onClose={() => setDraft(null)}
+        wide
         footer={
           <>
             {draft?.id ? (
@@ -592,58 +690,35 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
               </div>
             ) : null}
 
-            <ProfileCard draft={draft} />
+            <div className="grid items-start gap-5 sm:grid-cols-[240px_minmax(0,1fr)]">
+              <NetworksCard
+                draft={draft}
+                onRemove={(i) => setDraft((d) => (d ? withLinks(d, linksOf(d).filter((_, j) => j !== i)) : d))}
+                onMakePrimary={(i) =>
+                  setDraft((d) => {
+                    if (!d) return d;
+                    const links = linksOf(d);
+                    return withLinks(d, [links[i], ...links.filter((_, j) => j !== i)]);
+                  })
+                }
+              />
 
-            <section className="space-y-3">
-              <SectionLabel>Perfil</SectionLabel>
-              <Field label="Link del perfil" hint="Pega el link y detectamos la red y el usuario">
-                <div className="flex gap-2">
-                  <TextInput
-                    autoFocus={!draft.id}
-                    value={draft.profileUrl ?? ""}
-                    onChange={(e) => setDraft({ ...draft, profileUrl: e.target.value })}
-                    onBlur={() => {
-                      const handle = draft.profileUrl ? parseProfileUrl(draft.profileUrl)?.username : null;
-                      const label = VT_PLATFORMS.find((p) => p.id === platformFrom(draft.profileUrl ?? null, null))?.label;
-                      setDraft((d) => (d ? { ...d, name: d.name?.trim() ? d.name : (handle ?? d.name), source: d.source || label || d.source } : d));
-                    }}
-                    placeholder="youtube.com/@canal"
-                    className="flex-1"
+              <div className="min-w-0 space-y-5">
+                <LinkPaste autoFocus={!draft.id} full={linksOf(draft).length >= 11} onAdd={addLink} />
+
+                <div>
+                  <label htmlFor="creator-name" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
+                    Nombre o marca
+                  </label>
+                  <input
+                    id="creator-name"
+                    value={draft.name ?? ""}
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    placeholder="Ej. Make Money Matt"
+                    className="h-12 w-full rounded-[14px] border border-[var(--border)] bg-white px-3.5 text-[16px] font-semibold text-[var(--foreground)] shadow-[var(--shadow-xs)] outline-none placeholder:font-normal placeholder:text-[var(--muted-soft)] focus:border-[var(--foreground)] focus:shadow-[0_0_0_3px_rgba(17,17,19,0.08)]"
                   />
-                  {draft.profileUrl ? (
-                    <a
-                      href={profileHref(draft.profileUrl)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ui-btn-secondary inline-flex h-9 shrink-0 items-center rounded-[10px] px-3 text-[13px] font-semibold"
-                    >
-                      Abrir ↗
-                    </a>
-                  ) : null}
                 </div>
-              </Field>
-              {(draft.extraLinks ?? []).map((link, i) => (
-                <ExtraLinkRow
-                  key={i}
-                  value={link}
-                  onChange={(value) => setDraft((d) => (d ? { ...d, extraLinks: (d.extraLinks ?? []).map((l, j) => (j === i ? value : l)) } : d))}
-                  onRemove={() => setDraft((d) => (d ? { ...d, extraLinks: (d.extraLinks ?? []).filter((_, j) => j !== i) } : d))}
-                />
-              ))}
-              {(draft.extraLinks ?? []).length < 10 ? (
-                <button
-                  type="button"
-                  onClick={() => setDraft((d) => (d ? { ...d, extraLinks: [...(d.extraLinks ?? []), ""] } : d))}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-[13px] font-semibold text-[var(--foreground-soft)] hover:text-[var(--foreground)]"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-strong)] text-[13px] leading-none">+</span>
-                  Añadir otra red
-                </button>
-              ) : null}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Nombre o marca">
-                  <TextInput value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej. Make Money Matt" />
-                </Field>
+
                 <Field label="Email">
                   <div className="flex gap-2">
                     <TextInput
@@ -660,40 +735,39 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
                     ) : null}
                   </div>
                 </Field>
-              </div>
-              <div role="group" aria-labelledby="creator-source">
-                <span id="creator-source" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
-                  Dónde lo encontraste
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[...SOURCES, ...(draft.source && !SOURCES.includes(draft.source) ? [draft.source] : [])].map((src) => {
-                    const on = draft.source === src;
-                    const platform = VT_PLATFORMS.find((p) => p.label === src)?.id;
-                    return (
-                      <button
-                        key={src}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => setDraft({ ...draft, source: on ? "" : src })}
-                        className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition ${
-                          on
-                            ? "border-[var(--foreground)] bg-[var(--foreground)] text-white"
-                            : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
-                        }`}
-                      >
-                        {platform ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : null}
-                        {src}
-                      </button>
-                    );
-                  })}
+
+                <div role="group" aria-labelledby="creator-source">
+                  <span id="creator-source" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
+                    Dónde lo encontraste
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[...SOURCES, ...(draft.source && !SOURCES.includes(draft.source) ? [draft.source] : [])].map((src) => {
+                      const on = draft.source === src;
+                      const platform = VT_PLATFORMS.find((p) => p.label === src)?.id;
+                      return (
+                        <button
+                          key={src}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => setDraft({ ...draft, source: on ? "" : src })}
+                          className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition ${
+                            on
+                              ? "border-[var(--foreground)] bg-[var(--foreground)] text-white"
+                              : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
+                          }`}
+                        >
+                          {platform ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : null}
+                          {src}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </section>
 
             {!draft.id ? (
               <section className="space-y-3">
                 <SectionLabel>¿En qué punto estáis?</SectionLabel>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2">
                   {STAGES.map((st) => {
                     const on = (draft.stage ?? "new") === st.id;
                     return (
@@ -752,6 +826,8 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
                 )}
               </div>
             ) : null}
+              </div>
+            </div>
           </div>
         ) : null}
       </Drawer>
