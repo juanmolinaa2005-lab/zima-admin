@@ -47,9 +47,9 @@ export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid"
 /** The icon rail shows these sections; the panel beside it lists the options of the active one. */
 export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[]; footer?: boolean }[] = [
   { id: "home", label: "Inicio", icon: HomeIcon, tabs: ["home"] },
-  { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "links"] },
+  { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "creators", "links"] },
   { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
-  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "creators", "requests", "responses"] },
+  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "requests", "responses"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
   { id: "gallery", label: "Galería", icon: GalleryIcon, tabs: ["gallery"], footer: true },
 ];
