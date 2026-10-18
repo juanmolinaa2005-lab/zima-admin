@@ -28,7 +28,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   planner: { label: "Plan de contenido", icon: IconCalendar },
   "ai-influencers": { label: "Influencers IA", icon: IconRobot },
   studio: { label: "Studio", icon: EstudioIcon },
-  gallery: { label: "Biblioteca", icon: GalleryIcon },
+  gallery: { label: "Galería", icon: GalleryIcon },
   upload: { label: "Publicar", icon: IconUpload },
   overview: { label: "Resultados", icon: AnalyticsIcon },
   accounts: { label: "Cuentas", icon: IconAccounts },
@@ -41,26 +41,22 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   links: { label: "Enlaces UTM", icon: LinkIcon },
 };
 
-export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid";
+export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid" | "gallery";
 
 /** The icon rail shows these sections; the panel beside it lists the options of the active one. */
-export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[] }[] = [
+export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[]; footer?: boolean }[] = [
   { id: "home", label: "Inicio", icon: HomeIcon, tabs: ["home"] },
   { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "links"] },
   { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
   { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["creators", "requests", "responses"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
+  { id: "gallery", label: "Galería", icon: GalleryIcon, tabs: ["gallery"], footer: true },
 ];
 
 const TAB_SECTION = new Map<ViewId, SectionId>(SECTIONS.flatMap((s) => s.tabs.map((tab) => [tab, s.id] as const)));
 
-/** The tab that represents a view; Studio sub-views map onto their Studio tab. */
-export function tabOf(view: ViewId): ViewId {
-  return view === "gallery" ? "studio" : view;
-}
-
 export function sectionOf(view: ViewId): SectionId {
-  return TAB_SECTION.get(tabOf(view)) ?? "home";
+  return TAB_SECTION.get(view) ?? "home";
 }
 
 export function sectionTabs(id: SectionId): ViewId[] {

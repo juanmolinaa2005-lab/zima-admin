@@ -14,14 +14,13 @@ import { ContentPlannerPage } from "./marketing/ContentPlannerPage";
 import { AdsCampaignsPage } from "./marketing/AdsCampaignsPage";
 import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
 import { LinksPage } from "./marketing/LinksPage";
-import { sectionOf, sectionTabs, tabOf, viewFrom, type SectionId, type ViewId } from "./nav";
+import { sectionOf, sectionTabs, viewFrom, type SectionId, type ViewId } from "./nav";
 
 type DashboardProps = {
   project: Project;
-  userEmail: string | null;
 };
 
-export function Dashboard({ project, userEmail }: DashboardProps) {
+export function Dashboard({ project }: DashboardProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -39,14 +38,14 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const currentTab: ViewId =
-    view === "studio" && (studioSection === undefined || studioSection === "influencers") ? "ai-influencers" : tabOf(view);
+    view === "studio" && (studioSection === undefined || studioSection === "influencers") ? "ai-influencers" : view;
   const section = sectionOf(currentTab);
   const [lastTab, setLastTab] = useState<Partial<Record<SectionId, ViewId>>>({});
 
   function select(next: ViewId) {
     if (next === "ai-influencers") setStudioSection("influencers");
     else if (next === "studio" && (studioSection === undefined || studioSection === "influencers")) setStudioSection("creator-imagen");
-    setLastTab((prev) => ({ ...prev, [sectionOf(next)]: tabOf(next) }));
+    setLastTab((prev) => ({ ...prev, [sectionOf(next)]: next }));
     window.history.replaceState(null, "", next === "home" ? pathname : `${pathname}?view=${next}`);
   }
 
@@ -90,7 +89,6 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
       <Sidebar
         activeSection={section}
         activeTab={currentTab}
-        userEmail={userEmail}
         projectName={project.name}
         projectId={project.id}
         collapsed={!sidebarExpanded}

@@ -3,14 +3,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
-import { LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
+import { FeedbackIcon, LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
 import { MobileFabMenu } from "./MobileFabMenu";
 import { SECTIONS, VIEW_META, type IconComp, type SectionId, type ViewId } from "./nav";
 
 type SidebarProps = {
   activeSection: SectionId;
   activeTab: ViewId;
-  userEmail: string | null;
   projectName: string;
   projectId: string;
   collapsed: boolean;
@@ -128,10 +127,68 @@ function RailButton({
   );
 }
 
+const FEEDBACK_HREF = "mailto:zimaai.net@gmail.com?subject=Feedback%20sobre%20Vantko";
+
+function FooterItem({
+  label,
+  icon: Icon,
+  motion,
+  active = false,
+  onClick,
+  href,
+}: {
+  label: string;
+  icon: IconComp;
+  motion: Motion;
+  active?: boolean;
+  onClick?: () => void;
+  href?: string;
+}) {
+  const cls = "group flex w-full flex-col items-center gap-0.5 py-1 outline-none";
+  const inner = (
+    <>
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-[10px] transition-colors duration-200 group-focus-visible:ring-2 group-focus-visible:ring-[var(--foreground)]/20 ${
+          active ? "bg-black/[0.06] text-[var(--foreground)]" : "text-[var(--muted)] group-hover:bg-black/[0.05] group-hover:text-[var(--foreground)]"
+        }`}
+      >
+        <span className="nav-icon" data-motion={motion}>
+          <Icon className="h-[18px] w-[18px]" />
+        </span>
+      </span>
+      <span
+        className={`text-[10px] font-medium leading-tight transition-colors duration-200 ${
+          active ? "text-[var(--foreground)]" : "text-[var(--muted-soft)] group-hover:text-[var(--foreground)]"
+        }`}
+      >
+        {label}
+      </span>
+    </>
+  );
+  if (href?.startsWith("mailto:")) {
+    return (
+      <a href={href} className={cls}>
+        {inner}
+      </a>
+    );
+  }
+  if (href) {
+    return (
+      <Link href={href} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" aria-current={active ? "page" : undefined} onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  );
+}
+
 export function Sidebar({
   activeSection,
   activeTab,
-  userEmail,
   projectName,
   projectId,
   collapsed,
@@ -140,7 +197,6 @@ export function Sidebar({
   onSelectTab,
 }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const userInitial = (userEmail?.trim()[0] || "U").toUpperCase();
   const listRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef(new Map<ViewId, HTMLElement>());
@@ -233,7 +289,7 @@ export function Sidebar({
           <span aria-hidden className="my-3 h-px w-8 shrink-0 bg-black/[0.08]" />
 
           <nav className="ui-stagger flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
-            {SECTIONS.map((s) => (
+            {SECTIONS.filter((s) => !s.footer).map((s) => (
               <RailButton
                 key={s.id}
                 label={s.label}
@@ -245,25 +301,19 @@ export function Sidebar({
             ))}
           </nav>
 
-          <div className="flex shrink-0 flex-col items-center gap-2 pt-3">
-            <Link
-              href={`/projects/${projectId}/settings`}
-              title="Ajustes"
-              className="group flex h-9 w-9 items-center justify-center rounded-[10px] text-[var(--muted)] transition-colors duration-200 hover:bg-black/[0.05] hover:text-[var(--foreground)]"
-            >
-              <span className="nav-icon" data-motion="spin">
-                <SettingsIcon className="h-[18px] w-[18px]" />
-              </span>
-            </Link>
-            <form action={signOut}>
-              <button
-                type="submit"
-                title={`${userEmail ?? "Cuenta"} · Cerrar sesión`}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--foreground)] text-[11px] font-semibold text-white transition-transform duration-300 ease-[var(--ease-spring)] hover:scale-105"
-              >
-                {userInitial}
-              </button>
-            </form>
+          <div className="flex w-full shrink-0 flex-col items-center gap-1 pt-3">
+            {SECTIONS.filter((s) => s.footer).map((s) => (
+              <FooterItem
+                key={s.id}
+                label={s.label}
+                icon={s.icon}
+                motion="tilt"
+                active={activeSection === s.id}
+                onClick={() => onSelectSection(s.id)}
+              />
+            ))}
+            <FooterItem label="Feedback" icon={FeedbackIcon} motion="nudge" href={FEEDBACK_HREF} />
+            <FooterItem label="Ajustes" icon={SettingsIcon} motion="spin" href={`/projects/${projectId}/settings`} />
           </div>
         </aside>
 

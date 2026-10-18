@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getProject } from "@/app/actions/projects";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 
@@ -10,11 +9,6 @@ type PageProps = {
 
 export default async function ProjectPage({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const project = await getProject(id);
   if (!project) notFound();
 
@@ -26,10 +20,7 @@ export default async function ProjectPage({ params }: PageProps) {
         </div>
       }
     >
-      <Dashboard
-        project={project}
-        userEmail={user?.email ?? null}
-      />
+      <Dashboard project={project} />
     </Suspense>
   );
 }
