@@ -85,17 +85,6 @@ function NextStepBadge({ creator }: { creator: PipelineCreator }) {
   return <span className={`ui-tag ${tone} whitespace-nowrap`}>{step.due && !step.exhausted && creator.stage !== "new" ? `Toca: ${step.label.toLowerCase()}` : step.label}</span>;
 }
 
-const SOURCES = ["YouTube", "TikTok", "Instagram", "X", "Referido", "Otro"];
-
-const STAGE_HINT: Record<CreatorStage, string> = {
-  new: "Aún no le escribiste",
-  contacted: "Le enviaste el primer mensaje",
-  engaged: "Te contestó",
-  pitched: "Le mandaste la propuesta",
-  closed: "Acuerdo cerrado",
-  lost: "No le interesa",
-};
-
 function SectionLabel({ children }: { children: string }) {
   return <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">{children}</p>;
 }
@@ -741,64 +730,6 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
                     ) : null}
                   </div>
                 </Field>
-
-                <div role="group" aria-labelledby="creator-source">
-                  <span id="creator-source" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
-                    Dónde lo encontraste
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[...SOURCES, ...(draft.source && !SOURCES.includes(draft.source) ? [draft.source] : [])].map((src) => {
-                      const on = draft.source === src;
-                      const platform = VT_PLATFORMS.find((p) => p.label === src)?.id;
-                      return (
-                        <button
-                          key={src}
-                          type="button"
-                          aria-pressed={on}
-                          onClick={() => setDraft({ ...draft, source: on ? "" : src })}
-                          className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition ${
-                            on
-                              ? "border-[var(--foreground)] bg-[var(--foreground)] text-white"
-                              : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
-                          }`}
-                        >
-                          {platform ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : null}
-                          {src}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-            {!draft.id ? (
-              <section className="space-y-3">
-                <SectionLabel>¿En qué punto estáis?</SectionLabel>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {STAGES.map((st) => {
-                    const on = (draft.stage ?? "new") === st.id;
-                    return (
-                      <button
-                        key={st.id}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => setDraft({ ...draft, stage: st.id })}
-                        className={`rounded-xl border px-3 py-2.5 text-left transition ${
-                          on
-                            ? "border-[var(--foreground)] bg-white shadow-[0_0_0_3px_rgba(17,17,19,0.08)]"
-                            : "border-[var(--border)] bg-white/60 hover:border-[var(--border-strong)] hover:bg-white"
-                        }`}
-                      >
-                        <span className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--foreground)]">
-                          <Dot color={st.color} />
-                          {st.label}
-                        </span>
-                        <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{STAGE_HINT[st.id]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ) : null}
 
             <section className="space-y-3">
               <SectionLabel>Notas</SectionLabel>
