@@ -128,8 +128,8 @@ function NetworksCard({
   const avatar = meta?.username && meta.avatarUrl !== failed ? meta.avatarUrl : null;
   const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
   return (
-    <div className="p-4">
-      <div className="flex min-w-0 items-center gap-3">
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex min-w-0 items-center gap-3 sm:w-[180px] sm:shrink-0">
         <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[18px] font-semibold text-[var(--muted)]">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -149,7 +149,7 @@ function NetworksCard({
         </div>
       </div>
 
-      <div className="mt-3 border-t border-[var(--border)] pt-3">
+      <div className="min-w-0 flex-1 border-t border-[var(--border)] pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
           Redes{links.length ? ` · ${links.length}` : ""}
         </p>
