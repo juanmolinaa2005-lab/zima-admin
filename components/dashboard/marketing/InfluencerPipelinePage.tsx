@@ -13,12 +13,14 @@ import {
   nextStageOf,
   nextStep,
   parsePipelineCsv,
+  platformFrom,
   stageStartedAt,
   withFollowup,
   type CreatorStage,
   type PipelineCreator,
   type PipelineDraft,
 } from "@/lib/influencers/pipeline";
+import { parseProfileUrl } from "@/lib/viewtracker/profile";
 import { PlatformLogo, VT_PLATFORMS } from "../viewtracker/vt-ui";
 import {
   api,
@@ -80,6 +82,54 @@ function NextStepBadge({ creator }: { creator: PipelineCreator }) {
   const step = nextStep(creator);
   const tone = step.exhausted ? "ui-tag-danger" : step.due ? "ui-tag-warning" : "ui-tag-muted";
   return <span className={`ui-tag ${tone} whitespace-nowrap`}>{step.due && !step.exhausted && creator.stage !== "new" ? `Toca: ${step.label.toLowerCase()}` : step.label}</span>;
+}
+
+const SOURCES = ["YouTube", "TikTok", "Instagram", "X", "Referido", "Otro"];
+
+const STAGE_HINT: Record<CreatorStage, string> = {
+  new: "Aún no le escribiste",
+  contacted: "Le enviaste el primer mensaje",
+  engaged: "Te contestó",
+  pitched: "Le mandaste la propuesta",
+  closed: "Acuerdo cerrado",
+  lost: "No le interesa",
+};
+
+function SectionLabel({ children }: { children: string }) {
+  return <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">{children}</p>;
+}
+
+function ProfileCard({ draft }: { draft: Draft }) {
+  const meta = draft.profileUrl ? parseProfileUrl(draft.profileUrl) : null;
+  const platform = platformFrom(draft.profileUrl ?? null, draft.source ?? null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const avatar = meta?.username && meta.avatarUrl !== failed ? meta.avatarUrl : null;
+  const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white p-3.5 shadow-[var(--shadow-xs)]">
+      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[16px] font-semibold text-[var(--muted)]">
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setFailed(avatar)} />
+        ) : (
+          (name.replace("@", "")[0] ?? "?").toUpperCase()
+        )}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className={`truncate text-[14px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>{name || "Nuevo creador"}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-[var(--muted)]">
+          {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-3.5 w-3.5 shrink-0" /> : null}
+          {meta?.username ? `@${meta.username}` : draft.email || "Pega su link para ver la vista previa"}
+        </p>
+      </div>
+      {draft.stage ? (
+        <span className="ui-tag ui-tag-muted shrink-0">
+          <Dot color={STAGE[draft.stage].color} />
+          {STAGE[draft.stage].label}
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 export function InfluencerPipelinePage({ projectId, active }: { projectId: string; active?: boolean }) {
@@ -480,7 +530,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
         }
       >
         {draft ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {live && (ACTIVE_STAGES.includes(live.stage) || nextStageOf(live.stage)) ? (
               <div className="flex flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-white p-3">
                 {ACTIVE_STAGES.includes(live.stage) ? <Button onClick={() => followUp(live)}>+ Registrar seguimiento</Button> : null}
@@ -497,46 +547,120 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
               </div>
             ) : null}
 
-            <Field label="Nombre o marca">
-              <TextInput value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej. Make Money Matt" />
-            </Field>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Email">
-                <TextInput
-                  type="email"
-                  value={draft.email ?? ""}
-                  onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-                  placeholder="creador@email.com"
-                />
+            <ProfileCard draft={draft} />
+
+            <section className="space-y-3">
+              <SectionLabel>Perfil</SectionLabel>
+              <Field label="Link del perfil" hint="Pega el link y detectamos la red y el usuario">
+                <div className="flex gap-2">
+                  <TextInput
+                    autoFocus={!draft.id}
+                    value={draft.profileUrl ?? ""}
+                    onChange={(e) => setDraft({ ...draft, profileUrl: e.target.value })}
+                    onBlur={() => {
+                      const handle = draft.profileUrl ? parseProfileUrl(draft.profileUrl)?.username : null;
+                      const label = VT_PLATFORMS.find((p) => p.id === platformFrom(draft.profileUrl ?? null, null))?.label;
+                      setDraft((d) => (d ? { ...d, name: d.name?.trim() ? d.name : (handle ?? d.name), source: d.source || label || d.source } : d));
+                    }}
+                    placeholder="youtube.com/@canal"
+                    className="flex-1"
+                  />
+                  {draft.profileUrl ? (
+                    <a
+                      href={profileHref(draft.profileUrl)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ui-btn-secondary inline-flex h-9 shrink-0 items-center rounded-[10px] px-3 text-[13px] font-semibold"
+                    >
+                      Abrir ↗
+                    </a>
+                  ) : null}
+                </div>
               </Field>
-              <Field label="Dónde lo encontraste">
-                <TextInput value={draft.source ?? ""} onChange={(e) => setDraft({ ...draft, source: e.target.value })} placeholder="YouTube, TikTok, referido…" />
-              </Field>
-            </div>
-            <Field label="Link del perfil">
-              <div className="flex gap-2">
-                <TextInput
-                  value={draft.profileUrl ?? ""}
-                  onChange={(e) => setDraft({ ...draft, profileUrl: e.target.value })}
-                  placeholder="youtube.com/@canal"
-                  className="flex-1"
-                />
-                {draft.profileUrl ? (
-                  <a href={profileHref(draft.profileUrl)} target="_blank" rel="noreferrer" className="ui-btn-secondary inline-flex h-9 items-center rounded-[10px] px-3 text-[13px] font-semibold">
-                    Abrir
-                  </a>
-                ) : null}
-                {draft.email ? <Button onClick={() => copyText(draft.email!, "Email copiado")}>Copiar email</Button> : null}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nombre o marca">
+                  <TextInput value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej. Make Money Matt" />
+                </Field>
+                <Field label="Email">
+                  <div className="flex gap-2">
+                    <TextInput
+                      type="email"
+                      value={draft.email ?? ""}
+                      onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                      placeholder="creador@email.com"
+                      className="min-w-0 flex-1"
+                    />
+                    {draft.email ? (
+                      <Button title="Copiar email" onClick={() => copyText(draft.email!, "Email copiado")}>
+                        Copiar
+                      </Button>
+                    ) : null}
+                  </div>
+                </Field>
               </div>
-            </Field>
+              <div role="group" aria-labelledby="creator-source">
+                <span id="creator-source" className="mb-1.5 block text-[12px] font-medium text-[var(--foreground-soft)]">
+                  Dónde lo encontraste
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[...SOURCES, ...(draft.source && !SOURCES.includes(draft.source) ? [draft.source] : [])].map((src) => {
+                    const on = draft.source === src;
+                    const platform = VT_PLATFORMS.find((p) => p.label === src)?.id;
+                    return (
+                      <button
+                        key={src}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setDraft({ ...draft, source: on ? "" : src })}
+                        className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition ${
+                          on
+                            ? "border-[var(--foreground)] bg-[var(--foreground)] text-white"
+                            : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
+                        }`}
+                      >
+                        {platform ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : null}
+                        {src}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
             {!draft.id ? (
-              <Field label="Etapa">
-                <SelectInput value={draft.stage ?? "new"} onChange={(v) => setDraft({ ...draft, stage: v as CreatorStage })} options={STAGE_OPTIONS} />
-              </Field>
+              <section className="space-y-3">
+                <SectionLabel>¿En qué punto estáis?</SectionLabel>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {STAGES.map((st) => {
+                    const on = (draft.stage ?? "new") === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setDraft({ ...draft, stage: st.id })}
+                        className={`rounded-xl border px-3 py-2.5 text-left transition ${
+                          on
+                            ? "border-[var(--foreground)] bg-white shadow-[0_0_0_3px_rgba(17,17,19,0.08)]"
+                            : "border-[var(--border)] bg-white/60 hover:border-[var(--border-strong)] hover:bg-white"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--foreground)]">
+                          <Dot color={st.color} />
+                          {st.label}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{STAGE_HINT[st.id]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             ) : null}
-            <Field label="Notas">
+
+            <section className="space-y-3">
+              <SectionLabel>Notas</SectionLabel>
               <TextArea value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} placeholder="Tarifa, condiciones, lo que hablasteis…" />
-            </Field>
+            </section>
 
             {live ? (
               <div>

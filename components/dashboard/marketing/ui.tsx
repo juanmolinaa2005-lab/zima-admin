@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type TextareaHTMLAttributes,
 } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 export async function api<T = unknown>(url: string, method = "GET", body?: unknown): Promise<T> {
@@ -314,7 +315,7 @@ export function Drawer({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
       <div
@@ -342,7 +343,8 @@ export function Drawer({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
         {footer ? <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--border)] bg-white px-5 py-3">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
