@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useMemo, useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import {
   ACTIVE_STAGES,
@@ -87,6 +87,114 @@ function NextStepBadge({ creator }: { creator: PipelineCreator }) {
 
 function SectionLabel({ children }: { children: string }) {
   return <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">{children}</p>;
+}
+
+function CreatorAvatar({ creator, className }: { creator: Pick<PipelineCreator, "name" | "profileUrl">; className: string }) {
+  const url = creator.profileUrl ? parseProfileUrl(creator.profileUrl)?.avatarUrl : null;
+  const [failed, setFailed] = useState<string | null>(null);
+  const src = url && url !== failed ? url : null;
+  return (
+    <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] font-semibold text-[var(--muted)] ${className}`}>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className="h-full w-full object-cover" onError={() => setFailed(src)} />
+      ) : (
+        (creator.name[0] ?? "?").toUpperCase()
+      )}
+    </span>
+  );
+}
+
+function CreatorRow({
+  creator: c,
+  onOpen,
+  onStage,
+  onFollowUp,
+}: {
+  creator: PipelineCreator;
+  onOpen: () => void;
+  onStage: (stage: CreatorStage) => void;
+  onFollowUp: () => void;
+}) {
+  const step = nextStep(c);
+  const next = nextStageOf(c.stage);
+  const active = ACTIVE_STAGES.includes(c.stage);
+  const due = active && step.due;
+  const links = [c.profileUrl, ...(c.extraLinks ?? [])].filter((l): l is string => Boolean(l));
+  return (
+    <li
+      className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border bg-white px-4 py-3 md:grid md:grid-cols-[minmax(0,1.3fr)_128px_150px_minmax(0,1fr)_250px] shadow-[var(--shadow-xs)] transition hover:shadow-[var(--shadow-sm)] ${
+        due ? "border-amber-300" : "border-[var(--border)]"
+      }`}
+    >
+      <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+        <CreatorAvatar creator={c} className="h-11 w-11 text-[15px]" />
+        <span className="min-w-0">
+          <span className="block truncate text-[14px] font-semibold text-[var(--foreground)]">{c.name}</span>
+          <span className="block truncate text-[12px] text-[var(--muted-soft)]">
+            {c.stage === "new" ? "Sin contactar" : `Último contacto: ${ago(lastTouchAt(c)).toLowerCase()}`}
+          </span>
+        </span>
+      </button>
+
+      <div className="flex items-center gap-1">
+        {links.map((link, i) => {
+          const platform = platformFrom(link, null);
+          return (
+            <a
+              key={`${link}-${i}`}
+              href={profileHref(link)}
+              target="_blank"
+              rel="noreferrer"
+              title={link}
+              aria-label={`${VT_PLATFORMS.find((p) => p.id === platform)?.label ?? "Perfil"} de ${c.name}`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted-soft)] transition hover:border-[var(--border-strong)] hover:text-[var(--foreground)]"
+            >
+              {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
+            </a>
+          );
+        })}
+      </div>
+
+      <label className="relative inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-alt)]/60 pl-2.5 pr-7 text-[12px] font-semibold text-[var(--foreground)] hover:border-[var(--border-strong)]">
+        <Dot color={STAGE[c.stage].color} />
+        {STAGE[c.stage].label}
+        <span aria-hidden className="pointer-events-none absolute right-2.5 text-[10px] text-[var(--muted-soft)]">▾</span>
+        <select
+          aria-label={`Etapa de ${c.name}`}
+          value={c.stage}
+          onChange={(e) => onStage(e.target.value as CreatorStage)}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {STAGE_OPTIONS.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="flex min-w-0 items-center gap-2">
+        <NextStepBadge creator={c} />
+        <FollowupDots creator={c} />
+      </div>
+
+      <div className="ml-auto flex items-center justify-end gap-1.5">
+        {step.exhausted ? (
+          <Button variant="ghost" onClick={() => onStage("lost")}>
+            No interesado
+          </Button>
+        ) : active ? (
+          <Button onClick={onFollowUp}>+ Seguimiento</Button>
+        ) : null}
+        {next ? (
+          <Button variant={due || c.stage === "new" ? "primary" : "secondary"} onClick={() => onStage(next)}>
+            {STAGE[next].label} →
+          </Button>
+        ) : null}
+      </div>
+    </li>
+  );
 }
 
 function linksOf(d: Draft) {
@@ -257,7 +365,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
   const [dueOnly, setDueOnly] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
-  const [dropTarget, setDropTarget] = useState<CreatorStage | null>(null);
+  const [stageFilter, setStageFilter] = useState<CreatorStage | "all">("all");
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [importing, setImporting] = useState(false);
@@ -271,6 +379,13 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
         (!dueOnly || (ACTIVE_STAGES.includes(c.stage) && nextStep(c).due)),
     );
   }, [creators, search, dueOnly]);
+
+  const listed = useMemo(() => {
+    const rank = (c: PipelineCreator) => (ACTIVE_STAGES.includes(c.stage) && nextStep(c).due ? 0 : 1);
+    return visible
+      .filter((c) => stageFilter === "all" || c.stage === stageFilter)
+      .sort((a, b) => rank(a) - rank(b) || b.updatedAt.localeCompare(a.updatedAt));
+  }, [visible, stageFilter]);
 
   const stats = useMemo(() => {
     const reached = (stages: CreatorStage[]) => creators.filter((c) => c.touches.some((t) => stages.includes(t.stage))).length;
@@ -400,12 +515,6 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
     file.text().then(setImportText, notifyError);
   }
 
-  function drop(e: DragEvent, stage: CreatorStage) {
-    e.preventDefault();
-    setDropTarget(null);
-    const c = creators.find((x) => x.id === e.dataTransfer.getData("text/creator"));
-    if (c && c.stage !== stage) advance(c, stage);
-  }
 
   const openNew = (stage: CreatorStage = "new") => setDraft({ name: "", stage, touches: [] });
   const live = draft?.id ? (creators.find((c) => c.id === draft.id) ?? null) : null;
@@ -439,7 +548,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
           value={mode}
           onChange={setMode}
           options={[
-            { id: "board", label: "Tablero" },
+            { id: "board", label: "Tarjetas" },
             { id: "table", label: "Tabla" },
           ]}
         />
@@ -479,107 +588,46 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
           }
         />
       ) : mode === "board" ? (
-        <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6">
-          <div className="grid min-w-[1400px] grid-cols-6 gap-3">
-            {STAGES.map((s) => {
-              const items = visible.filter((c) => c.stage === s.id);
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por etapa">
+            {([{ id: "all", label: "Todos", color: null }, ...STAGES] as const).map((st) => {
+              const on = stageFilter === st.id;
+              const count = st.id === "all" ? creators.length : creators.filter((c) => c.stage === st.id).length;
               return (
-                <div
-                  key={s.id}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    if (dropTarget !== s.id) setDropTarget(s.id);
-                  }}
-                  onDragLeave={() => setDropTarget((t) => (t === s.id ? null : t))}
-                  onDrop={(e) => drop(e, s.id)}
-                  className={`flex min-h-[440px] flex-col rounded-2xl border border-[var(--border)] p-2 transition-colors ${
-                    dropTarget === s.id ? "bg-indigo-50" : "bg-[var(--surface-alt)]/60"
+                <button
+                  key={st.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setStageFilter(st.id)}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] font-semibold transition ${
+                    on
+                      ? "border-[var(--foreground)] bg-[var(--foreground)] text-white"
+                      : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
                   }`}
                 >
-                  <div className="mb-2 flex items-center gap-2 px-1.5 pt-1">
-                    <Dot color={s.color} />
-                    <p className="text-[12px] font-semibold text-[var(--foreground)]">{s.label}</p>
-                    <span className="ml-auto rounded-full bg-white px-1.5 text-[11px] font-semibold tabular-nums text-[var(--muted)]">{items.length}</span>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {items.map((c) => {
-                      const step = nextStep(c);
-                      const next = nextStageOf(c.stage);
-                      return (
-                        <div
-                          key={c.id}
-                          draggable
-                          onDragStart={(e) => e.dataTransfer.setData("text/creator", c.id)}
-                          className={`ui-card-hover cursor-grab rounded-xl border bg-white p-2.5 shadow-[var(--shadow-xs)] active:cursor-grabbing ${
-                            step.due && c.stage !== "new" ? "border-amber-300" : "border-[var(--border)]"
-                          }`}
-                        >
-                          <button type="button" onClick={() => setDraft({ ...c })} className="block w-full text-left">
-                            <div className="flex items-center gap-1.5">
-                              {c.platform && KNOWN_PLATFORMS.has(c.platform) ? <PlatformLogo id={c.platform} className="h-3.5 w-3.5 shrink-0" /> : null}
-                              <p className="min-w-0 flex-1 truncate text-[12px] font-semibold text-[var(--foreground)]">{c.name}</p>
-                              <FollowupDots creator={c} />
-                            </div>
-                            <p className="mt-1 text-[11px] text-[var(--muted)]">
-                              {c.stage === "new" ? "Sin contactar" : `Último contacto: ${ago(lastTouchAt(c)).toLowerCase()}`}
-                            </p>
-                            {ACTIVE_STAGES.includes(c.stage) ? (
-                              <p
-                                className={`mt-1 text-[11px] font-medium ${
-                                  step.exhausted ? "text-[var(--danger)]" : step.due ? "text-amber-600" : "text-[var(--muted-soft)]"
-                                }`}
-                              >
-                                {step.due && !step.exhausted ? `Toca ${step.label.toLowerCase()}` : step.label}
-                              </p>
-                            ) : null}
-                          </button>
-                          {next || ACTIVE_STAGES.includes(c.stage) ? (
-                            <div className="mt-2 flex gap-1 border-t border-[var(--border)] pt-2">
-                              {step.exhausted ? (
-                                <button
-                                  type="button"
-                                  onClick={() => advance(c, "lost")}
-                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)]"
-                                >
-                                  No interesado
-                                </button>
-                              ) : ACTIVE_STAGES.includes(c.stage) ? (
-                                <button
-                                  type="button"
-                                  onClick={() => followUp(c)}
-                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--foreground-soft)] hover:bg-[var(--surface-alt)]"
-                                >
-                                  + Seguimiento
-                                </button>
-                              ) : null}
-                              {next ? (
-                                <button
-                                  type="button"
-                                  onClick={() => advance(c)}
-                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--foreground-soft)] hover:bg-[var(--surface-alt)]"
-                                >
-                                  {c.stage === "new" ? "Contactado" : STAGE[next].label} →
-                                </button>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                    {s.id === "new" ? (
-                      <button
-                        type="button"
-                        onClick={() => openNew(s.id)}
-                        className="w-full rounded-xl px-2 py-1.5 text-left text-[12px] font-medium text-[var(--muted-soft)] hover:bg-white hover:text-[var(--foreground)]"
-                      >
-                        + Añadir
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
+                  {st.color ? <Dot color={st.color} /> : null}
+                  {st.label}
+                  <span className={`tabular-nums ${on ? "text-white/70" : "text-[var(--muted-soft)]"}`}>{count}</span>
+                </button>
               );
             })}
           </div>
+
+          {listed.length === 0 ? (
+            <Empty title="Nada por aquí" text="Ningún creador coincide con la búsqueda o el filtro." />
+          ) : (
+            <ul className="space-y-2">
+              {listed.map((c) => (
+                <CreatorRow
+                  key={c.id}
+                  creator={c}
+                  onOpen={() => setDraft({ ...c })}
+                  onStage={(stage) => advance(c, stage)}
+                  onFollowUp={() => followUp(c)}
+                />
+              ))}
+            </ul>
+          )}
         </div>
       ) : visible.length === 0 ? (
         <Empty title="Nada por aquí" text="Ningún creador coincide con la búsqueda o el filtro." />
