@@ -221,7 +221,7 @@ export function Sidebar({
       <div className="hidden h-full shrink-0 md:flex">
         <aside
           aria-label="Secciones"
-          className="flex h-full w-[76px] shrink-0 flex-col items-center py-3"
+          className="flex h-full w-[76px] shrink-0 flex-col items-center border-r border-black/[0.07] bg-[#e4e4e8] py-3"
         >
           <Link
             href="/"
@@ -243,7 +243,6 @@ export function Sidebar({
                 onClick={() => selectSection(s.id)}
               />
             ))}
-            <span aria-hidden className="mx-auto mt-1 h-px w-8 shrink-0 bg-black/[0.08]" />
           </nav>
 
           <div className="flex shrink-0 flex-col items-center gap-2 pt-3">
