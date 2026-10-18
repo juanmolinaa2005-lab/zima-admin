@@ -316,14 +316,14 @@ export function Drawer({
 
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+      <button type="button" aria-label="Cerrar" className="animate-fade-in absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`ui-step-in relative z-10 flex h-full w-full flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-[var(--shadow-lg)] ${
-          wide ? "max-w-[760px]" : "max-w-[520px]"
+        className={`animate-scale-in relative z-10 flex max-h-full w-full flex-col overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--background)] shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] ${
+          wide ? "max-w-[760px]" : "max-w-[560px]"
         }`}
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] bg-white px-5 py-4">
