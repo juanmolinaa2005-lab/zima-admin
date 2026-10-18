@@ -128,9 +128,9 @@ function NetworksCard({
   const avatar = meta?.username && meta.avatarUrl !== failed ? meta.avatarUrl : null;
   const name = draft.name?.trim() || (meta?.username ? `@${meta.username}` : "");
   return (
-    <aside className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-xs)] sm:sticky sm:top-0">
-      <div className="flex flex-col items-center text-center">
-        <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[20px] font-semibold text-[var(--muted)]">
+    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 items-center gap-3 sm:w-[210px] sm:shrink-0">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] text-[18px] font-semibold text-[var(--muted)]">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setFailed(avatar)} />
@@ -138,57 +138,62 @@ function NetworksCard({
             (name.replace("@", "")[0] ?? "?").toUpperCase()
           )}
         </span>
-        <p className={`mt-2.5 w-full truncate text-[14px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>
-          {name || "Nuevo creador"}
-        </p>
-        {draft.stage ? (
-          <span className="ui-tag ui-tag-muted mt-1.5">
-            <Dot color={STAGE[draft.stage].color} />
-            {STAGE[draft.stage].label}
-          </span>
-        ) : null}
+        <div className="min-w-0">
+          <p className={`truncate text-[15px] font-semibold ${name ? "text-[var(--foreground)]" : "text-[var(--muted-soft)]"}`}>{name || "Nuevo creador"}</p>
+          {draft.stage ? (
+            <span className="ui-tag ui-tag-muted mt-1">
+              <Dot color={STAGE[draft.stage].color} />
+              {STAGE[draft.stage].label}
+            </span>
+          ) : null}
+        </div>
       </div>
 
-      <div className="mt-4 border-t border-[var(--border)] pt-3">
-        <p className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
-          Redes
-          {links.length ? <span className="tabular-nums">{links.length}</span> : null}
+      <div className="min-w-0 flex-1 border-t border-[var(--border)] pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">
+          Redes{links.length ? ` · ${links.length}` : ""}
         </p>
         {links.length ? (
-          <ul className="space-y-1">
+          <ul className="flex flex-wrap gap-1.5">
             {links.map((link, i) => {
               const platform = platformFrom(link, null);
               return (
-                <li key={`${link}-${i}`} className="group flex items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-[var(--surface-alt)]">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-white text-[var(--muted-soft)]">
-                    {platform && KNOWN_PLATFORMS.has(platform) ? <PlatformLogo id={platform} className="h-3.5 w-3.5" /> : <LinkIcon className="h-3.5 w-3.5" />}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <a
-                      href={profileHref(link)}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={link}
-                      className="block truncate text-[12px] font-medium text-[var(--foreground)] hover:underline"
-                    >
-                      {linkLabel(link)}
-                    </a>
-                    {i === 0 && links.length > 1 ? <span className="block text-[10px] font-semibold text-[var(--muted-soft)]">Principal</span> : null}
-                  </span>
-                  {i === 0 ? null : (
+                <li
+                  key={`${link}-${i}`}
+                  className={`group inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border pl-2.5 pr-1 text-[12px] ${
+                    i === 0 && links.length > 1 ? "border-[var(--foreground)]/25 bg-white" : "border-[var(--border)] bg-[var(--surface-alt)]/60"
+                  }`}
+                >
+                  {platform && KNOWN_PLATFORMS.has(platform) ? (
+                    <PlatformLogo id={platform} className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <LinkIcon className="h-3.5 w-3.5 shrink-0 text-[var(--muted-soft)]" />
+                  )}
+                  <a
+                    href={profileHref(link)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={link}
+                    className="min-w-0 truncate font-medium text-[var(--foreground)] hover:underline"
+                  >
+                    {linkLabel(link)}
+                  </a>
+                  {i === 0 && links.length > 1 ? (
+                    <span className="shrink-0 text-[10px] font-semibold text-[var(--muted-soft)]">Principal</span>
+                  ) : i > 0 ? (
                     <button
                       type="button"
                       onClick={() => onMakePrimary(i)}
-                      className="hidden shrink-0 text-[10px] font-semibold text-[var(--muted-soft)] hover:text-[var(--foreground)] focus-visible:block group-hover:block"
+                      className="hidden shrink-0 text-[10px] font-semibold text-[var(--muted-soft)] hover:text-[var(--foreground)] focus-visible:inline group-hover:inline"
                     >
                       Hacer principal
                     </button>
-                  )}
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => onRemove(i)}
                     aria-label={`Quitar ${linkLabel(link)}`}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[15px] text-[var(--muted-soft)] hover:bg-white hover:text-[var(--foreground)]"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[14px] text-[var(--muted-soft)] hover:bg-black/[0.06] hover:text-[var(--foreground)]"
                   >
                     ×
                   </button>
@@ -197,12 +202,10 @@ function NetworksCard({
             })}
           </ul>
         ) : (
-          <p className="rounded-lg border border-dashed border-[var(--border)] px-3 py-4 text-center text-[12px] leading-relaxed text-[var(--muted-soft)]">
-            Las redes que pegues aparecerán aquí
-          </p>
+          <p className="text-[12px] text-[var(--muted-soft)]">Las redes que pegues aparecerán aquí</p>
         )}
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -657,6 +660,21 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
         subtitle={live ? `${STAGE[live.stage].label} · ${nextStep(live).label}` : "Añádelo al seguimiento"}
         onClose={() => setDraft(null)}
         wide
+        aside={
+          draft ? (
+            <NetworksCard
+              draft={draft}
+              onRemove={(i) => setDraft((d) => (d ? withLinks(d, linksOf(d).filter((_, j) => j !== i)) : d))}
+              onMakePrimary={(i) =>
+                setDraft((d) => {
+                  if (!d) return d;
+                  const links = linksOf(d);
+                  return withLinks(d, [links[i], ...links.filter((_, j) => j !== i)]);
+                })
+              }
+            />
+          ) : null
+        }
         footer={
           <>
             {draft?.id ? (
@@ -690,19 +708,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
               </div>
             ) : null}
 
-            <div className="grid items-start gap-5 sm:grid-cols-[240px_minmax(0,1fr)]">
-              <NetworksCard
-                draft={draft}
-                onRemove={(i) => setDraft((d) => (d ? withLinks(d, linksOf(d).filter((_, j) => j !== i)) : d))}
-                onMakePrimary={(i) =>
-                  setDraft((d) => {
-                    if (!d) return d;
-                    const links = linksOf(d);
-                    return withLinks(d, [links[i], ...links.filter((_, j) => j !== i)]);
-                  })
-                }
-              />
-
+            <div>
               <div className="min-w-0 space-y-5">
                 <LinkPaste autoFocus={!draft.id} full={linksOf(draft).length >= 11} onAdd={addLink} />
 
@@ -767,7 +773,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
             {!draft.id ? (
               <section className="space-y-3">
                 <SectionLabel>¿En qué punto estáis?</SectionLabel>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {STAGES.map((st) => {
                     const on = (draft.stage ?? "new") === st.id;
                     return (
