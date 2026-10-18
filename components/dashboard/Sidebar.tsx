@@ -221,7 +221,7 @@ export function Sidebar({
       <div className="hidden h-full shrink-0 md:flex">
         <aside
           aria-label="Secciones"
-          className="flex h-full w-[76px] shrink-0 flex-col items-center border-r border-black/[0.07] bg-[#e4e4e8] py-3"
+          className="my-2 ml-2 flex w-[72px] shrink-0 flex-col items-center overflow-hidden rounded-[18px] border border-[var(--border)] bg-background py-3 shadow-[0_1px_2px_rgba(17,24,39,0.04),0_10px_30px_-14px_rgba(17,24,39,0.14)]"
         >
           <Link
             href="/"
