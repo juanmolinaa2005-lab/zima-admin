@@ -14,7 +14,8 @@ import { ContentPlannerPage } from "./marketing/ContentPlannerPage";
 import { AdsCampaignsPage } from "./marketing/AdsCampaignsPage";
 import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
 import { LinksPage } from "./marketing/LinksPage";
-import { viewFrom, type ViewId } from "./nav";
+import { Segmented } from "./marketing/ui";
+import { sectionOf, sectionTabs, tabOf, TAB_LABEL, viewFrom, VIEW_META, type SectionId, type ViewId } from "./nav";
 
 type DashboardProps = {
   project: Project;
@@ -38,19 +39,21 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  const activeNav: ViewId =
-    view === "studio"
-      ? studioSection === "influencers" || studioSection === undefined
-        ? "ai-influencers"
-        : "studio"
-      : view === "gallery"
-        ? "studio"
-        : view;
+  const currentTab: ViewId =
+    view === "studio" && (studioSection === undefined || studioSection === "influencers") ? "ai-influencers" : tabOf(view);
+  const section = sectionOf(currentTab);
+  const [lastTab, setLastTab] = useState<Partial<Record<SectionId, ViewId>>>({});
 
   function select(next: ViewId) {
     if (next === "ai-influencers") setStudioSection("influencers");
     else if (next === "studio" && (studioSection === undefined || studioSection === "influencers")) setStudioSection("creator-imagen");
+    setLastTab((prev) => ({ ...prev, [sectionOf(next)]: tabOf(next) }));
     window.history.replaceState(null, "", next === "home" ? pathname : `${pathname}?view=${next}`);
+  }
+
+  function selectSection(id: SectionId) {
+    if (id === section) return;
+    select(lastTab[id] ?? sectionTabs(id)[0]);
   }
 
   function renderView(id: ViewId): ReactNode {
@@ -86,29 +89,39 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <Sidebar
-        active={activeNav}
+        active={section}
         userEmail={userEmail}
         projectName={project.name}
         projectId={project.id}
         collapsed={!sidebarExpanded}
         onToggleCollapsed={() => setSidebarExpanded((v) => !v)}
-        onSelect={(next) => select(next)}
+        onSelect={selectSection}
       />
 
-      <main id="main" tabIndex={-1} className="relative min-w-0 flex-1 outline-none">
-        {opened.map((id) => {
-          const active = id === view;
-          return (
-            <div
-              key={id}
-              className={`ui-view absolute inset-0 ${active ? "z-10" : "pointer-events-none invisible z-0"}`}
-              data-active={active ? "true" : undefined}
-              aria-hidden={!active}
-            >
-              {renderView(id)}
-            </div>
-          );
-        })}
+      <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
+        <div className="shrink-0 overflow-x-auto whitespace-nowrap px-4 pt-4 sm:px-6">
+          <Segmented
+            label="Opciones de la sección"
+            value={currentTab}
+            onChange={select}
+            options={sectionTabs(section).map((tab) => ({ id: tab, label: TAB_LABEL[tab] ?? VIEW_META[tab].label }))}
+          />
+        </div>
+        <div className="relative min-h-0 flex-1">
+          {opened.map((id) => {
+            const active = id === view;
+            return (
+              <div
+                key={id}
+                className={`ui-view absolute inset-0 ${active ? "z-10" : "pointer-events-none invisible z-0"}`}
+                data-active={active ? "true" : undefined}
+                aria-hidden={!active}
+              >
+                {renderView(id)}
+              </div>
+            );
+          })}
+        </div>
       </main>
       <Toaster position="top-right" richColors closeButton />
     </div>

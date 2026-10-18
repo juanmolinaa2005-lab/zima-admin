@@ -5,36 +5,24 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { LogoutIcon, PanelCollapseIcon, SettingsIcon } from "./icons";
 import { MobileFabMenu } from "./MobileFabMenu";
-import { NAV_GROUPS, VIEW_META, type IconComp, type ViewId } from "./nav";
+import { SECTIONS, type IconComp, type SectionId } from "./nav";
 
 type SidebarProps = {
-  active: ViewId;
+  active: SectionId;
   userEmail: string | null;
   projectName: string;
   projectId: string;
   collapsed: boolean;
   onToggleCollapsed: () => void;
-  onSelect: (view: ViewId) => void;
+  onSelect: (section: SectionId) => void;
 };
 
 type Motion = "lift" | "tilt" | "spin" | "nudge" | "pulse";
 
-const MOTION: Partial<Record<ViewId, Motion>> = {
-  home: "lift",
-  planner: "nudge",
-  "ai-influencers": "pulse",
-  gallery: "tilt",
-  campaigns: "tilt",
-  creatives: "spin",
-  links: "nudge",
-  overview: "pulse",
-  accounts: "pulse",
-  videos: "nudge",
-  creators: "pulse",
-  upload: "lift",
-  requests: "nudge",
-  responses: "tilt",
-  studio: "tilt",
+const MOTION: Record<SectionId, Motion> = {
+  organic: "spin",
+  paid: "tilt",
+  tracking: "pulse",
 };
 
 function NavButton({
@@ -108,7 +96,7 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
   const userInitial = (userEmail?.trim()[0] || "U").toUpperCase();
   const listRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef(new Map<ViewId, HTMLElement>());
+  const itemRefs = useRef(new Map<SectionId, HTMLElement>());
 
   useLayoutEffect(() => {
     const indicator = indicatorRef.current;
@@ -139,19 +127,20 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
         subtitle="Vantko"
         fabLabel="Abrir menú"
         fabClassName="bottom-5 right-4"
-        sections={NAV_GROUPS.map((group) => ({
-          label: group.label ?? undefined,
-          items: group.items.map((id) => ({
-            id,
-            label: VIEW_META[id].label,
-            icon: VIEW_META[id].icon,
-            active: active === id,
-            onClick: () => {
-              onSelect(id);
-              setMobileOpen(false);
-            },
-          })),
-        }))}
+        sections={[
+          {
+            items: SECTIONS.map(({ id, label, icon }) => ({
+              id,
+              label,
+              icon,
+              active: active === id,
+              onClick: () => {
+                onSelect(id);
+                setMobileOpen(false);
+              },
+            })),
+          },
+        ]}
         footer={
           <div className="space-y-0.5 px-1 pb-1">
             <Link
@@ -214,42 +203,23 @@ export function Sidebar({ active, userEmail, projectName, projectId, collapsed, 
             >
               <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-x-[5px] -translate-y-1/2 rounded-full bg-[var(--foreground)]" />
             </div>
-            {NAV_GROUPS.map((group, i) => (
-              <div key={group.label ?? "top"} className={i ? "mt-2" : ""}>
-                {group.label ? (
-                  <div className="relative h-7">
-                    <p
-                      className={`absolute inset-x-0 bottom-1 truncate px-[11px] text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--muted-soft)] transition-[opacity,transform] duration-200 ${
-                        collapsed ? "-translate-x-1.5 opacity-0" : "opacity-100 delay-75"
-                      }`}
-                    >
-                      {group.label}
-                    </p>
-                    <span
-                      aria-hidden
-                      className={`absolute left-1/2 top-1/2 h-px w-6 -translate-x-1/2 bg-[var(--border)] transition-opacity duration-200 ${collapsed ? "opacity-100 delay-100" : "opacity-0"}`}
-                    />
-                  </div>
-                ) : null}
-                <div className="space-y-0.5">
-                  {group.items.map((id) => (
-                    <NavButton
-                      key={id}
-                      label={VIEW_META[id].label}
-                      icon={VIEW_META[id].icon}
-                      motion={MOTION[id]}
-                      active={active === id}
-                      collapsed={collapsed}
-                      onClick={() => onSelect(id)}
-                      buttonRef={(el) => {
-                        if (el) itemRefs.current.set(id, el);
-                        else itemRefs.current.delete(id);
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            <div className="space-y-0.5">
+              {SECTIONS.map(({ id, label, icon }) => (
+                <NavButton
+                  key={id}
+                  label={label}
+                  icon={icon}
+                  motion={MOTION[id]}
+                  active={active === id}
+                  collapsed={collapsed}
+                  onClick={() => onSelect(id)}
+                  buttonRef={(el) => {
+                    if (el) itemRefs.current.set(id, el);
+                    else itemRefs.current.delete(id);
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </nav>
 

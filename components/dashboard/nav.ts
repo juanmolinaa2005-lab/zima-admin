@@ -41,15 +41,39 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   links: { label: "Enlaces UTM", icon: LinkIcon },
 };
 
-/** The three channels stay separate: own UGC (made with AI influencers), real influencers, and paid. */
-export const NAV_GROUPS: { label: string | null; items: ViewId[] }[] = [
-  { label: null, items: ["home"] },
-  { label: "UGC", items: ["planner", "ai-influencers", "studio", "upload", "overview", "accounts", "videos"] },
-  { label: "Influencers", items: ["creators", "requests", "responses"] },
-  { label: "Pagado", items: ["campaigns", "creatives", "links"] },
+export type SectionId = "organic" | "paid" | "tracking";
+
+/** The sidebar only shows these sections; every view lives as a tab inside one of them. */
+export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[] }[] = [
+  {
+    id: "organic",
+    label: "Orgánico",
+    icon: IconSparkles,
+    tabs: ["planner", "ai-influencers", "studio", "upload", "creators", "requests", "responses"],
+  },
+  { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
+  { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["home", "overview", "accounts", "videos", "links"] },
 ];
 
-export const NAV: ViewId[] = NAV_GROUPS.flatMap((g) => g.items);
+/** Tab labels that differ from the page title. */
+export const TAB_LABEL: Partial<Record<ViewId, string>> = {
+  home: "Resumen",
+};
+
+const TAB_SECTION = new Map<ViewId, SectionId>(SECTIONS.flatMap((s) => s.tabs.map((tab) => [tab, s.id] as const)));
+
+/** The tab that represents a view; Studio sub-views map onto their Studio tab. */
+export function tabOf(view: ViewId): ViewId {
+  return view === "gallery" ? "studio" : view;
+}
+
+export function sectionOf(view: ViewId): SectionId {
+  return TAB_SECTION.get(tabOf(view)) ?? "tracking";
+}
+
+export function sectionTabs(id: SectionId): ViewId[] {
+  return SECTIONS.find((s) => s.id === id)?.tabs ?? [];
+}
 
 /** The UGC flow, in order. */
 export const UGC_FLOW: { id: ViewId; step: string; text: string }[] = [
