@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { AnalyticsIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon } from "./icons";
+import { AnalyticsIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon, TaskIcon } from "./icons";
 import {
   IconAccounts,
   IconChat,
@@ -14,7 +14,7 @@ import { IconCalendar, IconMegaphone, IconRobot, IconSparkles } from "./marketin
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links";
+export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links" | "pipeline";
 
 export type ViewId = MarketingPageId | GrowthViewId | "studio" | "gallery";
 
@@ -33,6 +33,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   overview: { label: "Resultados", icon: AnalyticsIcon },
   accounts: { label: "Cuentas", icon: IconAccounts },
   videos: { label: "Videos", icon: IconVideos },
+  pipeline: { label: "Seguimiento", icon: TaskIcon },
   creators: { label: "Creadores", icon: IconCreators },
   requests: { label: "Solicitudes", icon: IconRequests },
   responses: { label: "Respuestas", icon: IconChat },
@@ -48,7 +49,7 @@ export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: Vie
   { id: "home", label: "Inicio", icon: HomeIcon, tabs: ["home"] },
   { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "links"] },
   { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
-  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["creators", "requests", "responses"] },
+  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "creators", "requests", "responses"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
   { id: "gallery", label: "Galería", icon: GalleryIcon, tabs: ["gallery"], footer: true },
 ];
@@ -71,7 +72,7 @@ export const UGC_FLOW: { id: ViewId; step: string; text: string }[] = [
   { id: "overview", step: "Medir", text: "Vistas y engagement de cada video" },
 ];
 
-const GROWTH_VIEWS = new Set<string>(["home", "planner", "ai-influencers", "campaigns", "creatives", "links"]);
+const GROWTH_VIEWS = new Set<string>(["home", "planner", "ai-influencers", "campaigns", "creatives", "links", "pipeline"]);
 const STUDIO_ALIASES = new Set(["create", "estudio", "redes"]);
 const MARKETING_ALIASES = new Set(["marketing", "viewtracker", "results"]);
 const ALIASES: Record<string, ViewId> = {
@@ -83,6 +84,8 @@ const ALIASES: Record<string, ViewId> = {
   ads: "campaigns",
   paid: "campaigns",
   utm: "links",
+  outreach: "pipeline",
+  seguimiento: "pipeline",
   library: "gallery",
 };
 

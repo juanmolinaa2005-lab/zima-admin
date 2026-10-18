@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { detectCsvSeparator, splitCsvLine } from "@/lib/csv";
 import {
   daysAgo,
   derived,
@@ -136,26 +137,6 @@ function findColumn(header: string[], aliases: string[]) {
   return -1;
 }
 
-function splitCsvLine(line: string, sep: string) {
-  const out: string[] = [];
-  let cur = "";
-  let quoted = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (quoted && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else quoted = !quoted;
-    } else if (ch === sep && !quoted) {
-      out.push(cur);
-      cur = "";
-    } else cur += ch;
-  }
-  out.push(cur);
-  return out.map((s) => s.trim());
-}
-
 /** `decimalComma` is true for semicolon-separated files, which European spreadsheets export with "1.234,50". */
 function parseNumber(raw: string, decimalComma: boolean) {
   let s = raw.replace(/[^\d.,-]/g, "");
@@ -188,7 +169,7 @@ export type ParsedRow = { day: string } & AdTotals;
 export function parseMetricsCsv(text: string): { rows: ParsedRow[]; missing: string[] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length < 2) return { rows: [], missing: ["cabecera + filas"] };
-  const sep = [",", ";", "\t"].sort((a, b) => lines[0].split(b).length - lines[0].split(a).length)[0];
+  const sep = detectCsvSeparator(lines[0]);
   const header = splitCsvLine(lines[0], sep).map((h) => h.toLowerCase().replace(/\s*\(.*?\)\s*/g, " ").trim());
   const index = {} as Record<keyof typeof HEADERS, number>;
   for (const key of Object.keys(HEADERS) as (keyof typeof HEADERS)[]) {

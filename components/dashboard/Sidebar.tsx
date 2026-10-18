@@ -34,6 +34,7 @@ const MOTION: Partial<Record<SectionId | ViewId, Motion>> = {
   accounts: "pulse",
   videos: "nudge",
   links: "nudge",
+  pipeline: "nudge",
   creators: "pulse",
   requests: "nudge",
   responses: "tilt",

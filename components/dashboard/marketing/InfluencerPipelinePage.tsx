@@ -1,0 +1,635 @@
+"use client";
+
+import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { toast } from "sonner";
+import {
+  ACTIVE_STAGES,
+  STAGE,
+  STAGES,
+  daysSince,
+  followupCount,
+  lastTouchAt,
+  moveTo,
+  nextStageOf,
+  nextStep,
+  parsePipelineCsv,
+  stageStartedAt,
+  withFollowup,
+  type CreatorStage,
+  type PipelineCreator,
+  type PipelineDraft,
+} from "@/lib/influencers/pipeline";
+import { PlatformLogo, VT_PLATFORMS } from "../viewtracker/vt-ui";
+import {
+  api,
+  Button,
+  Card,
+  copyText,
+  Dot,
+  Drawer,
+  Empty,
+  Field,
+  Header,
+  Kpi,
+  notifyError,
+  Page,
+  Segmented,
+  SelectInput,
+  TextArea,
+  TextInput,
+  useLoad,
+  useRefreshOnActive,
+} from "./ui";
+
+type Mode = "board" | "table";
+type Draft = Partial<PipelineCreator>;
+
+const KNOWN_PLATFORMS = new Set<string>(VT_PLATFORMS.map((p) => p.id));
+const STAGE_OPTIONS = STAGES.map((s) => ({ id: s.id, label: s.label }));
+
+function shortDate(iso: string | null) {
+  return iso ? new Date(iso).toLocaleDateString("es", { day: "numeric", month: "short" }) : "—";
+}
+
+function ago(iso: string | null) {
+  const d = daysSince(iso);
+  if (d === null) return "Nunca";
+  if (d <= 0) return "Hoy";
+  if (d === 1) return "Ayer";
+  return `Hace ${d} días`;
+}
+
+function profileHref(url: string) {
+  return url.startsWith("http") ? url : `https://${url}`;
+}
+
+function FollowupDots({ creator }: { creator: PipelineCreator }) {
+  const max = STAGE[creator.stage].maxFollowups;
+  if (!max) return null;
+  const used = followupCount(creator, creator.stage);
+  return (
+    <span className="inline-flex items-center gap-0.5" title={`${used} de ${max} seguimientos en esta etapa`}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} className={`h-1.5 w-1.5 rounded-full ${i < used ? "bg-[var(--foreground)]" : "bg-black/[0.12]"}`} />
+      ))}
+    </span>
+  );
+}
+
+function NextStepBadge({ creator }: { creator: PipelineCreator }) {
+  const step = nextStep(creator);
+  const tone = step.exhausted ? "ui-tag-danger" : step.due ? "ui-tag-warning" : "ui-tag-muted";
+  return <span className={`ui-tag ${tone} whitespace-nowrap`}>{step.due && !step.exhausted && creator.stage !== "new" ? `Toca: ${step.label.toLowerCase()}` : step.label}</span>;
+}
+
+export function InfluencerPipelinePage({ projectId, active }: { projectId: string; active?: boolean }) {
+  const base = `/api/projects/${projectId}/viewtracker/creators`;
+  const { data, setData, loading, reload } = useLoad<{ items: PipelineCreator[] }>(base, { items: [] });
+  useRefreshOnActive(active, reload);
+  const creators = data.items;
+
+  const [mode, setMode] = useState<Mode>("board");
+  const [search, setSearch] = useState("");
+  const [dueOnly, setDueOnly] = useState(false);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dropTarget, setDropTarget] = useState<CreatorStage | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return creators.filter(
+      (c) =>
+        (!q || `${c.name} ${c.email ?? ""} ${c.profileUrl ?? ""} ${c.source ?? ""} ${c.notes ?? ""}`.toLowerCase().includes(q)) &&
+        (!dueOnly || (ACTIVE_STAGES.includes(c.stage) && nextStep(c).due)),
+    );
+  }, [creators, search, dueOnly]);
+
+  const stats = useMemo(() => {
+    const reached = (stages: CreatorStage[]) => creators.filter((c) => c.touches.some((t) => stages.includes(t.stage))).length;
+    const contacted = reached(["contacted", "engaged", "pitched", "closed"]);
+    const replied = reached(["engaged", "pitched", "closed"]);
+    return {
+      due: creators.filter((c) => ACTIVE_STAGES.includes(c.stage) && nextStep(c).due).length,
+      talking: creators.filter((c) => ACTIVE_STAGES.includes(c.stage)).length,
+      toContact: creators.filter((c) => c.stage === "new").length,
+      replyRate: contacted ? Math.round((replied / contacted) * 100) : null,
+      contacted,
+      closed: creators.filter((c) => c.stage === "closed").length,
+    };
+  }, [creators]);
+
+  const importPreview = useMemo(() => (importText.trim() ? parsePipelineCsv(importText) : null), [importText]);
+
+  function upsertLocal(item: PipelineCreator) {
+    setData((d) => ({ items: d.items.some((c) => c.id === item.id) ? d.items.map((c) => (c.id === item.id ? item : c)) : [item, ...d.items] }));
+  }
+
+  async function patch(id: string, changes: Partial<PipelineCreator>) {
+    const prev = creators.find((c) => c.id === id);
+    if (!prev) return;
+    upsertLocal({ ...prev, ...changes });
+    if (draft?.id === id) setDraft((d) => (d ? { ...d, ...changes } : d));
+    try {
+      const { item } = await api<{ item: PipelineCreator }>(base, "PATCH", { id, ...changes });
+      upsertLocal(item);
+    } catch (e) {
+      upsertLocal(prev);
+      notifyError(e);
+    }
+  }
+
+  function advance(c: PipelineCreator, stage: CreatorStage | null = nextStageOf(c.stage)) {
+    if (!stage) return;
+    void patch(c.id, moveTo(c, stage));
+    toast.success(`${c.name} → ${STAGE[stage].label}`);
+  }
+
+  function followUp(c: PipelineCreator) {
+    void patch(c.id, withFollowup(c));
+    toast.success(`Seguimiento registrado con ${c.name}`);
+  }
+
+  async function save() {
+    if (!draft?.name?.trim()) {
+      toast.error("Ponle un nombre");
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      name: draft.name,
+      email: draft.email ?? "",
+      profileUrl: draft.profileUrl ?? "",
+      source: draft.source ?? "",
+      notes: draft.notes ?? "",
+      stage: draft.stage ?? "new",
+      touches: draft.touches ?? [],
+    };
+    try {
+      const { item } = draft.id
+        ? await api<{ item: PipelineCreator }>(base, "PATCH", { id: draft.id, ...payload })
+        : await api<{ item: PipelineCreator }>(base, "POST", { ...payload, ...moveTo({ touches: [] }, payload.stage) });
+      upsertLocal(item);
+      toast.success("Guardado");
+      setDraft(null);
+    } catch (e) {
+      notifyError(e);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (!confirm("¿Eliminar este creador del seguimiento?")) return;
+    try {
+      await api(`${base}?id=${id}`, "DELETE");
+      setData((d) => ({ items: d.items.filter((c) => c.id !== id) }));
+      setDraft(null);
+    } catch (e) {
+      notifyError(e);
+    }
+  }
+
+  async function runImport() {
+    if (!importPreview?.items.length) return;
+    setImporting(true);
+    try {
+      const { items } = await api<{ items: PipelineCreator[] }>(base, "POST", { items: importPreview.items satisfies PipelineDraft[] });
+      setData((d) => ({ items: [...items, ...d.items] }));
+      toast.success(`${items.length} creadores importados`);
+      setImportOpen(false);
+      setImportText("");
+    } catch (e) {
+      notifyError(e);
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function readFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    file.text().then(setImportText, notifyError);
+  }
+
+  function drop(e: DragEvent, stage: CreatorStage) {
+    e.preventDefault();
+    setDropTarget(null);
+    const c = creators.find((x) => x.id === e.dataTransfer.getData("text/creator"));
+    if (c && c.stage !== stage) advance(c, stage);
+  }
+
+  const openNew = (stage: CreatorStage = "new") => setDraft({ name: "", stage, touches: [] });
+  const live = draft?.id ? (creators.find((c) => c.id === draft.id) ?? null) : null;
+
+  return (
+    <Page>
+      <Header
+        kicker="Influencers"
+        title="Seguimiento"
+        subtitle="Cada creador avanza por etapas. Registra cada mensaje con un clic y te avisamos cuándo toca volver a escribir."
+        actions={
+          <>
+            <Button onClick={() => setImportOpen(true)}>Importar desde Excel</Button>
+            <Button variant="primary" onClick={() => openNew()}>
+              + Añadir creador
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Kpi label="Toca seguimiento hoy" value={String(stats.due)} hint={stats.due ? "esperan tu mensaje" : "estás al día"} tone={stats.due ? "bad" : undefined} />
+        <Kpi label="En conversación" value={String(stats.talking)} hint={`${stats.toContact} por contactar`} />
+        <Kpi label="Tasa de respuesta" value={stats.replyRate === null ? "—" : `${stats.replyRate}%`} hint={`de ${stats.contacted} contactados`} />
+        <Kpi label="Cerrados" value={String(stats.closed)} hint="acuerdos conseguidos" tone={stats.closed ? "good" : undefined} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Segmented
+          label="Vista"
+          value={mode}
+          onChange={setMode}
+          options={[
+            { id: "board", label: "Tablero" },
+            { id: "table", label: "Tabla" },
+          ]}
+        />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, email, link o nota…"
+          className="ui-input h-9 min-w-[200px] flex-1 text-[13px]"
+        />
+        <button
+          type="button"
+          aria-pressed={dueOnly}
+          onClick={() => setDueOnly((v) => !v)}
+          className={`inline-flex h-9 items-center gap-2 rounded-[10px] border px-3 text-[13px] font-semibold transition ${
+            dueOnly ? "border-[var(--foreground)] bg-[var(--foreground)] text-white" : "border-[var(--border)] bg-white text-[var(--foreground-soft)] hover:border-[var(--border-strong)]"
+          }`}
+        >
+          Solo los que toca escribir
+          <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${dueOnly ? "bg-white/20" : "bg-[var(--surface-alt)]"}`}>{stats.due}</span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="ui-skeleton h-[520px] rounded-2xl" />
+      ) : creators.length === 0 ? (
+        <Empty
+          title="Aún no hay creadores en seguimiento"
+          text="Importa tu Excel de outreach o añade a mano los creadores con los que quieres colaborar."
+          action={
+            <div className="flex gap-2">
+              <Button onClick={() => setImportOpen(true)}>Importar desde Excel</Button>
+              <Button variant="primary" onClick={() => openNew()}>
+                + Añadir creador
+              </Button>
+            </div>
+          }
+        />
+      ) : mode === "board" ? (
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6">
+          <div className="grid min-w-[1400px] grid-cols-6 gap-3">
+            {STAGES.map((s) => {
+              const items = visible.filter((c) => c.stage === s.id);
+              return (
+                <div
+                  key={s.id}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dropTarget !== s.id) setDropTarget(s.id);
+                  }}
+                  onDragLeave={() => setDropTarget((t) => (t === s.id ? null : t))}
+                  onDrop={(e) => drop(e, s.id)}
+                  className={`flex min-h-[440px] flex-col rounded-2xl border border-[var(--border)] p-2 transition-colors ${
+                    dropTarget === s.id ? "bg-indigo-50" : "bg-[var(--surface-alt)]/60"
+                  }`}
+                >
+                  <div className="mb-2 flex items-center gap-2 px-1.5 pt-1">
+                    <Dot color={s.color} />
+                    <p className="text-[12px] font-semibold text-[var(--foreground)]">{s.label}</p>
+                    <span className="ml-auto rounded-full bg-white px-1.5 text-[11px] font-semibold tabular-nums text-[var(--muted)]">{items.length}</span>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {items.map((c) => {
+                      const step = nextStep(c);
+                      const next = nextStageOf(c.stage);
+                      return (
+                        <div
+                          key={c.id}
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData("text/creator", c.id)}
+                          className={`ui-card-hover cursor-grab rounded-xl border bg-white p-2.5 shadow-[var(--shadow-xs)] active:cursor-grabbing ${
+                            step.due && c.stage !== "new" ? "border-amber-300" : "border-[var(--border)]"
+                          }`}
+                        >
+                          <button type="button" onClick={() => setDraft({ ...c })} className="block w-full text-left">
+                            <div className="flex items-center gap-1.5">
+                              {c.platform && KNOWN_PLATFORMS.has(c.platform) ? <PlatformLogo id={c.platform} className="h-3.5 w-3.5 shrink-0" /> : null}
+                              <p className="min-w-0 flex-1 truncate text-[12px] font-semibold text-[var(--foreground)]">{c.name}</p>
+                              <FollowupDots creator={c} />
+                            </div>
+                            <p className="mt-1 text-[11px] text-[var(--muted)]">
+                              {c.stage === "new" ? "Sin contactar" : `Último contacto: ${ago(lastTouchAt(c)).toLowerCase()}`}
+                            </p>
+                            {ACTIVE_STAGES.includes(c.stage) ? (
+                              <p
+                                className={`mt-1 text-[11px] font-medium ${
+                                  step.exhausted ? "text-[var(--danger)]" : step.due ? "text-amber-600" : "text-[var(--muted-soft)]"
+                                }`}
+                              >
+                                {step.due && !step.exhausted ? `Toca ${step.label.toLowerCase()}` : step.label}
+                              </p>
+                            ) : null}
+                          </button>
+                          {next || ACTIVE_STAGES.includes(c.stage) ? (
+                            <div className="mt-2 flex gap-1 border-t border-[var(--border)] pt-2">
+                              {step.exhausted ? (
+                                <button
+                                  type="button"
+                                  onClick={() => advance(c, "lost")}
+                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                                >
+                                  No interesado
+                                </button>
+                              ) : ACTIVE_STAGES.includes(c.stage) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => followUp(c)}
+                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--foreground-soft)] hover:bg-[var(--surface-alt)]"
+                                >
+                                  + Seguimiento
+                                </button>
+                              ) : null}
+                              {next ? (
+                                <button
+                                  type="button"
+                                  onClick={() => advance(c)}
+                                  className="flex-1 whitespace-nowrap rounded-md px-1.5 py-1 text-[11px] font-semibold text-[var(--foreground-soft)] hover:bg-[var(--surface-alt)]"
+                                >
+                                  {c.stage === "new" ? "Contactado" : STAGE[next].label} →
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                    {s.id === "new" ? (
+                      <button
+                        type="button"
+                        onClick={() => openNew(s.id)}
+                        className="w-full rounded-xl px-2 py-1.5 text-left text-[12px] font-medium text-[var(--muted-soft)] hover:bg-white hover:text-[var(--foreground)]"
+                      >
+                        + Añadir
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : visible.length === 0 ? (
+        <Empty title="Nada por aquí" text="Ningún creador coincide con la búsqueda o el filtro." />
+      ) : (
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[1080px] text-left text-[13px]">
+            <thead>
+              <tr className="border-b border-[var(--border)] text-[11px] uppercase tracking-wide text-[var(--muted-soft)]">
+                <th className="px-4 py-2.5 font-semibold">Creador</th>
+                <th className="px-3 py-2.5 font-semibold">Etapa</th>
+                <th className="px-3 py-2.5 font-semibold">Contactado</th>
+                <th className="px-3 py-2.5 font-semibold">Respondió</th>
+                <th className="px-3 py-2.5 font-semibold">Propuesta</th>
+                <th className="px-3 py-2.5 font-semibold">Cerrado</th>
+                <th className="px-3 py-2.5 font-semibold">Último contacto</th>
+                <th className="px-3 py-2.5 font-semibold">Próximo paso</th>
+                <th className="px-3 py-2.5" />
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((c) => (
+                <tr key={c.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]/50">
+                  <td className="px-4 py-2.5">
+                    <button type="button" onClick={() => setDraft({ ...c })} className="flex min-w-0 items-center gap-2 text-left">
+                      {c.platform && KNOWN_PLATFORMS.has(c.platform) ? <PlatformLogo id={c.platform} className="h-4 w-4 shrink-0" /> : null}
+                      <span className="min-w-0">
+                        <span className="block truncate font-semibold text-[var(--foreground)]">{c.name}</span>
+                        {c.email ? <span className="block truncate text-[11px] text-[var(--muted-soft)]">{c.email}</span> : null}
+                      </span>
+                    </button>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <SelectInput
+                      value={c.stage}
+                      onChange={(v) => advance(c, v as CreatorStage)}
+                      options={STAGE_OPTIONS}
+                      className="h-8 w-[140px] text-[12px]"
+                    />
+                  </td>
+                  {(["contacted", "engaged", "pitched", "closed"] as const).map((stage) => (
+                    <td key={stage} className="px-3 py-2.5 tabular-nums text-[var(--foreground-soft)]">
+                      {shortDate(stageStartedAt(c, stage))}
+                      {followupCount(c, stage) ? <span className="ml-1 text-[11px] text-[var(--muted-soft)]">+{followupCount(c, stage)}</span> : null}
+                    </td>
+                  ))}
+                  <td className="px-3 py-2.5 text-[var(--muted)]">{c.stage === "new" ? "—" : ago(lastTouchAt(c))}</td>
+                  <td className="px-3 py-2.5">
+                    <NextStepBadge creator={c} />
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    {ACTIVE_STAGES.includes(c.stage) ? (
+                      <Button size="sm" onClick={() => followUp(c)}>
+                        + Seguimiento
+                      </Button>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <Drawer
+        open={draft !== null}
+        title={draft?.id ? draft.name || "Creador" : "Nuevo creador"}
+        subtitle={live ? `${STAGE[live.stage].label} · ${nextStep(live).label}` : "Añádelo al seguimiento"}
+        onClose={() => setDraft(null)}
+        footer={
+          <>
+            {draft?.id ? (
+              <Button variant="danger" onClick={() => remove(draft.id!)}>
+                Eliminar
+              </Button>
+            ) : null}
+            <span className="flex-1" />
+            <Button onClick={() => setDraft(null)}>Cancelar</Button>
+            <Button variant="primary" onClick={save} disabled={saving}>
+              {saving ? "Guardando…" : "Guardar"}
+            </Button>
+          </>
+        }
+      >
+        {draft ? (
+          <div className="space-y-4">
+            {live && (ACTIVE_STAGES.includes(live.stage) || nextStageOf(live.stage)) ? (
+              <div className="flex flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-white p-3">
+                {ACTIVE_STAGES.includes(live.stage) ? <Button onClick={() => followUp(live)}>+ Registrar seguimiento</Button> : null}
+                {nextStageOf(live.stage) ? (
+                  <Button variant="primary" onClick={() => advance(live)}>
+                    Pasar a {STAGE[nextStageOf(live.stage)!].label}
+                  </Button>
+                ) : null}
+                {live.stage !== "lost" && live.stage !== "closed" ? (
+                  <Button variant="ghost" onClick={() => advance(live, "lost")}>
+                    No interesado
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+
+            <Field label="Nombre o marca">
+              <TextInput value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej. Make Money Matt" />
+            </Field>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Email">
+                <TextInput
+                  type="email"
+                  value={draft.email ?? ""}
+                  onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                  placeholder="creador@email.com"
+                />
+              </Field>
+              <Field label="Dónde lo encontraste">
+                <TextInput value={draft.source ?? ""} onChange={(e) => setDraft({ ...draft, source: e.target.value })} placeholder="YouTube, TikTok, referido…" />
+              </Field>
+            </div>
+            <Field label="Link del perfil">
+              <div className="flex gap-2">
+                <TextInput
+                  value={draft.profileUrl ?? ""}
+                  onChange={(e) => setDraft({ ...draft, profileUrl: e.target.value })}
+                  placeholder="youtube.com/@canal"
+                  className="flex-1"
+                />
+                {draft.profileUrl ? (
+                  <a href={profileHref(draft.profileUrl)} target="_blank" rel="noreferrer" className="ui-btn-secondary inline-flex h-9 items-center rounded-[10px] px-3 text-[13px] font-semibold">
+                    Abrir
+                  </a>
+                ) : null}
+                {draft.email ? <Button onClick={() => copyText(draft.email!, "Email copiado")}>Copiar email</Button> : null}
+              </div>
+            </Field>
+            {!draft.id ? (
+              <Field label="Etapa">
+                <SelectInput value={draft.stage ?? "new"} onChange={(v) => setDraft({ ...draft, stage: v as CreatorStage })} options={STAGE_OPTIONS} />
+              </Field>
+            ) : null}
+            <Field label="Notas">
+              <TextArea value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} placeholder="Tarifa, condiciones, lo que hablasteis…" />
+            </Field>
+
+            {live ? (
+              <div>
+                <p className="mb-2 text-[12px] font-medium text-[var(--foreground-soft)]">Historial de contacto</p>
+                {live.touches.length ? (
+                  <ol className="space-y-1.5">
+                    {[...live.touches].reverse().map((t, i, list) => {
+                      const first = list.findLastIndex((x) => x.stage === t.stage) === i;
+                      return (
+                        <li key={`${t.at}-${i}`} className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[12px]">
+                          <Dot color={STAGE[t.stage].color} />
+                          <span className="font-medium text-[var(--foreground)]">
+                            {first ? (t.stage === "contacted" ? "Primer contacto" : `Pasó a ${STAGE[t.stage].label}`) : "Seguimiento"}
+                          </span>
+                          <span className="ml-auto tabular-nums text-[var(--muted)]">
+                            {new Date(t.at).toLocaleDateString("es", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                ) : (
+                  <p className="rounded-lg border border-dashed border-[var(--border)] px-3 py-4 text-center text-[12px] text-[var(--muted-soft)]">
+                    Aún no lo has contactado
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </Drawer>
+
+      <Drawer
+        open={importOpen}
+        title="Importar desde Excel"
+        subtitle="Exporta tu hoja como CSV (Archivo → Descargar → CSV) y súbela aquí"
+        onClose={() => setImportOpen(false)}
+        wide
+        footer={
+          <>
+            <Button onClick={() => setImportOpen(false)}>Cancelar</Button>
+            <Button variant="primary" onClick={runImport} disabled={importing || !importPreview?.items.length}>
+              {importing ? "Importando…" : importPreview?.items.length ? `Importar ${importPreview.items.length} creadores` : "Importar"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-[var(--border)] bg-white p-3 text-[12px] leading-relaxed text-[var(--muted)]">
+            Reconocemos columnas como <b>Name / Brand</b>, <b>Social Link</b>, <b>Email</b>, <b>Source</b>, <b>Date Initiated</b>, <b>Date Engaged</b>,{" "}
+            <b>Date Pitched</b>, <b>Date Closed</b>, <b>Not Interested?</b> y <b>Notes</b> (también en español). Las columnas <b>A1–A3</b>, <b>B1–B5</b> y{" "}
+            <b>C1–C5</b> se guardan como seguimientos de cada etapa.
+          </div>
+          <div className="flex items-center gap-2">
+            <input ref={fileRef} type="file" accept=".csv,text/csv,.tsv,text/tab-separated-values" onChange={readFile} className="hidden" />
+            <Button onClick={() => fileRef.current?.click()}>Elegir archivo CSV</Button>
+            <span className="text-[12px] text-[var(--muted-soft)]">o pega las celdas copiadas de la hoja</span>
+          </div>
+          <TextArea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="Name / Brand,Social Link,Email,…" className="min-h-[140px] font-mono text-[11px]" />
+
+          {importPreview?.missing.length ? (
+            <p className="text-[12px] font-medium text-[var(--danger)]">Falta la columna de {importPreview.missing.join(", ")}.</p>
+          ) : importPreview?.items.length ? (
+            <div>
+              <p className="mb-2 text-[12px] font-medium text-[var(--foreground-soft)]">
+                Vista previa · {importPreview.items.length} creadores
+              </p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {STAGES.map((s) => (
+                  <div key={s.id} className="rounded-lg border border-[var(--border)] bg-white px-2 py-1.5">
+                    <p className="flex items-center gap-1 text-[10px] font-medium text-[var(--muted)]">
+                      <Dot color={s.color} />
+                      {s.label}
+                    </p>
+                    <p className="text-[15px] font-semibold tabular-nums">{importPreview.items.filter((c) => c.stage === s.id).length}</p>
+                  </div>
+                ))}
+              </div>
+              <ul className="mt-3 max-h-[220px] space-y-1 overflow-y-auto">
+                {importPreview.items.slice(0, 50).map((c, i) => (
+                  <li key={i} className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-1.5 text-[12px]">
+                    <Dot color={STAGE[c.stage].color} />
+                    <span className="min-w-0 flex-1 truncate font-medium">{c.name}</span>
+                    <span className="text-[11px] text-[var(--muted-soft)]">
+                      {c.touches.length} {c.touches.length === 1 ? "contacto" : "contactos"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </Drawer>
+    </Page>
+  );
+}

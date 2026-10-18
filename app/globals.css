@@ -521,6 +521,11 @@ select {
   color: #b0122f;
 }
 
+.ui-tag-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .ui-chip {
   display: inline-flex;
   align-items: center;

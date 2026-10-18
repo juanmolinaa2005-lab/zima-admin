@@ -14,6 +14,7 @@ import { ContentPlannerPage } from "./marketing/ContentPlannerPage";
 import { AdsCampaignsPage } from "./marketing/AdsCampaignsPage";
 import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
 import { LinksPage } from "./marketing/LinksPage";
+import { InfluencerPipelinePage } from "./marketing/InfluencerPipelinePage";
 import { sectionOf, sectionTabs, viewFrom, type SectionId, type ViewId } from "./nav";
 
 type DashboardProps = {
@@ -64,6 +65,8 @@ export function Dashboard({ project }: DashboardProps) {
         return <AdsCampaignsPage projectId={project.id} active={view === "campaigns"} onOpenCreatives={() => select("creatives")} />;
       case "creatives":
         return <AdsCreativesPage projectId={project.id} active={view === "creatives"} />;
+      case "pipeline":
+        return <InfluencerPipelinePage projectId={project.id} active={view === "pipeline"} />;
       case "links":
         return <LinksPage projectId={project.id} />;
       case "studio":
