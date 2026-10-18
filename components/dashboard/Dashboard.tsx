@@ -86,7 +86,7 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh overflow-hidden bg-background text-foreground md:bg-[#ebebee]">
       <Sidebar
         activeSection={section}
         activeTab={currentTab}
@@ -99,21 +99,27 @@ export function Dashboard({ project, userEmail }: DashboardProps) {
         onSelectTab={select}
       />
 
-      <main id="main" tabIndex={-1} className="relative min-w-0 flex-1 outline-none">
-        {opened.map((id) => {
-          const active = id === view;
-          return (
-            <div
-              key={id}
-              className={`ui-view absolute inset-0 ${active ? "z-10" : "pointer-events-none invisible z-0"}`}
-              data-active={active ? "true" : undefined}
-              aria-hidden={!active}
-            >
-              {renderView(id)}
-            </div>
-          );
-        })}
-      </main>
+      <div className="min-w-0 flex-1 md:p-2">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="relative h-full overflow-hidden bg-background outline-none md:rounded-[18px] md:border md:border-[var(--border)] md:shadow-[0_1px_2px_rgba(17,24,39,0.04),0_10px_30px_-14px_rgba(17,24,39,0.14)]"
+        >
+          {opened.map((id) => {
+            const active = id === view;
+            return (
+              <div
+                key={id}
+                className={`ui-view absolute inset-0 ${active ? "z-10" : "pointer-events-none invisible z-0"}`}
+                data-active={active ? "true" : undefined}
+                aria-hidden={!active}
+              >
+                {renderView(id)}
+              </div>
+            );
+          })}
+        </main>
+      </div>
       <Toaster position="top-right" richColors closeButton />
     </div>
   );

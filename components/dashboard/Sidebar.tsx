@@ -221,7 +221,7 @@ export function Sidebar({
       <div className="hidden h-full shrink-0 md:flex">
         <aside
           aria-label="Secciones"
-          className="flex h-full w-[76px] shrink-0 flex-col items-center border-r border-[var(--border)] bg-[#efeff2] py-3"
+          className="flex h-full w-[76px] shrink-0 flex-col items-center py-3"
         >
           <Link
             href="/"
@@ -230,7 +230,7 @@ export function Sidebar({
           >
             {(projectName.trim()[0] || "V").toUpperCase()}
           </Link>
-          <span aria-hidden className="my-3 h-px w-8 shrink-0 bg-[var(--border)]" />
+          <span aria-hidden className="my-3 h-px w-8 shrink-0 bg-black/[0.08]" />
 
           <nav className="ui-stagger flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
             {SECTIONS.map((s) => (
@@ -268,13 +268,11 @@ export function Sidebar({
         </aside>
 
         <div
-          className={`ui-shell-rail h-full overflow-hidden transition-[width,border-color] duration-300 ease-[var(--ease)] ${
-            panelOpen ? "w-[228px] border-r border-[var(--border)]" : "w-0 border-r border-transparent"
-          }`}
+          className={`h-full overflow-hidden transition-[width] duration-300 ease-[var(--ease)] ${panelOpen ? "w-[228px]" : "w-0"}`}
           aria-hidden={!panelOpen}
         >
           <div className="flex h-full w-[228px] flex-col">
-            <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+            <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-3">
               <Link href="/" title="Cambiar de proyecto" tabIndex={panelOpen ? undefined : -1} className="group min-w-0 flex-1">
                 <span className="flex items-center gap-1">
                   <span className="truncate text-[13px] font-semibold text-[var(--foreground)]">{projectName}</span>
