@@ -116,14 +116,14 @@ export async function GET(request: Request, { params }: Params) {
   } else if (platformRaw === "tiktok" || platformRaw === "x") {
     const shared =
       platformRaw === "tiktok"
-        ? await getSharedPair("TIK_TOK_CLIENT_KEY", "TIK_TOK_CLIENT_SECRET")
+        ? await getSharedPair("TIK_TOK_CLIENT_KEY_SANDBOX", "TIK_TOK_CLIENT_SECRET_SANDBOX")
         : await getSharedPair("X_CLIENT_ID", "X_CLIENT_SECRET");
     if (!shared) {
       return NextResponse.json(
         {
           error:
             platformRaw === "tiktok"
-              ? "Añade TIK_TOK_CLIENT_KEY y TIK_TOK_CLIENT_SECRET en Supabase → Edge Functions → Secrets."
+              ? "Añade TIK_TOK_CLIENT_KEY_SANDBOX y TIK_TOK_CLIENT_SECRET_SANDBOX en Supabase → Edge Functions → Secrets."
               : "Añade X_CLIENT_ID y X_CLIENT_SECRET en Supabase → Edge Functions → Secrets.",
         },
         { status: 400 }

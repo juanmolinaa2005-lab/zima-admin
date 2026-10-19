@@ -77,7 +77,7 @@ async function publishTikTok(
     error?: { code?: string; message?: string };
   };
 
-  if (!initRes.ok || initData.error?.code) {
+  if (!initRes.ok || (initData.error?.code && initData.error.code !== "ok")) {
     const direct = await fetch(
       "https://open.tiktokapis.com/v2/post/publish/video/init/",
       {
@@ -105,7 +105,7 @@ async function publishTikTok(
       data?: { publish_id?: string };
       error?: { code?: string; message?: string };
     };
-    if (!direct.ok || directData.error?.code) {
+    if (!direct.ok || (directData.error?.code && directData.error.code !== "ok")) {
       return {
         status: "failed",
         message:

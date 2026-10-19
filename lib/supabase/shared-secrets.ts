@@ -4,6 +4,8 @@ import { getServiceRoleAccess } from "@/lib/supabase/admin";
 export type SharedSecretName =
   | "TIK_TOK_CLIENT_KEY"
   | "TIK_TOK_CLIENT_SECRET"
+  | "TIK_TOK_CLIENT_KEY_SANDBOX"
+  | "TIK_TOK_CLIENT_SECRET_SANDBOX"
   | "META_APP_ID"
   | "META_APP_SECRET"
   | "YOUTUBE_CLIENT_ID"
