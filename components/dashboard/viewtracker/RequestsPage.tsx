@@ -462,12 +462,12 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
-            Requests
+            Mensajes
           </h1>
           <p className="mt-1 text-[13px] text-[var(--muted)]">
             {mode === "template"
-              ? "Edit and save your fixed From, subject, and message in Supabase."
-              : "Send by email or open a profile to DM — every request is logged."}
+              ? "Edita y guarda el remitente, el asunto y el mensaje que usarás siempre."
+              : "Envía por email o abre el perfil para escribir por DM. Cada mensaje queda registrado."}
           </p>
         </div>
         <div className="flex items-center gap-3">

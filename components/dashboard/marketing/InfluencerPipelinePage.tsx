@@ -88,7 +88,7 @@ function SectionLabel({ children }: { children: string }) {
   return <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted-soft)]">{children}</p>;
 }
 
-function CreatorAvatar({ creator, className }: { creator: Pick<PipelineCreator, "name" | "profileUrl">; className: string }) {
+export function CreatorAvatar({ creator, className }: { creator: Pick<PipelineCreator, "name" | "profileUrl">; className: string }) {
   const url = creator.profileUrl ? parseProfileUrl(creator.profileUrl)?.avatarUrl : null;
   const [failed, setFailed] = useState<string | null>(null);
   const src = url && url !== failed ? url : null;
@@ -190,7 +190,7 @@ function CreatorRow({
         ) : null}
         {next ? (
           <Button variant={due || c.stage === "new" ? "primary" : "secondary"} onClick={() => onStage(next)}>
-            {STAGE[next].label} →
+            {c.stage === "new" ? "Enviar mensaje" : STAGE[next].label} →
           </Button>
         ) : null}
       </div>

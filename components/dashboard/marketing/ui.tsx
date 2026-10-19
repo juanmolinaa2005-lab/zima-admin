@@ -343,7 +343,7 @@ export function Drawer({
         }`}
       >
         {aside ? (
-          <div className="shrink-0 rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:w-[480px]">
+          <div className="shrink-0 overflow-hidden rounded-[20px] border border-[var(--border)] bg-white shadow-[0_24px_60px_-12px_rgba(17,24,39,0.35)] sm:w-[480px]">
             {aside}
           </div>
         ) : null}

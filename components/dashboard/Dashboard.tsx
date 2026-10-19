@@ -15,6 +15,7 @@ import { AdsCampaignsPage } from "./marketing/AdsCampaignsPage";
 import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
 import { LinksPage } from "./marketing/LinksPage";
 import { InfluencerPipelinePage } from "./marketing/InfluencerPipelinePage";
+import { ContractsPage } from "./marketing/ContractsPage";
 import { sectionOf, sectionTabs, viewFrom, type SectionId, type ViewId } from "./nav";
 
 type DashboardProps = {
@@ -67,6 +68,8 @@ export function Dashboard({ project }: DashboardProps) {
         return <AdsCreativesPage projectId={project.id} active={view === "creatives"} />;
       case "pipeline":
         return <InfluencerPipelinePage projectId={project.id} active={view === "pipeline"} />;
+      case "contracts":
+        return <ContractsPage projectId={project.id} projectName={project.name} active={view === "contracts"} />;
       case "links":
         return <LinksPage projectId={project.id} />;
       case "studio":

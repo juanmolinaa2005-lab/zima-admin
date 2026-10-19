@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { AnalyticsIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon } from "./icons";
+import { AnalyticsIcon, ContractIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon } from "./icons";
 import {
   IconAccounts,
   IconChat,
@@ -14,7 +14,7 @@ import { IconCalendar, IconMegaphone, IconRobot, IconSparkles } from "./marketin
 
 export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
-export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links" | "pipeline";
+export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links" | "pipeline" | "contracts";
 
 export type ViewId = MarketingPageId | GrowthViewId | "studio" | "gallery";
 
@@ -35,8 +35,9 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   videos: { label: "Videos", icon: IconVideos },
   pipeline: { label: "Influencers", icon: IconCreators },
   creators: { label: "Creadores", icon: IconCreators },
-  requests: { label: "Solicitudes", icon: IconRequests },
+  requests: { label: "Mensajes", icon: IconRequests },
   responses: { label: "Respuestas", icon: IconChat },
+  contracts: { label: "Contratos", icon: ContractIcon },
   campaigns: { label: "Campañas", icon: IconMegaphone },
   creatives: { label: "Creativos", icon: IconSparkles },
   links: { label: "Enlaces UTM", icon: LinkIcon },
@@ -49,7 +50,7 @@ export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: Vie
   { id: "home", label: "Inicio", icon: HomeIcon, tabs: ["home"] },
   { id: "tracking", label: "Tracking", icon: AnalyticsIcon, tabs: ["overview", "accounts", "videos", "creators", "links"] },
   { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
-  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "requests", "responses"] },
+  { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "requests", "responses", "contracts"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
   { id: "gallery", label: "Galería", icon: GalleryIcon, tabs: ["gallery"], footer: true },
 ];
@@ -72,7 +73,7 @@ export const UGC_FLOW: { id: ViewId; step: string; text: string }[] = [
   { id: "overview", step: "Medir", text: "Vistas y engagement de cada video" },
 ];
 
-const GROWTH_VIEWS = new Set<string>(["home", "planner", "ai-influencers", "campaigns", "creatives", "links", "pipeline"]);
+const GROWTH_VIEWS = new Set<string>(["home", "planner", "ai-influencers", "campaigns", "creatives", "links", "pipeline", "contracts"]);
 const STUDIO_ALIASES = new Set(["create", "estudio", "redes"]);
 const MARKETING_ALIASES = new Set(["marketing", "viewtracker", "results"]);
 const ALIASES: Record<string, ViewId> = {
@@ -86,6 +87,8 @@ const ALIASES: Record<string, ViewId> = {
   utm: "links",
   outreach: "pipeline",
   seguimiento: "pipeline",
+  contratos: "contracts",
+  mensajes: "requests",
   library: "gallery",
 };
 
