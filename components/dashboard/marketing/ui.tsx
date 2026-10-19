@@ -173,6 +173,7 @@ export function Kpi({
   delta,
   invert,
   tone,
+  compact,
 }: {
   label: string;
   value: string;
@@ -182,16 +183,28 @@ export function Kpi({
   /** When true, a decrease is good (e.g. CPA). */
   invert?: boolean;
   tone?: "good" | "bad";
+  /** One row: label and hint on the left, value on the right. */
+  compact?: boolean;
 }) {
+  const valueColor = tone === "good" ? "text-[var(--success)]" : tone === "bad" ? "text-[var(--danger)]" : "text-[var(--foreground)]";
+  if (compact) {
+    return (
+      <div className="ui-card flex items-center justify-between gap-3 px-4 py-2.5">
+        <div className="min-w-0">
+          <p className="truncate text-[12px] font-medium text-[var(--muted)]">{label}</p>
+          {hint ? <p className="truncate text-[11px] text-[var(--muted-soft)]">{hint}</p> : null}
+        </div>
+        <p className={`shrink-0 text-[20px] font-semibold tabular-nums tracking-tight ${valueColor}`}>{value}</p>
+      </div>
+    );
+  }
   const showDelta = delta != null && Number.isFinite(delta);
   const good = showDelta ? (invert ? delta! <= 0 : delta! >= 0) : null;
   return (
     <div className="ui-card px-4 py-3.5">
       <p className="text-[12px] font-medium text-[var(--muted)]">{label}</p>
       <p
-        className={`mt-1 text-[22px] font-semibold tabular-nums tracking-tight ${
-          tone === "good" ? "text-[var(--success)]" : tone === "bad" ? "text-[var(--danger)]" : "text-[var(--foreground)]"
-        }`}
+        className={`mt-1 text-[22px] font-semibold tabular-nums tracking-tight ${valueColor}`}
       >
         {value}
       </p>

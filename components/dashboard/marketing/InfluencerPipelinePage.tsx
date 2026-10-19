@@ -538,10 +538,10 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Toca seguimiento hoy" value={String(stats.due)} hint={stats.due ? "esperan tu mensaje" : "estás al día"} tone={stats.due ? "bad" : undefined} />
-        <Kpi label="En conversación" value={String(stats.talking)} hint={`${stats.toContact} por contactar`} />
-        <Kpi label="Tasa de respuesta" value={stats.replyRate === null ? "—" : `${stats.replyRate}%`} hint={`de ${stats.contacted} contactados`} />
-        <Kpi label="Cerrados" value={String(stats.closed)} hint="acuerdos conseguidos" tone={stats.closed ? "good" : undefined} />
+        <Kpi compact label="Toca escribir hoy" value={String(stats.due)} hint={stats.due ? "esperan tu mensaje" : "estás al día"} tone={stats.due ? "bad" : undefined} />
+        <Kpi compact label="En conversación" value={String(stats.talking)} hint={`${stats.toContact} por contactar`} />
+        <Kpi compact label="Respuesta" value={stats.replyRate === null ? "—" : `${stats.replyRate}%`} hint={`de ${stats.contacted} contactados`} />
+        <Kpi compact label="Cerrados" value={String(stats.closed)} hint="acuerdos" tone={stats.closed ? "good" : undefined} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
