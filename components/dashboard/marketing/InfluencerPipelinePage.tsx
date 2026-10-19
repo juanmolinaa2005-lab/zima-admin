@@ -94,7 +94,7 @@ function CreatorAvatar({ creator, className }: { creator: Pick<PipelineCreator, 
   const [failed, setFailed] = useState<string | null>(null);
   const src = url && url !== failed ? url : null;
   return (
-    <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--surface-alt)] font-semibold text-[var(--muted)] ${className}`}>
+    <span className={`flex shrink-0 items-center justify-center overflow-hidden bg-[var(--surface-alt)] font-semibold text-[var(--muted)] ${className}`}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" className="h-full w-full object-cover" onError={() => setFailed(src)} />
@@ -123,12 +123,14 @@ function CreatorRow({
   const links = [c.profileUrl, ...(c.extraLinks ?? [])].filter((l): l is string => Boolean(l));
   return (
     <li
-      className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[24px] border bg-white px-4 py-3.5 xl:grid xl:grid-cols-[minmax(0,1.3fr)_128px_150px_minmax(0,1fr)_250px] shadow-[var(--shadow-xs)] transition hover:shadow-[var(--shadow-sm)] ${
+      className={`relative flex min-h-[84px] flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden rounded-[24px] border bg-white py-3.5 pl-[100px] pr-4 xl:grid xl:grid-cols-[minmax(0,1.3fr)_128px_150px_minmax(0,1fr)_250px] shadow-[var(--shadow-xs)] transition hover:shadow-[var(--shadow-sm)] ${
         due ? "border-amber-300" : "border-[var(--border)]"
       }`}
     >
-      <button type="button" onClick={onOpen} className="flex min-w-[220px] flex-1 items-center gap-3 text-left xl:min-w-0">
-        <CreatorAvatar creator={c} className="h-14 w-14 text-[18px]" />
+      <button type="button" onClick={onOpen} tabIndex={-1} aria-hidden className="absolute inset-y-0 left-0 w-[84px]">
+        <CreatorAvatar creator={c} className="h-full w-full text-[22px]" />
+      </button>
+      <button type="button" onClick={onOpen} className="flex min-w-[180px] flex-1 items-center text-left xl:min-w-0">
         <span className="min-w-0">
           <span className="block truncate text-[14px] font-semibold text-[var(--foreground)]">{c.name}</span>
           <span className="block truncate text-[12px] text-[var(--muted-soft)]">
