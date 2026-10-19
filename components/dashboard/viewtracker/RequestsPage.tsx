@@ -185,37 +185,72 @@ function ConnectorBar({
   connecting: SocialPlatform | null;
   onConnect: (platform: SocialPlatform) => void;
 }) {
+  const [open, setOpen] = useState<SocialPlatform | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <div className="grid grid-cols-5 overflow-hidden rounded-[20px] border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)]">
-      {CONNECTORS.map((platform, i) => {
+    <div ref={ref} className="flex items-center gap-1">
+      {CONNECTORS.map((platform) => {
         const account = accounts.find((a) => a.platform === platform && a.status === "active");
         const label = PLATFORM_META[platform].label;
+        const isOpen = open === platform;
         return (
-          <button
-            key={platform}
-            type="button"
-            onClick={() => onConnect(platform)}
-            disabled={connecting === platform}
-            title={account ? `${label} conectado${account.username ? ` como @${account.username}` : ""}` : `Conectar ${label}`}
-            className={`group relative flex min-w-0 flex-col items-center gap-2 px-2 py-4 transition hover:bg-[var(--surface-alt)]/60 disabled:opacity-60 ${
-              i > 0 ? "border-l border-[var(--border)]" : ""
-            }`}
-          >
-            <span className="relative">
-              <PlatformLogo id={platform} className={`h-7 w-7 transition ${account ? "" : "opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0"}`} />
-              {account ? (
-                <span className="absolute -bottom-1 -right-1.5 h-3 w-3 rounded-full border-2 border-white bg-[#16a34a]" aria-hidden />
-              ) : null}
-            </span>
-            <span className="w-full min-w-0 text-center">
-              <span className="block truncate text-[12px] font-semibold text-[var(--foreground)]">
-                {account?.username ? `@${account.username}` : label}
-              </span>
-              <span className={`block truncate text-[11px] ${account ? "text-[#16a34a]" : "text-[var(--muted-soft)] group-hover:text-[var(--foreground)]"}`}>
-                {connecting === platform ? "Conectando…" : account ? "Conectado" : "Conectar"}
-              </span>
-            </span>
-          </button>
+          <div key={platform} className="relative">
+            <button
+              type="button"
+              onClick={() => setOpen(isOpen ? null : platform)}
+              aria-expanded={isOpen}
+              aria-label={`${label}: ${account ? "conectado" : "sin conectar"}`}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition ${
+                isOpen ? "border-[var(--border-strong)] bg-[var(--surface-alt)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-alt)]"
+              }`}
+            >
+              <PlatformLogo id={platform} className="h-[18px] w-[18px]" />
+              <span
+                aria-hidden
+                className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white ${account ? "bg-[#16a34a]" : "bg-[#dc2626]"}`}
+              />
+            </button>
+            {isOpen ? (
+              <div className="animate-scale-in absolute right-0 top-full z-30 mt-2 w-[230px] origin-top-right rounded-2xl border border-[var(--border)] bg-white p-3 shadow-[0_18px_40px_-12px_rgba(17,24,39,0.3)]">
+                <div className="flex items-center gap-2">
+                  <PlatformLogo id={platform} className="h-5 w-5" />
+                  <p className="text-[13px] font-semibold text-[var(--foreground)]">{label}</p>
+                </div>
+                <p className={`mt-2 flex items-center gap-1.5 text-[12px] font-medium ${account ? "text-[#16a34a]" : "text-[#dc2626]"}`}>
+                  <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${account ? "bg-[#16a34a]" : "bg-[#dc2626]"}`} />
+                  {account ? `Conectado${account.username ? ` como @${account.username}` : ""}` : "Sin conectar"}
+                </p>
+                {account?.lastError ? <p className="mt-1 text-[11px] text-[var(--muted-soft)]">{account.lastError}</p> : null}
+                <button
+                  type="button"
+                  disabled={connecting === platform}
+                  onClick={() => onConnect(platform)}
+                  className={`mt-3 w-full rounded-lg px-3 py-1.5 text-[12px] font-semibold transition disabled:opacity-60 ${
+                    account
+                      ? "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-alt)]"
+                      : "bg-[var(--foreground)] text-white hover:opacity-90"
+                  }`}
+                >
+                  {connecting === platform ? "Conectando…" : account ? "Reconectar" : "Conectar"}
+                </button>
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </div>
@@ -618,6 +653,9 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
           </p>
         </div>
 
+        <div className="flex items-center gap-3">
+        <ConnectorBar accounts={social} connecting={connecting} onConnect={(p) => void connect(p)} />
+        <span aria-hidden className="h-6 w-px bg-[var(--border)]" />
         <div ref={templateRef} className="relative">
           <button
             type="button"
@@ -733,9 +771,8 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
             </div>
           ) : null}
         </div>
+        </div>
       </div>
-
-      <ConnectorBar accounts={social} connecting={connecting} onConnect={(p) => void connect(p)} />
 
       {error ? (
         <div className="rounded-xl border border-[#fecaca] bg-[var(--danger-soft)] px-3 py-2 text-[13px] text-[var(--danger)]">
