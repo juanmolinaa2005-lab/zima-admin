@@ -123,12 +123,12 @@ function CreatorRow({
   const links = [c.profileUrl, ...(c.extraLinks ?? [])].filter((l): l is string => Boolean(l));
   return (
     <li
-      className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border bg-white px-4 py-3 md:grid md:grid-cols-[minmax(0,1.3fr)_128px_150px_minmax(0,1fr)_250px] shadow-[var(--shadow-xs)] transition hover:shadow-[var(--shadow-sm)] ${
+      className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[24px] border bg-white px-4 py-3.5 xl:grid xl:grid-cols-[minmax(0,1.3fr)_128px_150px_minmax(0,1fr)_250px] shadow-[var(--shadow-xs)] transition hover:shadow-[var(--shadow-sm)] ${
         due ? "border-amber-300" : "border-[var(--border)]"
       }`}
     >
-      <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <CreatorAvatar creator={c} className="h-11 w-11 text-[15px]" />
+      <button type="button" onClick={onOpen} className="flex min-w-[220px] flex-1 items-center gap-3 text-left xl:min-w-0">
+        <CreatorAvatar creator={c} className="h-14 w-14 text-[18px]" />
         <span className="min-w-0">
           <span className="block truncate text-[14px] font-semibold text-[var(--foreground)]">{c.name}</span>
           <span className="block truncate text-[12px] text-[var(--muted-soft)]">
