@@ -114,6 +114,28 @@ export async function GET(request: Request, { params }: Params) {
       },
       { onConflict: "project_id,platform" }
     );
+  } else if (
+    platformRaw === "tiktok" &&
+    process.env.TIK_TOK_CLIENT_KEY?.trim() &&
+    process.env.TIK_TOK_CLIENT_SECRET?.trim()
+  ) {
+    clientId = process.env.TIK_TOK_CLIENT_KEY.trim();
+    clientSecret = process.env.TIK_TOK_CLIENT_SECRET.trim();
+
+    await supabase.from("project_social_apps").upsert(
+      {
+        project_id: projectId,
+        user_id: user.id,
+        platform: "tiktok",
+        client_id: clientId,
+        client_secret_ciphertext: encryptSecret(clientSecret),
+        redirect_uri: redirectUri,
+        scopes: PLATFORM_API.tiktok.oauthScopes,
+        connected_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "project_id,platform" }
+    );
   } else {
     const { data: app, error } = await supabase
       .from("project_social_apps")
