@@ -423,7 +423,7 @@ export function AdsCreativesPage({ projectId, active }: { projectId: string; act
           <div className="space-y-3">
             {aiSource === "template" ? (
               <p className="rounded-xl bg-[var(--warning-soft)] px-3 py-2 text-[12px] text-[var(--warning)]">
-                Variantes desde plantillas. Conecta tu clave de OpenAI en Ajustes → API para copys personalizados con IA.
+                Variantes desde plantillas. Conecta tu clave de OpenAI en Supabase → Secrets para copys personalizados con IA.
               </p>
             ) : null}
             {aiResults.map((c, i) => (

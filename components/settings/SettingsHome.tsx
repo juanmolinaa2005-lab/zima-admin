@@ -29,39 +29,7 @@ function LockIcon({ className }: { className?: string }) {
   );
 }
 
-function ApiIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M8 8H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 8h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M9 12h6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 const ITEMS = [
-  {
-    id: "api",
-    name: "API",
-    description: "Claves de OpenAI, fal, Meta, YouTube y demás proveedores.",
-    href: "api",
-    Icon: ApiIcon,
-  },
   {
     id: "password",
     name: "Contraseña",

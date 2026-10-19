@@ -68,8 +68,8 @@ export async function GET(request: Request) {
   if (appErr || !app) {
     return htmlClose(
       state.platform === "youtube"
-        ? "YouTube app credentials not found. Save Google OAuth in Settings → API, then Connect again."
-        : "App credentials not found. Save Meta in Settings → API, then Connect again.",
+        ? "YouTube app credentials not found. Save Google OAuth in Supabase → Secrets, then Connect again."
+        : "App credentials not found. Save Meta in Supabase → Secrets, then Connect again.",
       false,
       state.projectId,
       state.platform

@@ -1519,7 +1519,7 @@ export function InfluencerStudio({
             <ApiMissingBanner
               projectId={projectId}
               providerName="fal.ai"
-              message="Conecta fal.ai en Ajustes → API para clonar el movimiento del video."
+              message="Conecta fal.ai en Supabase → Secrets para clonar el movimiento del video."
             />
           </div>
         ) : openai && !openai.connected ? (
@@ -1527,7 +1527,7 @@ export function InfluencerStudio({
             <ApiMissingBanner
               projectId={projectId}
               providerName="OpenAI"
-              message="Conecta OpenAI en Ajustes → API para crear un fotograma nuevo adaptado al video de referencia."
+              message="Conecta OpenAI en Supabase → Secrets para crear un fotograma nuevo adaptado al video de referencia."
             />
           </div>
         ) : null
@@ -1536,7 +1536,7 @@ export function InfluencerStudio({
           <ApiMissingBanner
             projectId={projectId}
             providerName="Replicate"
-            message="Conecta Replicate en Ajustes → API para generar videos. fal.ai queda de respaldo si Replicate falla."
+            message="Conecta Replicate en Supabase → Secrets para generar videos. fal.ai queda de respaldo si Replicate falla."
           />
         </div>
       ) : openai && !openai.connected ? (
@@ -1544,7 +1544,7 @@ export function InfluencerStudio({
           <ApiMissingBanner
             projectId={projectId}
             providerName="OpenAI"
-            message="Conecta OpenAI en Ajustes → API para el fotograma (GPT Image 2) y los guiones."
+            message="Conecta OpenAI en Supabase → Secrets para el fotograma (GPT Image 2) y los guiones."
           />
         </div>
       ) : null}

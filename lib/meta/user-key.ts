@@ -1,3 +1,4 @@
+import { getSharedPair } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
@@ -5,6 +6,8 @@ export async function getMetaAppCredentials(): Promise<{
   appId: string;
   appSecret: string;
 } | null> {
+  const shared = await getSharedPair("META_APP_ID", "META_APP_SECRET");
+  if (shared) return { appId: shared.id, appSecret: shared.secret };
   const supabase = await createClient();
   const {
     data: { user },
@@ -108,6 +111,7 @@ export async function getMetaConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedPair("META_APP_ID", "META_APP_SECRET")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },

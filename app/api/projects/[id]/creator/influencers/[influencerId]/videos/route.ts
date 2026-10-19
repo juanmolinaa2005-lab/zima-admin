@@ -116,7 +116,7 @@ const VIDEO_SELECT =
   "id, influencer_id, project_id, user_id, script, prompt, request_id, status, video_url, asset_id, error, model_id, provider_status, queue_position, start_image_url, estimated_cost_usd, frame_cost_usd, duration, action, extra, format, demo_code, demo_phone_frame, demo_variables, talking_video_url, demo_video_url, overlay, overlay_style, overlay_position, beauty, video_provider, api_trace, reference_video_url, source_video_url, created_at, updated_at";
 
 const VIDEO_CONNECT_MSG =
-  "Conecta Replicate en Ajustes → API. fal.ai se usa solo si Replicate falla.";
+  "Conecta Replicate en Supabase → Secrets. fal.ai se usa solo si Replicate falla.";
 const ACTIVE = new Set(["queued", "in_progress", "saving", "pending", "composing"]);
 
 type VideoRow = {
@@ -1039,7 +1039,7 @@ async function generateScriptsWithAi(opts: {
   }
 
   throw new Error(
-    "Conecta fal.ai (o OpenAI) en Ajustes → API para generar guiones."
+    "Conecta fal.ai (o OpenAI) en Supabase → Secrets para generar guiones."
   );
 }
 
@@ -1178,7 +1178,7 @@ export async function POST(request: Request, { params }: Params) {
           return NextResponse.json(
             {
               error: "NOT_CONNECTED",
-              message: "Conecta fal.ai en Ajustes → API para clonar el movimiento.",
+              message: "Conecta fal.ai en Supabase → Secrets para clonar el movimiento.",
             },
             { status: 403 }
           );
@@ -1189,7 +1189,7 @@ export async function POST(request: Request, { params }: Params) {
             {
               error: "NOT_CONNECTED",
               message:
-                "Conecta OpenAI en Ajustes → API para crear el fotograma nuevo.",
+                "Conecta OpenAI en Supabase → Secrets para crear el fotograma nuevo.",
             },
             { status: 403 }
           );
@@ -2151,7 +2151,7 @@ export async function POST(request: Request, { params }: Params) {
         return NextResponse.json(
           {
             error: "NOT_CONNECTED",
-            message: "Conecta fal.ai en Ajustes → API para clonar el movimiento.",
+            message: "Conecta fal.ai en Supabase → Secrets para clonar el movimiento.",
           },
           { status: 403 }
         );
@@ -2162,7 +2162,7 @@ export async function POST(request: Request, { params }: Params) {
           {
             error: "NOT_CONNECTED",
             message:
-              "Conecta OpenAI en Ajustes → API para crear el fotograma nuevo.",
+              "Conecta OpenAI en Supabase → Secrets para crear el fotograma nuevo.",
           },
           { status: 403 }
         );

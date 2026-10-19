@@ -24,7 +24,7 @@ export async function POST(_request: Request, { params }: Params) {
     return NextResponse.json(
       {
         error: "NOT_CONNECTED",
-        message: "Conecta fal.ai en Ajustes → API para usar Grok.",
+        message: "Conecta fal.ai en Supabase → Secrets para usar Grok.",
       },
       { status: 403 }
     );

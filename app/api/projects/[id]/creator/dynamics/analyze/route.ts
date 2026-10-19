@@ -22,7 +22,7 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json(
       {
         error: "NOT_CONNECTED",
-        message: "Conecta OpenAI en Ajustes → API para analizar el video.",
+        message: "Conecta OpenAI en Supabase → Secrets para analizar el video.",
       },
       { status: 403 }
     );

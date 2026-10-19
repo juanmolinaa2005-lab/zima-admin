@@ -1,7 +1,10 @@
+import { getSharedSecret } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
 export async function getSuperwallApiKey(): Promise<string | null> {
+  const shared = await getSharedSecret("SUPERWALL_API_KEY");
+  if (shared) return shared;
   const supabase = await createClient();
   const {
     data: { user },

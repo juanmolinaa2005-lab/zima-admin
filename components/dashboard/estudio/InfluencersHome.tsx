@@ -1115,7 +1115,7 @@ export function InfluencersHome({
           <ApiMissingBanner
             projectId={projectId}
             providerName="OpenAI"
-            message="Conecta OpenAI en Ajustes → API para generar el look con GPT Image 2."
+            message="Conecta OpenAI en Supabase → Secrets para generar el look con GPT Image 2."
           />
         </div>
       ) : null}

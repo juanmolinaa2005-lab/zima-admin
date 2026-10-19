@@ -203,7 +203,7 @@ export async function POST(request: Request, { params }: Params) {
           return NextResponse.json(
             {
               error:
-                "Conecta fal.ai o OpenAI en Ajustes → API para planificar el storyboard.",
+                "Conecta fal.ai o OpenAI en Supabase → Secrets para planificar el storyboard.",
             },
             { status: 403 }
           );

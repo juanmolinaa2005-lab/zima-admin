@@ -64,7 +64,7 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json(
       {
         error: "NOT_CONNECTED",
-        message: "Conecta OpenAI en Ajustes → API para generar variaciones.",
+        message: "Conecta OpenAI en Supabase → Secrets para generar variaciones.",
       },
       { status: 403 }
     );

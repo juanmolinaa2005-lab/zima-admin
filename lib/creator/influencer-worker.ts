@@ -288,7 +288,7 @@ async function processOne(
   try {
     const apiKey = await getOpenAIKeyForUser(admin, shot.user_id);
     if (!apiKey) {
-      throw new Error("Conecta OpenAI en Ajustes → API.");
+      throw new Error("Conecta OpenAI en Supabase → Secrets.");
     }
 
     await patchShot(admin, shot.id, {

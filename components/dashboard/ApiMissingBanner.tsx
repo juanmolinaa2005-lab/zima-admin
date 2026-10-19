@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { supabaseSecretsUrl } from "@/lib/supabase/secrets-url";
 
 type ApiMissingBannerProps = {
   projectId: string;
@@ -10,7 +10,6 @@ type ApiMissingBannerProps = {
 
 /** Small floating yellow alert when a page needs an API that isn’t connected. */
 export function ApiMissingBanner({
-  projectId,
   providerName,
   message,
 }: ApiMissingBannerProps) {
@@ -24,17 +23,18 @@ export function ApiMissingBanner({
         <p className="min-w-0 flex-1 text-[12px] leading-snug text-[#92400e]">
           {message || (
             <>
-              <span className="font-semibold">{providerName}</span> API is not
-              connected.
+              Falta la clave de <span className="font-semibold">{providerName}</span> en Supabase → Secrets.
             </>
           )}
         </p>
-        <Link
-          href={`/projects/${projectId}/settings/api`}
+        <a
+          href={supabaseSecretsUrl()}
+          target="_blank"
+          rel="noreferrer"
           className="shrink-0 rounded-lg bg-[#f59e0b] px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-[#d97706]"
         >
-          Configure
-        </Link>
+          Abrir Supabase
+        </a>
       </div>
     </div>
   );

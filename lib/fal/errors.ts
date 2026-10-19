@@ -20,7 +20,7 @@ export function displayFalError(error?: string | null): string {
   const raw = (error || "").trim();
   if (!raw) return "";
   if (isFalBalanceLockError(raw)) {
-    return "fal.ai tiene la cuenta bloqueada por recarga (TOP_UP). El dashboard puede mostrar créditos y la API seguir cerrada. Espera unos minutos, crea una API key nueva en fal.ai, pégala en Ajustes → API y reintenta. Si sigue, pídeles el desbloqueo.";
+    return "fal.ai tiene la cuenta bloqueada por recarga (TOP_UP). El dashboard puede mostrar créditos y la API seguir cerrada. Espera unos minutos, crea una API key nueva en fal.ai, pégala en Supabase → Secrets y reintenta. Si sigue, pídeles el desbloqueo.";
   }
   if (isFalRequestMissingError(raw)) {
     return "fal.ai ya no tiene este job. Pulsa reintentar para mandarlo otra vez.";

@@ -121,7 +121,7 @@ export async function createAutopilotRun(opts: {
   const falKey = await getFalApiKey();
   if (!falKey) {
     throw httpError(
-      "Conecta fal.ai en Ajustes → API. El autopilot no simula generaciones.",
+      "Conecta fal.ai en Supabase → Secrets. El autopilot no simula generaciones.",
       403
     );
   }

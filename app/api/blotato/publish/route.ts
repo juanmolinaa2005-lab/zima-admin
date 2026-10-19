@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const apiKey = await getBlotatoApiKey();
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Connect Blotato in Settings → API first." },
+      { error: "Connect Blotato in Supabase → Secrets first." },
       { status: 400 }
     );
   }

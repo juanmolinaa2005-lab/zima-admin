@@ -1,7 +1,10 @@
+import { getSharedSecret } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
 export async function getOpenAIAdminKey(): Promise<string | null> {
+  const shared = await getSharedSecret("OPENAI_ADMIN_KEY");
+  if (shared) return shared;
   const supabase = await createClient();
   const {
     data: { user },
@@ -63,6 +66,7 @@ export async function getOpenAIConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedSecret("OPENAI_ADMIN_KEY")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },
@@ -96,6 +100,8 @@ export async function getOpenAIConnectionStatus(): Promise<{
 }
 
 export async function getOpenAIApiKey(): Promise<string | null> {
+  const shared = await getSharedSecret("OPENAI_API_KEY");
+  if (shared) return shared;
   const supabase = await createClient();
   const {
     data: { user },
@@ -157,6 +163,7 @@ export async function getOpenAIApiConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedSecret("OPENAI_API_KEY")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },

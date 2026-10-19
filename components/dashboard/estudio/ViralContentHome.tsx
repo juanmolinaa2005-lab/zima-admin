@@ -169,7 +169,7 @@ export function ViralContentHome({ projectId }: { projectId: string }) {
           <ApiMissingBanner
             projectId={projectId}
             providerName="fal.ai"
-            message="Conecta fal.ai en Ajustes → API para que Grok busque contenido viral."
+            message="Conecta fal.ai en Supabase → Secrets para que Grok busque contenido viral."
           />
         </div>
       ) : null}

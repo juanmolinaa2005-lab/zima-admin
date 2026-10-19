@@ -156,7 +156,7 @@ export function parseConstructed(raw: ConstructedSpec): ConstructedSpec {
 export async function analyzeWebsite(url: string): Promise<ConstructedSpec> {
   const apiKey = await getOpenAIApiKey();
   if (!apiKey) {
-    throw new Error("Conecta OpenAI API (sk-) en Ajustes → API para construir conectores nuevos.");
+    throw new Error("Añade OPENAI_API_KEY en Supabase → Secrets para construir conectores nuevos.");
   }
   const page = await fetchPageText(url).catch(() => "");
   const raw = await openaiChatJson<ConstructedSpec>(apiKey, {
@@ -175,7 +175,7 @@ export async function enrichConnectorGuide(
 ): Promise<ConnectorGuideFields> {
   const apiKey = await getOpenAIApiKey();
   if (!apiKey) {
-    throw new Error("Conecta OpenAI API (sk-) en Ajustes → API para construir conectores nuevos.");
+    throw new Error("Añade OPENAI_API_KEY en Supabase → Secrets para construir conectores nuevos.");
   }
   const page = await fetchPageText(url).catch(() => "");
   const raw = await openaiChatJson<ConnectorGuideFields>(apiKey, {
@@ -195,7 +195,7 @@ export async function refineWebsite(
 ): Promise<ConstructedSpec> {
   const apiKey = await getOpenAIApiKey();
   if (!apiKey) {
-    throw new Error("Conecta OpenAI API (sk-) en Ajustes → API para construir conectores nuevos.");
+    throw new Error("Añade OPENAI_API_KEY en Supabase → Secrets para construir conectores nuevos.");
   }
   const raw = await openaiChatJson<ConstructedSpec>(apiKey, {
     model: "gpt-4o",

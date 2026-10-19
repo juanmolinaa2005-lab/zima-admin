@@ -3,6 +3,7 @@ import { decryptSecret, encryptSecret } from "@/lib/crypto";
 import { requireProjectOwner } from "@/lib/mail/access";
 import { getMetaAppCredentials } from "@/lib/meta/user-key";
 import { PLATFORM_API } from "@/lib/redes/platforms";
+import { getSharedPair } from "@/lib/supabase/shared-secrets";
 import {
   buildAuthorizeUrl,
   buildOAuthState,
@@ -34,17 +35,15 @@ export async function GET(request: Request, { params }: Params) {
   let clientId = "";
   let clientSecret = "";
 
-  // Instagram/Facebook: always prefer Settings → API (Meta) so stale
-  // project_social_apps rows don't break OAuth.
+  // Instagram/Facebook/YouTube: always read the current Meta/Google credentials so
+  // stale project_social_apps rows don't break OAuth.
   if (platformRaw === "instagram" || platformRaw === "facebook") {
     const meta = await getMetaAppCredentials();
     if (!meta) {
       return NextResponse.json(
         {
           error:
-            platformRaw === "instagram"
-              ? "Configure Meta in Settings → API first. For Instagram Login use the Instagram App ID + Secret from the Instagram product panel (not only the Facebook App ID in the URL)."
-              : "Configure Meta App ID + App Secret in Settings → API first.",
+            "Añade META_APP_ID y META_APP_SECRET en Supabase → Edge Functions → Secrets. Para Instagram usa el App ID y el Secret del panel de Instagram.",
         },
         { status: 400 }
       );
@@ -82,7 +81,7 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json(
         {
           error:
-            "Configure YouTube in Settings → API first. Paste the Google OAuth 2.0 Client ID + Secret (Web application), not an API key.",
+            "Añade YOUTUBE_CLIENT_ID y YOUTUBE_CLIENT_SECRET (OAuth 2.0 de Google) en Supabase → Edge Functions → Secrets.",
         },
         { status: 400 }
       );
@@ -114,23 +113,34 @@ export async function GET(request: Request, { params }: Params) {
       },
       { onConflict: "project_id,platform" }
     );
-  } else if (
-    platformRaw === "tiktok" &&
-    process.env.TIK_TOK_CLIENT_KEY?.trim() &&
-    process.env.TIK_TOK_CLIENT_SECRET?.trim()
-  ) {
-    clientId = process.env.TIK_TOK_CLIENT_KEY.trim();
-    clientSecret = process.env.TIK_TOK_CLIENT_SECRET.trim();
+  } else if (platformRaw === "tiktok" || platformRaw === "x") {
+    const shared =
+      platformRaw === "tiktok"
+        ? await getSharedPair("TIK_TOK_CLIENT_KEY", "TIK_TOK_CLIENT_SECRET")
+        : await getSharedPair("X_CLIENT_ID", "X_CLIENT_SECRET");
+    if (!shared) {
+      return NextResponse.json(
+        {
+          error:
+            platformRaw === "tiktok"
+              ? "Añade TIK_TOK_CLIENT_KEY y TIK_TOK_CLIENT_SECRET en Supabase → Edge Functions → Secrets."
+              : "Añade X_CLIENT_ID y X_CLIENT_SECRET en Supabase → Edge Functions → Secrets.",
+        },
+        { status: 400 }
+      );
+    }
+    clientId = shared.id;
+    clientSecret = shared.secret;
 
     await supabase.from("project_social_apps").upsert(
       {
         project_id: projectId,
         user_id: user.id,
-        platform: "tiktok",
+        platform: platformRaw,
         client_id: clientId,
         client_secret_ciphertext: encryptSecret(clientSecret),
         redirect_uri: redirectUri,
-        scopes: PLATFORM_API.tiktok.oauthScopes,
+        scopes: PLATFORM_API[platformRaw].oauthScopes,
         connected_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },

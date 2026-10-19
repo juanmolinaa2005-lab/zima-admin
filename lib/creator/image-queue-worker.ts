@@ -349,7 +349,7 @@ async function processOne(
     if (openai) {
       const apiKey = await getOpenAIKeyForUser(admin, job.user_id);
       if (!apiKey) {
-        throw new Error("Conecta tu OpenAI API key en Ajustes → API.");
+        throw new Error("Conecta tu OpenAI API key en Supabase → Secrets.");
       }
       await patchJob(admin, job.id, { status: "in_progress", error: null });
       const generated = await generateOpenAIImage(apiKey, {
@@ -380,7 +380,7 @@ async function processOne(
 
     const creds = await getHiggsfieldForUser(admin, job.user_id);
     if (!creds) {
-      throw new Error("Conecta Higgsfield en Ajustes → API.");
+      throw new Error("Conecta Higgsfield en Supabase → Secrets.");
     }
 
     let requestId = job.request_id;

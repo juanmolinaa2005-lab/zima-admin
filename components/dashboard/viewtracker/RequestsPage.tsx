@@ -421,7 +421,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       if (res.type !== "opaqueredirect" && !res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         toast.error(`No se pudo conectar ${PLATFORM_META[platform].label}`, {
-          description: data.error || "Revisa sus credenciales en Ajustes → API.",
+          description: data.error || "Revisa sus credenciales en Supabase → Secrets.",
         });
         setConnecting(null);
         return;

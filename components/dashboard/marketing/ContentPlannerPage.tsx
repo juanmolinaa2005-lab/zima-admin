@@ -213,7 +213,7 @@ export function ContentPlannerPage({ projectId, onNavigate }: { projectId: strin
       const res = await api<{ items: ContentPost[]; source: string }>(`/api/projects/${projectId}/content/ideas`, "POST", ideaOpts);
       setData((d) => ({ items: [...d.items, ...res.items] }));
       toast.success(
-        res.source === "ai" ? `${res.items.length} ideas nuevas generadas con IA` : `${res.items.length} ideas desde plantillas (conecta OpenAI en Ajustes → API para usar IA)`,
+        res.source === "ai" ? `${res.items.length} ideas nuevas generadas con IA` : `${res.items.length} ideas desde plantillas (conecta OpenAI en Supabase → Secrets para usar IA)`,
       );
       setIdeasOpen(false);
       setMode("board");
@@ -655,7 +655,7 @@ export function ContentPlannerPage({ projectId, onNavigate }: { projectId: strin
             />
           </Field>
           <p className="rounded-xl bg-[var(--surface-alt)] px-3 py-2.5 text-[12px] text-[var(--muted)]">
-            Usa tu clave de OpenAI (Ajustes → API). Si no está conectada, se crean ideas a partir de plantillas probadas.
+            Usa tu clave de OpenAI (Supabase → Secrets). Si no está conectada, se crean ideas a partir de plantillas probadas.
           </p>
         </div>
       </Drawer>

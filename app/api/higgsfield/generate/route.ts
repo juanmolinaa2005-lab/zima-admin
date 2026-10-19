@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "NOT_CONNECTED",
-          message: "Conecta tu OpenAI API key en Ajustes → API.",
+          message: "Conecta tu OpenAI API key en Supabase → Secrets.",
         },
         { status: 403 }
       );

@@ -116,7 +116,7 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json(
       {
         error: "NOT_CONNECTED",
-        message: "Conecta OpenAI en Ajustes → API para que ChatGPT arme la mini-app.",
+        message: "Conecta OpenAI en Supabase → Secrets para que ChatGPT arme la mini-app.",
       },
       { status: 403 }
     );

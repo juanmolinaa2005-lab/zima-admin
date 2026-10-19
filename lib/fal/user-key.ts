@@ -1,7 +1,10 @@
+import { getSharedSecret } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
 export async function getFalApiKey(): Promise<string | null> {
+  const shared = await getSharedSecret("FAL_API_KEY");
+  if (shared) return shared;
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,6 +65,7 @@ export async function getFalConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedSecret("FAL_API_KEY")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },

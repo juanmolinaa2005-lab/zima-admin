@@ -1,5 +1,6 @@
 "use client";
 
+import { supabaseSecretsUrl } from "@/lib/supabase/secrets-url";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -609,10 +610,12 @@ export function RedesView({
               <div className="flex flex-wrap gap-2">
                 {!igAppConfigured ? (
                   <a
-                    href={`/projects/${projectId}/settings/api`}
+                    href={supabaseSecretsUrl()}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui-btn-primary !py-2 text-[13px]"
                   >
-                    Configure Meta API
+                    Abrir secretos de Supabase
                   </a>
                 ) : (
                   <button
@@ -718,7 +721,7 @@ export function RedesView({
                 </span>
               </div>
               <p className="text-[12px] text-[var(--muted)]">
-                Pega el OAuth Client ID + Secret en Settings → API. En Testing,
+                Pega el OAuth Client ID + Secret en Supabase → Secrets. En Testing,
                 añade testers en Google Cloud. Luego Connect para autorizar el
                 canal.
               </p>
@@ -726,10 +729,12 @@ export function RedesView({
               <div className="flex flex-wrap gap-2">
                 {!ytAppConfigured ? (
                   <a
-                    href={`/projects/${projectId}/settings/api`}
+                    href={supabaseSecretsUrl()}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui-btn-primary !py-2 text-[13px]"
                   >
-                    Configure YouTube API
+                    Abrir secretos de Supabase
                   </a>
                 ) : (
                   <button
@@ -795,15 +800,17 @@ export function RedesView({
                   Connect Meta first
                 </p>
                 <p className="mx-auto mt-1 max-w-md text-[13px] text-[var(--muted)]">
-                  Settings → API → Meta, then hover Instagram → Connect
+                  Supabase → Secrets: Meta, then hover Instagram → Connect
                   Instagram.
                 </p>
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
                   <a
-                    href={`/projects/${projectId}/settings/api`}
+                    href={supabaseSecretsUrl()}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui-btn-primary !py-2 text-[13px]"
                   >
-                    Configure Meta API
+                    Abrir secretos de Supabase
                   </a>
                   <button
                     type="button"
@@ -820,15 +827,17 @@ export function RedesView({
                   Connect YouTube API first
                 </p>
                 <p className="mx-auto mt-1 max-w-md text-[13px] text-[var(--muted)]">
-                  Settings → API → YouTube (Google OAuth Client ID + Secret),
+                  Supabase → Secrets: YouTube (Google OAuth Client ID + Secret),
                   then hover YouTube → Connect YouTube.
                 </p>
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
                   <a
-                    href={`/projects/${projectId}/settings/api`}
+                    href={supabaseSecretsUrl()}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui-btn-primary !py-2 text-[13px]"
                   >
-                    Configure YouTube API
+                    Abrir secretos de Supabase
                   </a>
                   <button
                     type="button"
@@ -845,7 +854,7 @@ export function RedesView({
                   Connect Blotato first
                 </p>
                 <p className="mx-auto mt-1 max-w-md text-[13px] text-[var(--muted)]">
-                  Settings → API → Blotato. Then link TikTok in{" "}
+                  Supabase → Secrets: Blotato. Then link TikTok in{" "}
                   <a
                     href="https://my.blotato.com/settings"
                     target="_blank"

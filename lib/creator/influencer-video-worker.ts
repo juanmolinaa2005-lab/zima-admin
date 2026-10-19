@@ -768,7 +768,7 @@ async function generateStartFrame(opts: {
       .from("estudio_influencer_videos")
       .update({
         status: "failed",
-        error: "Conecta OpenAI en Ajustes → API para crear el fotograma.",
+        error: "Conecta OpenAI en Supabase → Secrets para crear el fotograma.",
         provider_status: "FAILED",
         updated_at: new Date().toISOString(),
       })

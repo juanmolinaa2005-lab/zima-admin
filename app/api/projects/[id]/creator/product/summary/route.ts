@@ -37,7 +37,7 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json(
       {
         error: "NOT_CONNECTED",
-        message: "Conecta OpenAI en Ajustes → API para generar el resumen.",
+        message: "Conecta OpenAI en Supabase → Secrets para generar el resumen.",
       },
       { status: 403 }
     );

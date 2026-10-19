@@ -1,3 +1,4 @@
+import { getSharedPair } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
@@ -5,6 +6,8 @@ export async function getYouTubeAppCredentials(): Promise<{
   clientId: string;
   clientSecret: string;
 } | null> {
+  const shared = await getSharedPair("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET");
+  if (shared) return { clientId: shared.id, clientSecret: shared.secret };
   const supabase = await createClient();
   const {
     data: { user },
@@ -113,6 +116,7 @@ export async function getYouTubeConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedPair("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },

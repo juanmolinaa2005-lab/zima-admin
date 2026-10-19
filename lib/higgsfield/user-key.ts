@@ -1,3 +1,4 @@
+import { getSharedPair } from "@/lib/supabase/shared-secrets";
 import { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
@@ -6,6 +7,8 @@ export async function getHiggsfieldCredentials(): Promise<{
   keyId: string;
   keySecret: string;
 } | null> {
+  const shared = await getSharedPair("HIGGSFIELD_KEY_ID", "HIGGSFIELD_KEY_SECRET");
+  if (shared) return { keyId: shared.id, keySecret: shared.secret };
   const supabase = await createClient();
   const {
     data: { user },
@@ -78,6 +81,7 @@ export async function getHiggsfieldConnectionStatus(): Promise<{
   connectedAt: string | null;
   keyHint: string | null;
 }> {
+  if (await getSharedPair("HIGGSFIELD_KEY_ID", "HIGGSFIELD_KEY_SECRET")) return { connected: true, connectedAt: null, keyHint: "Supabase" };
   const supabase = await createClient();
   const {
     data: { user },
