@@ -16,6 +16,7 @@ import { AdsCreativesPage } from "./marketing/AdsCreativesPage";
 import { LinksPage } from "./marketing/LinksPage";
 import { InfluencerPipelinePage } from "./marketing/InfluencerPipelinePage";
 import { ContractsPage } from "./marketing/ContractsPage";
+import { AppsPage } from "./AppsPage";
 import { sectionOf, sectionTabs, viewFrom, type SectionId, type ViewId } from "./nav";
 
 type DashboardProps = {
@@ -81,6 +82,8 @@ export function Dashboard({ project }: DashboardProps) {
             onOpenGallery={() => select("gallery")}
           />
         );
+      case "apps":
+        return <AppsPage projectId={project.id} projectName={project.name} />;
       case "gallery":
         return <GalleryView projectId={project.id} />;
       case "ai-influencers":

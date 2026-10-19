@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { AnalyticsIcon, ContractIcon, EstudioIcon, GalleryIcon, HomeIcon, LinkIcon } from "./icons";
+import { AnalyticsIcon, ContractIcon, EstudioIcon, GalleryIcon, GridIcon, HomeIcon, LinkIcon } from "./icons";
 import {
   IconAccounts,
   IconChat,
@@ -16,7 +16,7 @@ export type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
 
 export type GrowthViewId = "home" | "planner" | "ai-influencers" | "campaigns" | "creatives" | "links" | "pipeline" | "contracts";
 
-export type ViewId = MarketingPageId | GrowthViewId | "studio" | "gallery";
+export type ViewId = MarketingPageId | GrowthViewId | "studio" | "gallery" | "apps";
 
 export type ViewMeta = {
   label: string;
@@ -28,6 +28,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   planner: { label: "Plan de contenido", icon: IconCalendar },
   "ai-influencers": { label: "Influencers IA", icon: IconRobot },
   studio: { label: "Studio", icon: EstudioIcon },
+  apps: { label: "Apps", icon: GridIcon },
   gallery: { label: "Galería", icon: GalleryIcon },
   upload: { label: "Publicar", icon: IconUpload },
   overview: { label: "Resultados", icon: AnalyticsIcon },
@@ -43,7 +44,7 @@ export const VIEW_META: Record<ViewId, ViewMeta> = {
   links: { label: "Enlaces UTM", icon: LinkIcon },
 };
 
-export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid" | "gallery";
+export type SectionId = "home" | "tracking" | "organic" | "influencers" | "paid" | "apps" | "gallery";
 
 /** The icon rail shows these sections; the panel beside it lists the options of the active one. */
 export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: ViewId[]; footer?: boolean }[] = [
@@ -52,6 +53,7 @@ export const SECTIONS: { id: SectionId; label: string; icon: IconComp; tabs: Vie
   { id: "organic", label: "Orgánico", icon: IconSparkles, tabs: ["planner", "ai-influencers", "studio", "upload"] },
   { id: "influencers", label: "Influencers", icon: IconCreators, tabs: ["pipeline", "requests", "responses", "contracts"] },
   { id: "paid", label: "Pagado", icon: IconMegaphone, tabs: ["campaigns", "creatives"] },
+  { id: "apps", label: "Apps", icon: GridIcon, tabs: ["apps"], footer: true },
   { id: "gallery", label: "Galería", icon: GalleryIcon, tabs: ["gallery"], footer: true },
 ];
 
@@ -90,6 +92,8 @@ const ALIASES: Record<string, ViewId> = {
   contratos: "contracts",
   mensajes: "requests",
   library: "gallery",
+  accesos: "apps",
+  tools: "apps",
 };
 
 function isMarketingPage(raw: string | null): raw is MarketingPageId {
@@ -97,7 +101,7 @@ function isMarketingPage(raw: string | null): raw is MarketingPageId {
 }
 
 export function viewFrom(raw: string | null, vt: string | null = null): ViewId {
-  if (raw === "studio" || raw === "gallery" || isMarketingPage(raw)) return raw;
+  if (raw === "studio" || raw === "gallery" || raw === "apps" || isMarketingPage(raw)) return raw;
   if (raw && GROWTH_VIEWS.has(raw)) return raw as GrowthViewId;
   if (raw && STUDIO_ALIASES.has(raw)) return "studio";
   if (raw && ALIASES[raw]) return ALIASES[raw];
