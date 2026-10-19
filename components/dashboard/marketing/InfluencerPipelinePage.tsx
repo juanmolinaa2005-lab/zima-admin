@@ -33,7 +33,6 @@ import {
   Empty,
   Field,
   Header,
-  Kpi,
   notifyError,
   Page,
   Segmented,
@@ -389,19 +388,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
       .sort((a, b) => rank(a) - rank(b) || b.updatedAt.localeCompare(a.updatedAt));
   }, [visible, stageFilter]);
 
-  const stats = useMemo(() => {
-    const reached = (stages: CreatorStage[]) => creators.filter((c) => c.touches.some((t) => stages.includes(t.stage))).length;
-    const contacted = reached(["contacted", "engaged", "pitched", "closed"]);
-    const replied = reached(["engaged", "pitched", "closed"]);
-    return {
-      due: creators.filter((c) => ACTIVE_STAGES.includes(c.stage) && nextStep(c).due).length,
-      talking: creators.filter((c) => ACTIVE_STAGES.includes(c.stage)).length,
-      toContact: creators.filter((c) => c.stage === "new").length,
-      replyRate: contacted ? Math.round((replied / contacted) * 100) : null,
-      contacted,
-      closed: creators.filter((c) => c.stage === "closed").length,
-    };
-  }, [creators]);
+  const dueCount = useMemo(() => creators.filter((c) => ACTIVE_STAGES.includes(c.stage) && nextStep(c).due).length, [creators]);
 
   const importPreview = useMemo(() => (importText.trim() ? parsePipelineCsv(importText) : null), [importText]);
 
@@ -537,13 +524,6 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi compact label="Toca escribir hoy" value={String(stats.due)} hint={stats.due ? "esperan tu mensaje" : "estás al día"} tone={stats.due ? "bad" : undefined} />
-        <Kpi compact label="En conversación" value={String(stats.talking)} hint={`${stats.toContact} por contactar`} />
-        <Kpi compact label="Respuesta" value={stats.replyRate === null ? "—" : `${stats.replyRate}%`} hint={`de ${stats.contacted} contactados`} />
-        <Kpi compact label="Cerrados" value={String(stats.closed)} hint="acuerdos" tone={stats.closed ? "good" : undefined} />
-      </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <Segmented
           label="Vista"
@@ -570,7 +550,7 @@ export function InfluencerPipelinePage({ projectId, active }: { projectId: strin
           }`}
         >
           Solo los que toca escribir
-          <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${dueOnly ? "bg-white/20" : "bg-[var(--surface-alt)]"}`}>{stats.due}</span>
+          <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${dueOnly ? "bg-white/20" : "bg-[var(--surface-alt)]"}`}>{dueCount}</span>
         </button>
       </div>
 
