@@ -19,9 +19,9 @@ import {
 import {
   displayNameFromMeta,
   parseProfileUrl,
-  type ProfileMeta,
 } from "@/lib/viewtracker/profile";
 import { PlatformLogo } from "./vt-ui";
+import { dmHref, MessagesInbox, type OutreachItem } from "./MessagesInbox";
 
 type MailAccount = { id: string; email: string };
 type Channel = "email" | "profile";
@@ -169,13 +169,6 @@ function ProfilePreview({ url }: { url: string }) {
 
 const CONNECTORS: SocialPlatform[] = ["tiktok", "instagram", "youtube", "x", "facebook"];
 
-/** Opens the DM thread directly where the network has a public link for it; otherwise the profile. */
-function dmHref(meta: ProfileMeta) {
-  if (meta.username && meta.platform === "instagram") return `https://ig.me/m/${encodeURIComponent(meta.username)}`;
-  if (meta.username && meta.platform === "facebook") return `https://m.me/${encodeURIComponent(meta.username)}`;
-  return meta.normalizedUrl;
-}
-
 function ConnectorBar({
   accounts,
   connecting,
@@ -279,7 +272,48 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [savedFlash, setSavedFlash] = useState("");
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [items, setItems] = useState<OutreachItem[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(true);
   const templateRef = useRef<HTMLDivElement>(null);
+
+  const loadOutreach = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/viewtracker/outreach`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.items)) setItems(data.items as OutreachItem[]);
+    } catch {
+      /* ignore */
+    } finally {
+      setItemsLoading(false);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/projects/${projectId}/viewtracker/outreach`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!live) return;
+        if (Array.isArray(data?.items)) setItems(data.items as OutreachItem[]);
+        setItemsLoading(false);
+      })
+      .catch(() => {
+        if (live) setItemsLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!composeOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !templateOpen) setComposeOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [composeOpen, templateOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -553,6 +587,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       }
       if (!fromEmail.trim()) {
         setError("Elige tu email de envío en Plantilla.");
+        setComposeOpen(false);
         setTemplateOpen(true);
         return;
       }
@@ -585,10 +620,12 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
           profileUrl: profileUrl.trim() || undefined,
         });
 
-        setOk(`Enviado a ${to}. Lo verás en Respuestas.`);
+        setOk(`Enviado a ${to}.`);
         setToEmail("");
         setProfileUrl("");
         setTagValues({});
+        setComposeOpen(false);
+        void loadOutreach();
       } catch (err) {
         setError(err instanceof Error ? err.message : "No se pudo enviar");
       } finally {
@@ -619,10 +656,12 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
       window.open(dmHref(profileMeta), "_blank", "noopener,noreferrer");
       setOk(
         dmAccount?.username
-          ? `Mensaje copiado. Pégalo y envíalo desde @${dmAccount.username}. Lo verás en Respuestas.`
-          : "Mensaje copiado. Pégalo en el chat y envíalo. Lo verás en Respuestas.",
+          ? `Mensaje copiado. Pégalo y envíalo desde @${dmAccount.username}.`
+          : "Mensaje copiado. Pégalo en el chat y envíalo.",
       );
       setTagValues({});
+      setComposeOpen(false);
+      void loadOutreach();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo registrar el mensaje");
     } finally {
@@ -649,7 +688,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
             Mensajes
           </h1>
           <p className="mt-1 text-[13px] text-[var(--muted)]">
-            Conecta tus redes y escribe a los creadores por email o DM. Cada mensaje queda registrado.
+            Todos tus mensajes a creadores en un solo sitio: email, Instagram, TikTok, YouTube, X y Facebook.
           </p>
         </div>
 
@@ -785,7 +824,72 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
         </div>
       ) : null}
 
-      <form onSubmit={handleSend} className="grid gap-3 lg:grid-cols-2">
+      <MessagesInbox
+        projectId={projectId}
+        items={items}
+        loading={itemsLoading}
+        fromEmail={fromEmail}
+        fromAccountId={fromAccount?.id ?? null}
+        onChanged={() => void loadOutreach()}
+        onRequireFromEmail={() => setTemplateOpen(true)}
+        newMessageButton={
+          <button
+            type="button"
+            onClick={() => setComposeOpen(true)}
+            aria-label="Nuevo mensaje"
+            title="Nuevo mensaje"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--foreground)] text-white shadow-[0_12px_30px_-8px_rgba(17,24,39,0.5)] transition hover:scale-105 active:scale-95"
+          >
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
+              <path
+                d="M4.5 19.5h3.75L18.6 9.15a2.12 2.12 0 0 0-3-3L5.25 16.5zM13.5 8.25l3 3"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        }
+      />
+
+      {composeOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+          <button
+            type="button"
+            className="animate-fade-in absolute inset-0 bg-[#0a2540]/45"
+            aria-label="Cerrar"
+            onClick={() => setComposeOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="compose-title"
+            className="animate-scale-in relative flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-t-[24px] border border-[var(--border)] bg-[var(--background)] shadow-[0_24px_60px_-12px_rgba(17,24,39,0.45)] sm:rounded-[24px]"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] bg-white px-5 py-3.5">
+              <h2 id="compose-title" className="text-[15px] font-semibold text-[var(--foreground)]">
+                Nuevo mensaje
+              </h2>
+              <button
+                type="button"
+                onClick={() => setComposeOpen(false)}
+                aria-label="Cerrar"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition hover:bg-[var(--surface-alt)] hover:text-[var(--foreground)]"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden>
+                  <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            {error ? (
+              <div className="mx-4 mt-4 rounded-xl border border-[#fecaca] bg-[var(--danger-soft)] px-3 py-2 text-[13px] text-[var(--danger)] sm:mx-5">
+                {error}
+              </div>
+            ) : null}
+
+      <form onSubmit={handleSend} className="grid gap-3 overflow-y-auto p-4 lg:grid-cols-2 sm:p-5">
         <div className="space-y-3">
           <FieldCard label="Enviar por" hint="Email o DM">
             <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--background)] p-0.5">
@@ -947,6 +1051,9 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
           ) : null}
         </div>
       </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
