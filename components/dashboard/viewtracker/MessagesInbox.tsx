@@ -257,14 +257,14 @@ export function MessagesInbox({
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] h-[calc(100dvh-230px)] min-h-[460px] overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)] xl:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] h-[calc(100dvh-190px)] min-h-[460px] overflow-hidden xl:grid-cols-[280px_minmax(0,1fr)]">
       <aside
         className={`relative min-h-0 min-w-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
       >
-        <div className="px-4 pb-2 pt-4">
+        <div className="pb-2 pt-1">
           <p className="text-[17px] font-semibold text-[var(--foreground)]">Conversaciones</p>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-24">
+        <div className="min-h-0 flex-1 overflow-y-auto pb-24 xl:pr-3">
           {loading ? (
             <p className="px-2 py-6 text-[13px] text-[var(--muted-soft)]">Cargando…</p>
           ) : conversations.length === 0 ? (
@@ -286,7 +286,7 @@ export function MessagesInbox({
                         setError("");
                       }}
                       className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition ${
-                        active ? "bg-[var(--surface-alt)]" : "hover:bg-[var(--surface-alt)]/60"
+                        active ? "bg-white shadow-[0_1px_2px_rgba(17,24,39,0.06)]" : "hover:bg-white/70"
                       }`}
                     >
                       <Avatar convo={c} />
@@ -313,7 +313,7 @@ export function MessagesInbox({
       <section className={`min-h-0 min-w-0 flex-col xl:flex ${mobileThread ? "flex" : "hidden"}`}>
         {selected ? (
           <>
-            <header className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
+            <header className="flex items-center gap-3 border-b border-[var(--border)] pb-3 xl:pl-5">
               <button
                 type="button"
                 onClick={() => setMobileThread(false)}
@@ -362,7 +362,7 @@ export function MessagesInbox({
               ) : null}
             </header>
 
-            <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--background)] px-4 py-5">
+            <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto py-5 xl:pl-5">
               <div className="mt-auto space-y-3">
                 {selected.messages.map((m, i) => {
                   const prev = selected.messages[i - 1];
@@ -387,9 +387,9 @@ export function MessagesInbox({
               </div>
             </div>
 
-            <form onSubmit={send} className="border-t border-[var(--border)] bg-white p-3">
+            <form onSubmit={send} className="pt-3 xl:pl-5">
               {error ? <p className="mb-2 px-1 text-[12px] text-[var(--danger)]">{error}</p> : null}
-              <div className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-[var(--background)] py-1.5 pl-3.5 pr-1.5 focus-within:border-[var(--border-strong)] focus-within:bg-white">
+              <div className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-white py-1.5 pl-3.5 pr-1.5 focus-within:border-[var(--border-strong)]">
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -422,7 +422,7 @@ export function MessagesInbox({
             </form>
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center bg-[var(--background)] p-6 text-center text-[13px] text-[var(--muted-soft)]">
+          <div className="flex flex-1 items-center justify-center p-6 text-center text-[13px] text-[var(--muted-soft)]">
             Tus conversaciones aparecerán aquí.
           </div>
         )}

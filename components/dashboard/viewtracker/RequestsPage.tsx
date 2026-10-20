@@ -687,9 +687,6 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
           <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
             Mensajes
           </h1>
-          <p className="mt-1 text-[13px] text-[var(--muted)]">
-            Todos tus mensajes a creadores en un solo sitio: email, Instagram, TikTok, YouTube, X y Facebook.
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
