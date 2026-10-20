@@ -257,7 +257,7 @@ export function MessagesInbox({
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] h-[calc(100dvh-190px)] min-h-[460px] xl:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid min-h-[460px] flex-1 grid-cols-[minmax(0,1fr)] border-t border-[var(--border)] pt-4 xl:grid-cols-[280px_minmax(0,1fr)]">
       <aside
         className={`relative min-h-0 min-w-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
       >

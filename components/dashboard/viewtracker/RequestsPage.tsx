@@ -681,7 +681,7 @@ export function RequestsPage({ projectId }: RequestsPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="mx-auto flex h-full min-h-0 max-w-6xl flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-semibold tracking-tight text-[var(--foreground)]">
