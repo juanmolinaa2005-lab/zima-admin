@@ -58,7 +58,11 @@ function groupConversations(items: OutreachItem[]): Conversation[] {
     const withPlatform = [...messages].reverse().find((m) => m.platform);
     out.push({
       key,
-      name: last.recipient_name || meta?.username || last.to_email || "Sin nombre",
+      name:
+        (last.recipient_name && /[\p{L}\p{N}]/u.test(last.recipient_name) ? last.recipient_name : null) ||
+        meta?.username ||
+        last.to_email ||
+        "Sin nombre",
       handle: meta?.username ? `@${meta.username}` : last.to_email || last.profile_url || "",
       avatarUrl: [...messages].reverse().find((m) => m.avatar_url)?.avatar_url ?? null,
       platform: withPlatform?.platform ?? null,
@@ -253,9 +257,9 @@ export function MessagesInbox({
   }
 
   return (
-    <div className="grid h-[calc(100dvh-230px)] min-h-[460px] overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)] md:grid-cols-[300px_1fr]">
+    <div className="grid h-[calc(100dvh-230px)] min-h-[460px] overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)] xl:grid-cols-[280px_minmax(0,1fr)]">
       <aside
-        className={`relative min-h-0 flex-col border-[var(--border)] md:flex md:border-r ${mobileThread ? "hidden" : "flex"}`}
+        className={`relative min-h-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
       >
         <div className="px-4 pb-2 pt-4">
           <p className="text-[17px] font-semibold text-[var(--foreground)]">Conversaciones</p>
@@ -306,7 +310,7 @@ export function MessagesInbox({
         <div className="absolute bottom-4 right-4">{newMessageButton}</div>
       </aside>
 
-      <section className={`min-h-0 flex-col md:flex ${mobileThread ? "flex" : "hidden"}`}>
+      <section className={`min-h-0 min-w-0 flex-col xl:flex ${mobileThread ? "flex" : "hidden"}`}>
         {selected ? (
           <>
             <header className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
@@ -314,7 +318,7 @@ export function MessagesInbox({
                 type="button"
                 onClick={() => setMobileThread(false)}
                 aria-label="Volver"
-                className="-ml-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] md:hidden"
+                className="-ml-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] xl:hidden"
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden>
                   <path d="m14.5 6-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
