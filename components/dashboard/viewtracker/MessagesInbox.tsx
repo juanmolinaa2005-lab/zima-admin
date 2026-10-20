@@ -257,7 +257,7 @@ export function MessagesInbox({
   }
 
   return (
-    <div className="grid min-h-[460px] flex-1 grid-cols-[minmax(0,1fr)] border-t border-[var(--border)] pt-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="-mx-4 grid min-h-[460px] flex-1 grid-cols-[minmax(0,1fr)] border-t border-[var(--border)] px-4 pt-4 sm:-mx-6 sm:px-6 md:-mb-6 xl:grid-cols-[280px_minmax(0,1fr)]">
       <aside
         className={`relative min-h-0 min-w-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
       >
@@ -387,7 +387,7 @@ export function MessagesInbox({
               </div>
             </div>
 
-            <form onSubmit={send} className="pt-3 xl:pl-5">
+            <form onSubmit={send} className="pb-4 pt-3 xl:pl-5">
               {error ? <p className="mb-2 px-1 text-[12px] text-[var(--danger)]">{error}</p> : null}
               <div className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-white py-1.5 pl-3.5 pr-1.5 focus-within:border-[var(--border-strong)]">
                 <textarea
