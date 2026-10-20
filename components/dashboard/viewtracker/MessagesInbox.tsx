@@ -257,9 +257,9 @@ export function MessagesInbox({
   }
 
   return (
-    <div className="grid h-[calc(100dvh-230px)] min-h-[460px] overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)] xl:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] h-[calc(100dvh-230px)] min-h-[460px] overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_1px_2px_rgba(17,24,39,0.03)] xl:grid-cols-[280px_minmax(0,1fr)]">
       <aside
-        className={`relative min-h-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
+        className={`relative min-h-0 min-w-0 flex-col border-[var(--border)] xl:flex xl:border-r ${mobileThread ? "hidden" : "flex"}`}
       >
         <div className="px-4 pb-2 pt-4">
           <p className="text-[17px] font-semibold text-[var(--foreground)]">Conversaciones</p>
